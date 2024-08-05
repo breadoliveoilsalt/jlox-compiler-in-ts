@@ -1,11 +1,16 @@
-function log() {
-  console.log('compiling');
+import { open } from 'node:fs/promises';
+
+async function main() {
+  try {
+    console.log('\n----- compiling -----\n');
+    const file = await open('./src.jlox');
+
+    for await (const line of file.readLines()) {
+      console.log(line);
+    }
+  } catch (e) {
+    console.log(e);
+  }
 }
 
-log();
-
-export default function addFive(num: number): number {
-  return num + 5;
-}
-
-export const thing = 'thing';
+main()

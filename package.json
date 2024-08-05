@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "module": "es2022",
+  "target": "es2022",
   "scripts": {
     "compile": "tsc && node build/index.js",
     "test": "vitest"
@@ -10,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^22.1.0",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

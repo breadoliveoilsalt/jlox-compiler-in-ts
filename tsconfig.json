@@ -3,6 +3,7 @@
     "strict": true,
     "outDir": "build",
     "skipLibCheck": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "types": ["node"]
   }
 }
