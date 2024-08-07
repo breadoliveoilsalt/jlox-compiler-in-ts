@@ -1,13 +1,18 @@
 import { open } from 'node:fs/promises';
+import { scan } from './scanner';
 
 async function main() {
   try {
     console.log('\n----- compiling -----\n');
-    const file = await open('./src.jlox');
+    const fileHandle = await open('./src.jlox');
 
-    for await (const line of file.readLines()) {
-      console.log(line);
-    }
+    const readline = fileHandle.readLines;
+
+    scan({ readline })
+
+    // for await (const line of fileHandle.readLines()) {
+    //   console.log(line);
+    // }
   } catch (e) {
     console.log(e);
   }
