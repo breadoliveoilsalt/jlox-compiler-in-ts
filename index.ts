@@ -49,6 +49,7 @@ async function main() {
   const { readLine } = await initLineReader({ filePath: './src.jlox' });
   const line = await readLine()
   console.log(line)
+  console.log(await readLine())
   // console.log(readline());
   // scan({ readline });
 }
