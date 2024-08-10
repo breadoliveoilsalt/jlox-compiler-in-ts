@@ -19,6 +19,8 @@ async function initLineReader({ filePath }: { filePath: string }) {
   }
 }
 
+type ReadLine = () => Promise<string>;
+
 async function main() {
   console.log('\n----- compiling -----\n');
   const { readLine } = await initLineReader({ filePath: './src.jlox' });
