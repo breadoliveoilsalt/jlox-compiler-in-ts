@@ -48,12 +48,9 @@ export async function scan( { readLine }) {
   let currentBuffer = line.trim();
 
   while (currentBuffer !== '') {
-    console.log('currentBuffer1', currentBuffer) 
     const tokenType = tokenTypes.find((tokenType) => tokenType.test(currentBuffer));
     const lexeme = tokenType.consumeFrom(currentBuffer)
-    console.log('lexeme', lexeme)
     currentBuffer = currentBuffer.slice([lexeme.length])
-    console.log('currentBuffer2', currentBuffer) 
     tokens.push({name: tokenType.name});
   }
 
