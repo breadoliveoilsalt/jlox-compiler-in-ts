@@ -22,26 +22,34 @@ type ScanParams = {
 
 // TODO: see if I can get away with this
 const defaultScanArguments = {
-  readLine: async () => Promise.resolve(' '),
-  buffer: '',
+  readLine: async () => Promise.resolve(''),
+  buffer: ' ',
   tokens: [],
   line: 0,
 };
 
 export async function scan(
   { readLine, buffer, tokens, line }: ScanParams = {
-    readLine: async () => Promise.resolve(' '),
-    buffer: '',
+    readLine: async () => Promise.resolve(''),
+    buffer: ' ',
     tokens: [],
     line: 0,
   },
 ) {
 
-  console.log(await readLine())
-  console.log(await readLine())
-
+  const newTokens = [];
+  const currentLine = await readLine();
+  tokenTypes.forEach((tokenType) => {
+    if (tokenType.test(currentLine)) {
+      console.log(tokenType.name)
+      // TODO: How do I exit loop early?
+      return
+    }
+  }
   // UP TO HERE
-  // const currentBuffer = buffer + 
+  // PROBLEM: if I supply one property in the object paramenter, I lose all the other defaults
+  // const currentBuffer = buffer + currentLine;
+  // console.log('currentBuffer', currentBuffer)
 
   console.log('done')
 }
