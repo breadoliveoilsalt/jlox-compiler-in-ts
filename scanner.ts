@@ -1,5 +1,5 @@
 import type { CreateReadStreamOptions } from 'node:fs/promises';
-// import type { Interface } from "node";
+
 const tokenTypes = [
   {
     name: 'leftParen',
@@ -12,11 +12,9 @@ const tokenTypes = [
   },
 ];
 
-type LineReader = (options?: CreateReadStreamOptions | undefined) => Interface;
-
 type ScanParams = {
   // readline: () => string,
-  readline: LineReader;
+  readLine: () => Promise<string>;
   buffer: string;
   tokens: [];
   line: number;
@@ -24,31 +22,28 @@ type ScanParams = {
 
 // TODO: see if I can get away with this
 const defaultScanArguments = {
-  readline: () => '',
+  readLine: async () => Promise.resolve(' '),
   buffer: '',
   tokens: [],
   line: 0,
 };
 
 export async function scan(
-  { readline, buffer, tokens, line }: ScanParams = {
-    readline: async () => Promise.resolve(''),
+  { readLine, buffer, tokens, line }: ScanParams = {
+    readLine: async () => Promise.resolve(' '),
     buffer: '',
     tokens: [],
     line: 0,
   },
 ) {
 
+  console.log(await readLine())
+  console.log(await readLine())
 
-  // const lineString = await readline()
-  // console.log(lineString)
-  // const currentLine = line + 1;
-  // const currentBuffer = buffer + readline();
-  for await (const line of readline()) {
-    console.log(line);
-  }
+  // UP TO HERE
+  // const currentBuffer = buffer + 
+
   console.log('done')
-  
 }
 
 // const TOKEN_NAMES = {
