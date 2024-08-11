@@ -1,3 +1,5 @@
+import { TOKEN_NAMES } from './scanner'
+
 function buildBang({ token, remainingTokens }) {
   return {
     token,
@@ -26,19 +28,38 @@ function buildFalse({ token }) {
   }
 }
 
-function buildTree({ tokens }) {
-
-  // Goal: hide knowledge of data structure via other methods
-  if (tokens.length === 0) return;
-  const [token, ...remainingTokens] = tokens;
-
-  const builders = {
-    bang: buildBang,
+function buildLiteral({ token } ) {
+  const literalBuilders = {
     true: buildTrue,
     false: buildFalse,
   }
 
-  return builders[token.name]({ token, remainingTokens })
+  return literalBuilders[token.name]({ token })
+}
+
+function recurseDownGrammar({ tokens }) {
+  const [token, ...remainingTokens] = tokens;
+  const left = buildLiteral({token})
+
+  return left;
+  // if matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL) {
+
+  // }
+
+
+}
+
+function buildTree({ tokens }) {
+
+  // Goal: hide knowledge of data structure via other methods
+  if (tokens.length === 0) return;
+
+
+  return recurseDownGrammar({ tokens })
+
+
+  const [token, ...remainingTokens] = tokens;
+
 }
 
 export function parse({ tokens }) {
