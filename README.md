@@ -6,8 +6,12 @@
 
 ## TODOs / Questions
 
-- Integrate responsibility for keeping track of line numbers to function
+- To consider: Integrate responsibility for keeping track of line numbers to function
   returned by `initLineReader` .
+- Add error handling
+  - source file not present
+  - syntax errors, etc.
+- Add repl
 
 ## Issues
 
@@ -21,5 +25,5 @@
     supplying one line at a time everytime `readLine` is called. Refactor later.
     See `initLineReader`.
 
-- Decide: Will scan be recursive, while using a `readLine` function? How
+- Consider: Will scan be recursive, while using a `readLine` function? How
   much can I adhere to functional programming here, while still getting it done?

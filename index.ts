@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { scan } from './scanner';
-import { parse } from './scanner';
+import { parse } from './parser';
 
 async function initLineReader({ filePath }: { filePath: string }) {
   try {
