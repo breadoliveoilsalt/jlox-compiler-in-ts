@@ -26,12 +26,12 @@ async function main() {
   console.log('\n----- compiling -----\n');
   const { readLine } = await initLineReader({ filePath: './src.jlox' });
   const { tokens } = await scan({ readLine });
-  const ast = parse({ tokens })
+  const { ast } = parse({ tokens })
 
-  console.log(ast)
+  // console.log(ast)
   const result = ast.interpret()
   console.log(result)
-  
+
 }
 
 main();

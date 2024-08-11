@@ -20,7 +20,7 @@ const tokenTypes = [
     consumeFrom: (buffer: string) => buffer.match(/^true\b/)![0],
   },
   {
-    name: 'bang',
+    name: 'false',
     test: (buffer: string) => buffer.match(/^false\b/),
     consumeFrom: (buffer: string) => buffer.match(/^false\b/)![0],
   },
@@ -42,24 +42,7 @@ const defaultScanArguments = {
   line: 0,
 };
 
-export function parse({ tokens }) {
-
-  /* 
-    * IMP WORKS
-  console.log(tokens)
-
-  const ast = {
-    right: {
-      evaluate() {
-        return true
-      },
-    },
-    interpret() {
-      return !this.right.evaluate()
-    }
-  }
-  return ast
-  */
+function buildTree({ tokens }) {
 
   // Goal: hide knowledge of data structure via other methods
   if (tokens.length === 0) return;
@@ -68,7 +51,7 @@ export function parse({ tokens }) {
   if (token.name === 'bang') {
     return {
       token,
-      right: parse({ tokens: remainingTokens }),
+      right: buildTree({ tokens: remainingTokens }),
       interpret() {
         return !(this.right.interpret())
       }
@@ -81,14 +64,24 @@ export function parse({ tokens }) {
       interpret() {
         return true
       }
-
     }
-    // const node = buildNode(token)
-    // node.child = parse({ tokens: remainingTokens})
-
-    // return ast;
-
   }
+
+  if (token.name === 'false') {
+    return {
+      token,
+      interpret() {
+        return false
+      }
+    }
+  }
+
+}
+
+export function parse({ tokens }) {
+  const ast = buildTree({ tokens });
+  return { ast }
+
 }
 
 
