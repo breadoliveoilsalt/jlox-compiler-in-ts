@@ -4,7 +4,12 @@
 - `npm ci`
 - `npm run compile` (currently TypeScript errors are non-blocking)
 
-## TODOs / Questions
+## Up next
+- Figure out how to evaluate a more complex expression where there is a left and
+  a right. Will need to peek, and will to recurse down grammar instaed of
+  matching token to builder functions
+
+## TODOs / Questions Inbox
 
 - To consider: Integrate responsibility for keeping track of line numbers to function
   returned by `initLineReader` .
