@@ -149,12 +149,6 @@ export async function scan({ readLine }) {
 //   EOF: 'eof',
 // };
 
-// const TOKEN_REGEXES: Array<[TokenType, RegExp]> = [
-//   [TOKEN_NAMES.BANG, new RegExp(/\b!/)],
-//   [TOKEN_NAMES.TRUE, new RegExp(/true/)],
-//   [TOKEN_NAMES.FALSE, new RegExp(/false/)],
-// ];
-
 // export type TokenType = (typeof TOKEN_NAMES)[keyof typeof TOKEN_NAMES];
 
 // type Token = {
@@ -164,23 +158,3 @@ export async function scan({ readLine }) {
 //   // literal: Object, // TN: come back to
 // };
 
-// let line = 0;
-
-// const tokens: Array<Token> | [] = [];
-
-// export function scan(line: string) {
-//   if (line === '') return;
-//   TOKEN_REGEXES.forEach(([type, re]) => {
-//     const matches = line.match(re);
-//     // if (!matches) return;
-//     tokens.push({
-//       type,
-//       line,
-//       lexeme: matches[0],
-//     });
-//   });
-// }
-
-// export function getTokens() {
-//   return tokens;
-// }
