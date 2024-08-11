@@ -48,6 +48,45 @@ function buildTree({ tokens }) {
   if (tokens.length === 0) return;
   const [token, ...remainingTokens] = tokens;
 
+  function buildBang({token}){
+    return {
+      token,
+      right: buildTree({ tokens: remainingTokens }),
+      interpret() {
+        return !(this.right.interpret())
+      }
+    }
+  }
+
+  function buildTrue({ token }) {
+    return {
+      token,
+      interpret() {
+        return true
+      }
+    }
+  }
+
+  function buildFalse({ token }) {
+    return {
+      token,
+      interpret() {
+        return false
+      }
+    }
+  }
+
+  
+
+
+  const builders = {
+    bang: buildBang,
+    true: buildTrue,
+    false: buildFalse,
+  }
+
+  return builders[token.name]({ token })
+
   if (token.name === 'bang') {
     return {
       token,
@@ -63,15 +102,6 @@ function buildTree({ tokens }) {
       token,
       interpret() {
         return true
-      }
-    }
-  }
-
-  if (token.name === 'false') {
-    return {
-      token,
-      interpret() {
-        return false
       }
     }
   }
