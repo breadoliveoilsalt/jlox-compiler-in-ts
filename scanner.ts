@@ -42,7 +42,46 @@ const defaultScanArguments = {
   line: 0,
 };
 
-export async function scan( { readLine }) {
+export function parse({ tokens }) {
+
+  console.log(tokens)
+
+  const ast = {
+    right: {
+      evaluate() {
+        return true
+      },
+    },
+    interpret() {
+      return !this.right.evaluate()
+    }
+  }
+  return ast
+  // Goal: hide knowledge of data structure via other methods
+  // if (tokens.length === 0) return;
+  // const [ token, ...remainingTokens] = tokens;
+
+  // const node = buildNode(token)
+  // node.child = parse({ tokens: remainingTokens})
+  /*
+  const ast = {
+    token: tokens[0],
+    // right: tokens[1]
+    right: {
+      evaluate: () => true,
+    },
+    // evaluate: () => !(this.right.evaluate())
+    evaluate: () => return this;
+  }
+
+  return ast;
+
+  */
+
+}
+
+
+export async function scan({ readLine }) {
   const tokens = [];
   let line = await readLine();
   let currentBuffer = line.trim();
@@ -51,16 +90,10 @@ export async function scan( { readLine }) {
     const tokenType = tokenTypes.find((tokenType) => tokenType.test(currentBuffer));
     const lexeme = tokenType.consumeFrom(currentBuffer)
     currentBuffer = currentBuffer.slice([lexeme.length])
-    tokens.push({name: tokenType.name});
+    tokens.push({ name: tokenType.name });
   }
 
-  console.log(tokens);
-  // UP TO HERE
-  // PROBLEM: if I supply one property in the object paramenter, I lose all the other defaults
-  // const currentBuffer = buffer + currentLine;
-  // console.log('currentBuffer', currentBuffer)
-
-  console.log('done');
+  return { tokens };
 }
 
 // const TOKEN_NAMES = {

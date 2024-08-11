@@ -1,5 +1,6 @@
-import { scan } from './scanner';
 import * as fs from 'node:fs';
+import { scan } from './scanner';
+import { parse } from './scanner';
 
 async function initLineReader({ filePath }: { filePath: string }) {
   try {
@@ -14,7 +15,7 @@ async function initLineReader({ filePath }: { filePath: string }) {
     return {
       readLine
     }
-  } catch(e) {
+  } catch (e) {
     console.log(e)
   }
 }
@@ -24,7 +25,13 @@ type ReadLine = () => Promise<string>;
 async function main() {
   console.log('\n----- compiling -----\n');
   const { readLine } = await initLineReader({ filePath: './src.jlox' });
-  scan({ readLine });
+  const { tokens } = await scan({ readLine });
+  const ast = parse({ tokens })
+
+  console.log(ast)
+  const result = ast.interpret()
+  console.log(result)
+  
 }
 
 main();
