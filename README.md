@@ -18,7 +18,7 @@
   - syntax errors, etc.
 - Add repl
 
-## Issues
+## Open Issues
 
 - It seems extremely difficult (impossible?) to extract from node a `readLine` function, that
   streams lines from a file, that can then be passed around to other functions
@@ -32,3 +32,43 @@
 
 - Consider: Will scan be recursive, while using a `readLine` function? How
   much can I adhere to functional programming here, while still getting it done?
+
+
+## Issues Resoled / Learnings
+
+- I wanted to use object parameters everywhere, seemingly as a way to enforce
+  consistent variable assignment. I'm finding, however, that it can make reading
+  the code difficult. Compare the readability of the different calls to `matches` below:
+
+```js
+function peek({ remainingTokens, offset = 0 }) {
+  return remainingTokens[0 + offset]
+}
+
+function matches({ token, tokenName }) {
+  return token.name === tokenName;
+}
+
+if matches({ token: peek({ remainingTokens }), tokenName: TOKEN_NAMES.EQUAL_EQUAL }) {
+  // stuff
+}
+
+```
+vs
+
+
+```js
+function peek(remainingTokens, offset = 0) {
+  return remainingTokens[0 + offset]
+}
+
+function matches(token, tokenName) {
+  return token.name === tokenName;
+}
+
+if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
+//   // stuff
+}
+```
+
+  - Decision: Try to keep function parameters limited to one or two. Avoid object parameters and instead try to enforce consistent variable assignment by having functions return objects to be destructured by function callers.

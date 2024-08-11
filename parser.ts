@@ -28,38 +28,59 @@ function buildFalse({ token }) {
   }
 }
 
-function buildLiteral({ token } ) {
+function buildLiteral({ token }) {
   const literalBuilders = {
     true: buildTrue,
     false: buildFalse,
   }
 
   return literalBuilders[token.name]({ token })
+  // TODO: Should throw here if no matches with builder found.
+  // This is a replacement for a switch statement.
 }
 
-function recurseDownGrammar({ tokens }) {
+function peek(remainingTokens, offset = 0) {
+  return remainingTokens[0 + offset]
+}
+
+function matches(token, tokenName) {
+  return token.name === tokenName;
+}
+
+function noMore(tokens) {
+  return tokens.length === 0
+}
+
+function recurseDownGrammar(tokens) {
   const [token, ...remainingTokens] = tokens;
-  const left = buildLiteral({token})
+  const left = buildLiteral({ token })
 
+  if(noMore(remainingTokens)) {
+    return left
+  }
+
+  // [UP TO HERE - problem here: program not blowing up, but true == true
+  // returns false
+  if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
+    const [ equalEqualToken, ...successorTokens ] = remainingTokens;
+    return {
+      left,
+      right: recurseDownGrammar(successorTokens),
+      interpret() {
+        return this.left === this.right
+      }
+    }
+  }
+
+  // TODO: Necessary? How to handle? Add error handling for syntax errors.
   return left;
-  // if matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL) {
-
-  // }
-
-
 }
 
 function buildTree({ tokens }) {
-
   // Goal: hide knowledge of data structure via other methods
-  if (tokens.length === 0) return;
+  if (noMore(tokens)) return;
 
-
-  return recurseDownGrammar({ tokens })
-
-
-  const [token, ...remainingTokens] = tokens;
-
+  return recurseDownGrammar(tokens)
 }
 
 export function parse({ tokens }) {

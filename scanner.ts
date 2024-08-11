@@ -41,10 +41,10 @@ export const TOKEN_NAMES = {
 };
 
 const tokenTypes = [
-  { 
+  {
     name: TOKEN_NAMES.EQUAL_EQUAL,
     test: (buffer: string) => buffer.match(/^==/),
-    consumeFrom: (buffer: string) => buffer.match(/^==/)![0], 
+    consumeFrom: (buffer: string) => buffer.match(/^==/)![0],
   },
   {
     name: TOKEN_NAMES.LEFT_PAREN,
@@ -61,6 +61,7 @@ const tokenTypes = [
     test: (buffer: string) => buffer.match(/^\!/),
     consumeFrom: (buffer: string) => buffer.match(/^\!/)![0],
   },
+  // TODO: consider if word boundary needed
   {
     name: TOKEN_NAMES.TRUE,
     test: (buffer: string) => buffer.match(/^true\b/),
@@ -97,7 +98,7 @@ export async function scan({ readLine }) {
   while (currentBuffer !== '') {
     const tokenType = tokenTypes.find((tokenType) => tokenType.test(currentBuffer));
     const lexeme = tokenType.consumeFrom(currentBuffer)
-    currentBuffer = currentBuffer.slice([lexeme.length])
+    currentBuffer = currentBuffer.slice([lexeme.length]).trimStart();
     tokens.push({ name: tokenType.name });
   }
 
