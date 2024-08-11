@@ -44,6 +44,8 @@ const defaultScanArguments = {
 
 export function parse({ tokens }) {
 
+  /* 
+    * IMP WORKS
   console.log(tokens)
 
   const ast = {
@@ -57,27 +59,36 @@ export function parse({ tokens }) {
     }
   }
   return ast
-  // Goal: hide knowledge of data structure via other methods
-  // if (tokens.length === 0) return;
-  // const [ token, ...remainingTokens] = tokens;
-
-  // const node = buildNode(token)
-  // node.child = parse({ tokens: remainingTokens})
-  /*
-  const ast = {
-    token: tokens[0],
-    // right: tokens[1]
-    right: {
-      evaluate: () => true,
-    },
-    // evaluate: () => !(this.right.evaluate())
-    evaluate: () => return this;
-  }
-
-  return ast;
-
   */
 
+  // Goal: hide knowledge of data structure via other methods
+  if (tokens.length === 0) return;
+  const [token, ...remainingTokens] = tokens;
+
+  if (token.name === 'bang') {
+    return {
+      token,
+      right: parse({ tokens: remainingTokens }),
+      interpret() {
+        return !(this.right.interpret())
+      }
+    }
+  }
+
+  if (token.name === 'true') {
+    return {
+      token,
+      interpret() {
+        return true
+      }
+
+    }
+    // const node = buildNode(token)
+    // node.child = parse({ tokens: remainingTokens})
+
+    // return ast;
+
+  }
 }
 
 
