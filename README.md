@@ -11,12 +11,13 @@
 
 ## TODOs / Questions Inbox
 
+- Take file as input on command line
+- If no file provided at command line, start repl
 - To consider: Integrate responsibility for keeping track of line numbers to function
   returned by `initLineReader` .
 - Add error handling
   - source file not present
   - syntax errors, etc.
-- Add repl
 
 ## Open Issues
 

@@ -7,13 +7,11 @@ async function initLineReader({ filePath }: { filePath: string }) {
     const file = fs.readFileSync(filePath, 'utf8');
     const data = file.split('\n')
 
-    async function readLine() {
-      if (data.length === 0) return Promise.resolve(false)
-      return Promise.resolve(data.shift())
-    }
-
     return {
-      readLine
+      readLine: () => {
+        if (data.length === 0) return Promise.resolve(false)
+        return Promise.resolve(data.shift())
+      }
     }
   } catch (e) {
     console.log(e)
@@ -24,7 +22,9 @@ type ReadLine = () => Promise<string>;
 
 async function main() {
   console.log('\n----- compiling -----\n');
-  const { readLine } = await initLineReader({ filePath: './src.jlox' });
+  const reader = await initLineReader({ filePath: './src.jlox' });
+  const readLine = reader!.readLine as ReadLine;
+
   const { tokens } = await scan({ readLine });
   const { ast } = parse({ tokens })
 
