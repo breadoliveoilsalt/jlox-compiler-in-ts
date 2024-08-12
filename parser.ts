@@ -62,12 +62,13 @@ function recurseDownGrammar(tokens) {
   // [UP TO HERE - problem here: program not blowing up, but true == true
   // returns false
   if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
-    const [ equalEqualToken, ...successorTokens ] = remainingTokens;
+    const [ equalityToken, ...successorTokens ] = remainingTokens;
     return {
+      token: equalityToken,
       left,
       right: recurseDownGrammar(successorTokens),
       interpret() {
-        return this.left === this.right
+        return this.left.interpret() === this.right.interpret()
       }
     }
   }

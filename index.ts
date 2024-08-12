@@ -28,7 +28,9 @@ async function main() {
   const { tokens } = await scan({ readLine });
   const { ast } = parse({ tokens })
 
-  // console.log(ast)
+  // console.log('ast', ast)
+  // console.log('left', ast.left.interpret())
+  // console.log("right", ast.right.interpret())
   const result = ast.interpret()
   console.log(result)
 
