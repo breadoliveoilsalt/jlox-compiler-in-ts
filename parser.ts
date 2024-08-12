@@ -43,8 +43,8 @@ function peek(remainingTokens, offset = 0) {
   return remainingTokens[0 + offset]
 }
 
-function matches(token, tokenName) {
-  return token.name === tokenName;
+function matches(token, ...tokenNames: string[]) {
+  return tokenNames.find((tokenName) => token.name === tokenName);
 }
 
 function noMore(tokens) {
@@ -59,16 +59,15 @@ function recurseDownGrammar(tokens) {
     return left
   }
 
-  // [UP TO HERE - problem here: program not blowing up, but true == true
-  // returns false
-  if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
+  if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL, TOKEN_NAMES.BANG_EQUAL)) {
     const [ equalityToken, ...successorTokens ] = remainingTokens;
     return {
       token: equalityToken,
       left,
       right: recurseDownGrammar(successorTokens),
       evaluate() {
-        return this.left.evaluate() === this.right.evaluate()
+        if (this.token.name === TOKEN_NAMES.EQUAL_EQUAL) return this.left.evaluate() === this.right.evaluate()
+        if (this.token.name === TOKEN_NAMES.BANG_EQUAL) return this.left.evaluate() !== this.right.evaluate()
       }
     }
   }

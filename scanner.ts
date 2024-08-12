@@ -47,6 +47,11 @@ const tokenTypes = [
     consumeFrom: (buffer: string) => buffer.match(/^==/)![0],
   },
   {
+    name: TOKEN_NAMES.BANG_EQUAL,
+    test: (buffer: string) => buffer.match(/^!=/),
+    consumeFrom: (buffer: string) => buffer.match(/^!=/)![0],
+  },
+  {
     name: TOKEN_NAMES.LEFT_PAREN,
     test: (buffer: string) => buffer.match(/^\(/),
     consumeFrom: (buffer: string) => buffer.match(/^\(/)![0],
