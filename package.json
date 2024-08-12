@@ -6,7 +6,7 @@
   "module": "es2022",
   "target": "es2022",
   "scripts": {
-    "compile": "(tsc || true) && npm run execute",
+    "compile": "rm -rf build/ && (tsc || true) && npm run execute",
     "execute": "node build/index.js",
     "test": "vitest"
   },

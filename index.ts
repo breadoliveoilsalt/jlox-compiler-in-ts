@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-import { scan } from './scanner';
+import { type ReadLine, scan } from './scanner';
 import { parse } from './parser';
 
 async function initLineReader({ filePath }: { filePath: string }) {
@@ -18,21 +18,22 @@ async function initLineReader({ filePath }: { filePath: string }) {
   }
 }
 
-type ReadLine = () => Promise<string>;
-
 async function main() {
   console.log('\n----- compiling -----\n');
   const reader = await initLineReader({ filePath: './src.jlox' });
   const readLine = reader!.readLine as ReadLine;
 
-  const { tokens } = await scan({ readLine });
-  const { ast } = parse({ tokens })
+  const { tokens } = await scan(readLine);
+  const parsedResults = parse(tokens)
+  if (parsedResults?.ast) {
+    const result = parsedResults.ast.evaluate()
+    console.log(result)
+  }
+
 
   // console.log('ast', ast)
   // console.log('left', ast.left.interpret())
   // console.log("right", ast.right.interpret())
-  const result = ast.evaluate()
-  console.log(result)
 
 }
 

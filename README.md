@@ -11,6 +11,8 @@
 
 ## TODOs / Questions Inbox
 
+- Add line number to token object (perhaps starting position (cursor) of lexeme
+  on that line)
 - Take file as input on command line
 - If no file provided at command line, start repl
 - To consider: Integrate responsibility for keeping track of line numbers to function
