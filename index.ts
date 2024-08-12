@@ -31,7 +31,7 @@ async function main() {
   // console.log('ast', ast)
   // console.log('left', ast.left.interpret())
   // console.log("right", ast.right.interpret())
-  const result = ast.interpret()
+  const result = ast.evaluate()
   console.log(result)
 
 }

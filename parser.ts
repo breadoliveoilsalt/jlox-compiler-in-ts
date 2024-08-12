@@ -4,8 +4,8 @@ function buildBang({ token, remainingTokens }) {
   return {
     token,
     right: buildTree({ tokens: remainingTokens }),
-    interpret() {
-      return !(this.right.interpret())
+    evaluate() {
+      return !(this.right.evaluate())
     }
   }
 }
@@ -13,7 +13,7 @@ function buildBang({ token, remainingTokens }) {
 function buildTrue({ token }) {
   return {
     token,
-    interpret() {
+    evaluate() {
       return true
     }
   }
@@ -22,7 +22,7 @@ function buildTrue({ token }) {
 function buildFalse({ token }) {
   return {
     token,
-    interpret() {
+    evaluate() {
       return false
     }
   }
@@ -67,8 +67,8 @@ function recurseDownGrammar(tokens) {
       token: equalityToken,
       left,
       right: recurseDownGrammar(successorTokens),
-      interpret() {
-        return this.left.interpret() === this.right.interpret()
+      evaluate() {
+        return this.left.evaluate() === this.right.evaluate()
       }
     }
   }
