@@ -24,7 +24,7 @@ async function main() {
   const reader = await initLineReader({ filePath: './src.jlox' });
   const readLine = reader!.readLine as ReadLine;
 
-  return compile(readLine)
+  return await compile(readLine)
 }
 
 main();
