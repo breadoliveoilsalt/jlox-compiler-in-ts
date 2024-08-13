@@ -1,3 +1,5 @@
+import { type ReadLine } from '.';
+
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',
   RIGHT_PAREN: 'rightParen',
@@ -44,7 +46,7 @@ type TokenType = {
   name: string;
   test: (buffer: string) => string[] | null;
   consumeFrom: (buffer: string) => string;
-}
+};
 
 const tokenTypes: TokenType[] = [
   {
@@ -85,11 +87,9 @@ const tokenTypes: TokenType[] = [
   },
 ];
 
-export type ReadLine = () => Promise<string>;
-
 export type Token = {
   name: string;
-}
+};
 
 export type Tokens = Token[];
 
@@ -116,4 +116,3 @@ export async function scan(readLine: ReadLine) {
 
   return { tokens };
 }
-
