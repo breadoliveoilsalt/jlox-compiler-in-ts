@@ -1,5 +1,14 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 
+type NodeBuilderParams = { tokens: Tokens; currentTokenHead: number };
+
+type AstTree = {
+  token: Token;
+  left?: AstTree;
+  right?: AstTree;
+  evaluate: () => any;
+};
+/*
 function buildBang({
   token,
   remainingTokens,
@@ -15,8 +24,9 @@ function buildBang({
     },
   };
 }
+*/
 
-function buildTrue({ token }: {token: Token} ) {
+function buildTrue({ token }: { token: Token }) {
   return {
     token,
     evaluate() {
@@ -25,7 +35,7 @@ function buildTrue({ token }: {token: Token} ) {
   };
 }
 
-function buildFalse({ token }: {token: Token} ) {
+function buildFalse({ token }: { token: Token }) {
   return {
     token,
     evaluate() {
@@ -34,82 +44,98 @@ function buildFalse({ token }: {token: Token} ) {
   };
 }
 
-type LiteralBuilders = { [key: string]: ({token}: {token: Token} ) => AstTree};
+type LiteralBuilders = {
+  [key: string]: ({ token }: { token: Token }) => AstTree;
+};
 
-function buildLiteral({ token }: {token: Token} ) {
+function buildLiteral({ tokens, currentTokenHead }: NodeBuilderParams) {
+  const currentToken = tokens[currentTokenHead];
+
   const literalBuilders: LiteralBuilders = {
     ['true']: buildTrue,
     ['false']: buildFalse,
   };
 
-  if (literalBuilders[token.name]) return literalBuilders[token.name]({ token });
+  if (literalBuilders[currentToken.name]) {
+    const build = literalBuilders[currentToken.name]
+    return {
+      node: build({ token: currentToken }),
+      currentTokenHead: currentTokenHead + 1,
+    };
+  }
 
-  throw new Error(`Jlox syntax error: ${token}`)
-
-  // TODO: Should throw here if no matches with builder found.
-  // This is a replacement for a switch statement.
+  throw new Error(`Jlox syntax error: ${currentToken}`);
 }
 
-function peek(remainingTokens: Tokens, offset = 0) {
-  return remainingTokens[0 + offset];
+function peek({
+  tokens,
+  currentTokenHead,
+  offset = 0,
+}: {
+  tokens: Tokens;
+  currentTokenHead: number;
+  offset?: number;
+}): Token {
+  return tokens[currentTokenHead + offset];
 }
 
 function matches(token: Token, ...tokenNames: string[]) {
   return tokenNames.find((tokenName) => token.name === tokenName);
 }
 
-function noMore(tokens: Tokens) {
-  return tokens.length === 0;
-}
-
-
-type AstTree = {
-  token: Token;
-  left?: AstTree;
-  right?: AstTree;
-  evaluate: () => any;
-}
-
-function recurseDownGrammar(tokens: Tokens): AstTree {
-  const [token, ...remainingTokens] = tokens;
-  const left = buildLiteral({ token });
-
-  if (noMore(remainingTokens)) {
-    return left;
-  }
+function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
+  // Having each builder return the currentTokenHead,
+  // And updating the currentTokenHead + 1 below, is the equivalent of
+  // indicating that the token has been consumed.
+  // Trying to avoid a global variable lurking somewhere.
+  const { node: left, currentTokenHead: updatedHead } = buildLiteral({
+    tokens,
+    currentTokenHead,
+  });
 
   if (
     matches(
-      peek(remainingTokens),
+      peek({ tokens, currentTokenHead: updatedHead }),
       TOKEN_NAMES.EQUAL_EQUAL,
       TOKEN_NAMES.BANG_EQUAL,
     )
   ) {
-    const [equalityToken, ...successorTokens] = remainingTokens;
+    const currentToken = tokens[updatedHead];
+    const { node: right } = buildLiteral({tokens, currentTokenHead: updatedHead + 1});
+
     return {
-      token: equalityToken,
+      token: currentToken,
       left,
-      right: recurseDownGrammar(successorTokens),
+      right,
       evaluate() {
         if (this.token.name === TOKEN_NAMES.EQUAL_EQUAL)
-          return !!this.left && this.left?.evaluate() === this.right?.evaluate();
+          return (
+            !!this.left && this.left?.evaluate() === this.right?.evaluate()
+          );
         if (this.token.name === TOKEN_NAMES.BANG_EQUAL)
-          return this.left!! && this.left?.evaluate() !== this.right?.evaluate();
+          return (
+            this.left!! && this.left?.evaluate() !== this.right?.evaluate()
+          );
       },
     };
   }
 
+  return left;
   // TODO: Necessary? How to handle? Add error handling for syntax errors.
-  throw new Error(`Parsing AST Tree Failed: ${tokens}`)
+  // throw new Error(`Parsing AST Tree Failed: ${tokens}`);
 }
 
-function buildTree({ tokens }: { tokens: Tokens }) {
-  return recurseDownGrammar(tokens);
+function expression({ tokens, currentTokenHead = 0 }: NodeBuilderParams) {
+  return equality({ tokens, currentTokenHead });
+}
+
+function noMore(tokens: Tokens) {
+  return tokens.length === 0;
 }
 
 export function parse(tokens: Tokens) {
   // Goal: hide knowledge of data structure via other methods
   if (noMore(tokens)) return;
-  const ast = recurseDownGrammar(tokens);
+  const ast = expression({ tokens, currentTokenHead: 0 });
   return { ast };
 }
