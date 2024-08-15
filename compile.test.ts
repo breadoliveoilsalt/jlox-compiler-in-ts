@@ -1,33 +1,65 @@
 import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
-
 describe('compile', () => {
-
   test.each([
     {
+      line: 'true',
+      expected: true,
+    },
+    {
+      line: 'false',
+      expected: false,
+    },
+    {
+      line: '!true',
+      expected: false,
+    },
+    {
+      line: '!false',
+      expected: true,
+    },
+    {
       line: 'true == true',
-      expected: true
+      expected: true,
     },
 
     {
       line: 'false == true',
-      expected: false
+      expected: false,
     },
     {
       line: 'true == false',
-      expected: false
+      expected: false,
     },
     {
       line: 'false == false',
-      expected: true
+      expected: true,
     },
-  ])('given simple string expressions, it compiles', async ({ line, expected }) => {
-    async function readLine() {
-      return Promise.resolve(line);
-    }
+    {
+      line: '!false == true',
+      expected: true,
+    },
+    {
+      line: '!true == true',
+      expected: false,
+    },
+    {
+      line: 'true == !false',
+      expected: true,
+    },
+    {
+      line: 'true == !true',
+      expected: false,
+    },
+  ])(
+    'given simple string expressions, it compiles',
+    async ({ line, expected }) => {
+      async function readLine() {
+        return Promise.resolve(line);
+      }
 
-    expect(await compile(readLine)).toEqual(expected);
-
-  })
-})
+      expect(await compile(readLine)).toEqual(expected);
+    },
+  );
+});

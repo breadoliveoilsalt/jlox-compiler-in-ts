@@ -8,23 +8,35 @@ type AstTree = {
   right?: AstTree;
   evaluate: () => any;
 };
-/*
-function buildBang({
-  token,
-  remainingTokens,
-}: {
-  token: Token;
-  remainingTokens: Tokens;
-}) {
-  return {
-    token,
-    right: buildTree({ tokens: remainingTokens }),
-    evaluate() {
-      return !this.right.evaluate();
-    },
-  };
+
+type BuilderResult = {
+  node: AstTree;
+  currentTokenHead: number;
+};
+
+function matches(token: Token, ...tokenNames: string[]) {
+  return tokenNames.find((tokenName) => token.name === tokenName);
 }
-*/
+
+function peek({
+  tokens,
+  currentTokenHead,
+  offset = 0,
+}: {
+  tokens: Tokens;
+  currentTokenHead: number;
+  offset?: number;
+}): Token {
+  return tokens[currentTokenHead + offset];
+}
+
+function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
+  if (currentTokenHead > tokens.length)
+    throw new Error(
+      `Something is advancing currentTokenHead too much. Got ${currentTokenHead}`,
+    );
+  return currentTokenHead === tokens.length;
+}
 
 function buildTrue({ token }: { token: Token }) {
   return {
@@ -48,7 +60,13 @@ type LiteralBuilders = {
   [key: string]: ({ token }: { token: Token }) => AstTree;
 };
 
-function buildLiteral({ tokens, currentTokenHead }: NodeBuilderParams) {
+// TODO:
+// - Add parentheses
+// - update name to buildPrimary
+function buildLiteral({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): BuilderResult {
   const currentToken = tokens[currentTokenHead];
 
   const literalBuilders: LiteralBuilders = {
@@ -57,7 +75,7 @@ function buildLiteral({ tokens, currentTokenHead }: NodeBuilderParams) {
   };
 
   if (literalBuilders[currentToken.name]) {
-    const build = literalBuilders[currentToken.name]
+    const build = literalBuilders[currentToken.name];
     return {
       node: build({ token: currentToken }),
       currentTokenHead: currentTokenHead + 1,
@@ -67,41 +85,59 @@ function buildLiteral({ tokens, currentTokenHead }: NodeBuilderParams) {
   throw new Error(`Jlox syntax error: ${currentToken}`);
 }
 
-function peek({
+// TODO: Add MINUS token to negate a number
+function buildUnary({
   tokens,
   currentTokenHead,
-  offset = 0,
-}: {
-  tokens: Tokens;
-  currentTokenHead: number;
-  offset?: number;
-}): Token {
-  return tokens[currentTokenHead + offset];
-}
+}: NodeBuilderParams): BuilderResult {
+  const currentToken = tokens[currentTokenHead];
 
-function matches(token: Token, ...tokenNames: string[]) {
-  return tokenNames.find((tokenName) => token.name === tokenName);
+  if (matches(currentToken, TOKEN_NAMES.BANG, TOKEN_NAMES.MINUS)) {
+    const { node: right, currentTokenHead: updatedHead } = buildUnary({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+    });
+
+    const node = {
+      token: currentToken,
+      right,
+      evaluate() {
+        if (this.token.name === TOKEN_NAMES.BANG) return !this.right.evaluate();
+        if (this.token.name === TOKEN_NAMES.MINUS)
+          throw new Error('MINUS not implemented yet');
+      },
+    };
+
+    return { node, currentTokenHead: updatedHead };
+  }
+
+  return buildLiteral({ tokens, currentTokenHead });
 }
 
 function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
   // Having each builder return the currentTokenHead,
-  // And updating the currentTokenHead + 1 below, is the equivalent of
+  // and updating the currentTokenHead + 1 below, is the equivalent of
   // indicating that the token has been consumed.
   // Trying to avoid a global variable lurking somewhere.
-  const { node: left, currentTokenHead: updatedHead } = buildLiteral({
+  const { node: left, currentTokenHead: updatedHead } = buildUnary({
     tokens,
     currentTokenHead,
   });
 
-  if (
-    matches(
+  // Important for this to be at the top rule evaluated
+  if (allTokensParsed({ tokens, currentTokenHead: updatedHead })) return left;
+
+  if (matches(
       peek({ tokens, currentTokenHead: updatedHead }),
       TOKEN_NAMES.EQUAL_EQUAL,
       TOKEN_NAMES.BANG_EQUAL,
     )
   ) {
     const currentToken = tokens[updatedHead];
-    const { node: right } = buildLiteral({tokens, currentTokenHead: updatedHead + 1});
+    const { node: right } = buildUnary({
+      tokens,
+      currentTokenHead: updatedHead + 1,
+    });
 
     return {
       token: currentToken,
@@ -121,21 +157,16 @@ function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
   }
 
   return left;
-  // TODO: Necessary? How to handle? Add error handling for syntax errors.
-  // throw new Error(`Parsing AST Tree Failed: ${tokens}`);
+  // TODO: Add error handling for syntax errors.
 }
 
 function expression({ tokens, currentTokenHead = 0 }: NodeBuilderParams) {
   return equality({ tokens, currentTokenHead });
 }
 
-function noMore(tokens: Tokens) {
-  return tokens.length === 0;
-}
-
 export function parse(tokens: Tokens) {
-  // Goal: hide knowledge of data structure via other methods
-  if (noMore(tokens)) return;
+  // TODO: hide knowledge of data structure via other methods
+  if (tokens.length === 0) return;
   const ast = expression({ tokens, currentTokenHead: 0 });
   return { ast };
 }
