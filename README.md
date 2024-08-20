@@ -36,7 +36,6 @@
 - Consider: Will scan be recursive, while using a `readLine` function? How
   much can I adhere to functional programming here, while still getting it done?
 
-
 ## Issues Resoled / Learnings
 
 - I wanted to use object parameters everywhere, seemingly as a way to enforce

@@ -114,6 +114,9 @@ function buildUnary({
   return buildLiteral({ tokens, currentTokenHead });
 }
 
+// params { tokens, currentNodeHead }
+// return { node, currentTokenHead}
+
 function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
   // Having each builder return the currentTokenHead,
   // and updating the currentTokenHead + 1 below, is the equivalent of

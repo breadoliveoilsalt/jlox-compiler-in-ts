@@ -99,6 +99,10 @@ function assertTokenType(tokenType: unknown): asserts tokenType is TokenType {
   }
 }
 
+// TODO: 
+// - Add literal lexeme
+// - Add line number
+// { name, literal/lexeme, lineNumber, position
 export async function scan(readLine: ReadLine) {
   const tokens: Tokens = [];
   let line = await readLine();
@@ -109,6 +113,7 @@ export async function scan(readLine: ReadLine) {
       tokenType.test(currentBuffer),
     );
     assertTokenType(tokenType);
+    //"!"
     const lexeme = tokenType.consumeFrom(currentBuffer);
     currentBuffer = currentBuffer.slice(lexeme.length).trimStart();
     tokens.push({ name: tokenType.name });
