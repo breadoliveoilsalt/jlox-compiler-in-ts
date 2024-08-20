@@ -2,16 +2,28 @@ import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 
 type NodeBuilderParams = { tokens: Tokens; currentTokenHead: number };
 
+type NodeBuilderResult = {
+  node: AstTree;
+  currentTokenHead: number;
+};
+
+type NodeBuilder = ({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams) => NodeBuilderResult;
+
+// TODO: simplify type signature by making one for the
+// buidler functions in general - no need to put arg type and return
+// type each time then
+type PrimaryBuilders = {
+  [key: string]: NodeBuilder;
+};
+
 type AstTree = {
   token: Token;
   left?: AstTree;
   right?: AstTree;
   evaluate: () => any;
-};
-
-type BuilderResult = {
-  node: AstTree;
-  currentTokenHead: number;
 };
 
 function matches(token: Token, ...tokenNames: string[]) {
@@ -38,47 +50,105 @@ function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
   return currentTokenHead === tokens.length;
 }
 
-function buildTrue({ token }: { token: Token }) {
-  return {
+function buildTrue({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead];
+  const node = {
     token,
     evaluate() {
       return true;
     },
   };
+
+  return {
+    node,
+    currentTokenHead: currentTokenHead + 1,
+  };
 }
 
-function buildFalse({ token }: { token: Token }) {
-  return {
+// TODO: I have to refactor all the builders to take into account
+// standard params and standard return values
+// UPTO: converted builTrue; have to convert buildFase, then create buildParenthetical, then update caller to accept new return values
+function buildFalse({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead];
+
+  const node = {
     token,
     evaluate() {
       return false;
     },
   };
+
+  return {
+    node,
+    currentTokenHead: currentTokenHead + 1,
+  };
 }
 
-type LiteralBuilders = {
-  [key: string]: ({ token }: { token: Token }) => AstTree;
-};
-
-// TODO:
-// - Add parentheses
-// - update name to buildPrimary
-function buildLiteral({
+function buildParenthetical({
   tokens,
   currentTokenHead,
-}: NodeBuilderParams): BuilderResult {
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: expressionNode,
+    currentTokenHead: tokenHeadAfterExpressionEval,
+  } = expression({ tokens, currentTokenHead: currentTokenHead + 1 });
+
+  if (
+    (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
+    TOKEN_NAMES.RIGHT_PAREN)
+  ) {
+    // TODO: Seems odd and off that node would only have one token,
+    // the right paren, when there is both a left and right paren at play.
+    // Does Node really need to return token?
+    const token = tokens[tokenHeadAfterExpressionEval];
+
+    const node = {
+      token,
+      evaluate() {
+        return expressionNode.evaluate();
+      },
+    };
+
+    // TODO: be consistent with object return values: wrap in parens, or not.
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterExpressionEval + 1,
+    };
+  }
+
+  throw new Error(
+    `Something went wrong evaluating a parenthetical, at token ${tokens[tokenHeadAfterExpressionEval]}`,
+  );
+}
+
+function buildPrimary({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
   const currentToken = tokens[currentTokenHead];
 
-  const literalBuilders: LiteralBuilders = {
-    ['true']: buildTrue,
-    ['false']: buildFalse,
+  const primaryBuilders: PrimaryBuilders = {
+    [TOKEN_NAMES.TRUE]: buildTrue,
+    [TOKEN_NAMES.FALSE]: buildFalse,
+    [TOKEN_NAMES.LEFT_PAREN]: buildParenthetical,
   };
 
-  if (literalBuilders[currentToken.name]) {
-    const build = literalBuilders[currentToken.name];
+  if (primaryBuilders[currentToken.name]) {
+    const build = primaryBuilders[currentToken.name];
+    const { node, currentTokenHead: tokenHeadAfterPrimaryEval } = build({
+      tokens,
+      currentTokenHead,
+    });
+
     return {
-      node: build({ token: currentToken }),
-      currentTokenHead: currentTokenHead + 1,
+      node,
+      currentTokenHead: tokenHeadAfterPrimaryEval,
     };
   }
 
@@ -89,7 +159,7 @@ function buildLiteral({
 function buildUnary({
   tokens,
   currentTokenHead,
-}: NodeBuilderParams): BuilderResult {
+}: NodeBuilderParams): NodeBuilderResult {
   const currentToken = tokens[currentTokenHead];
 
   if (matches(currentToken, TOKEN_NAMES.BANG, TOKEN_NAMES.MINUS)) {
@@ -111,39 +181,50 @@ function buildUnary({
     return { node, currentTokenHead: updatedHead };
   }
 
-  return buildLiteral({ tokens, currentTokenHead });
+  return buildPrimary({ tokens, currentTokenHead });
 }
 
 // params { tokens, currentNodeHead }
 // return { node, currentTokenHead}
 
-function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
+function buildEquality({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
   // Having each builder return the currentTokenHead,
   // and updating the currentTokenHead + 1 below, is the equivalent of
   // indicating that the token has been consumed.
   // Trying to avoid a global variable lurking somewhere.
-  const { node: left, currentTokenHead: updatedHead } = buildUnary({
+  const { node: left, currentTokenHead: tokenHeadAfterLeftEval } = buildUnary({
     tokens,
     currentTokenHead,
   });
 
   // Important for this to be at the top rule evaluated
-  if (allTokensParsed({ tokens, currentTokenHead: updatedHead })) return left;
+  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterLeftEval })) {
+    return {
+      node: left,
+      currentTokenHead: tokenHeadAfterLeftEval,
+    };
+  }
 
-  if (matches(
-      peek({ tokens, currentTokenHead: updatedHead }),
+  if (
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterLeftEval }),
       TOKEN_NAMES.EQUAL_EQUAL,
       TOKEN_NAMES.BANG_EQUAL,
     )
   ) {
-    const currentToken = tokens[updatedHead];
-    const { node: right } = buildUnary({
-      tokens,
-      currentTokenHead: updatedHead + 1,
-    });
+    const token = tokens[tokenHeadAfterLeftEval];
 
-    return {
-      token: currentToken,
+    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+      buildUnary({
+        tokens,
+        currentTokenHead: tokenHeadAfterLeftEval,
+      });
+
+    const node = {
+      token,
       left,
       right,
       evaluate() {
@@ -157,19 +238,36 @@ function equality({ tokens, currentTokenHead }: NodeBuilderParams): AstTree {
           );
       },
     };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterRightEval + 1,
+    };
   }
 
-  return left;
+  return {
+    node: left,
+    currentTokenHead: tokenHeadAfterLeftEval,
+  };
   // TODO: Add error handling for syntax errors.
 }
 
-function expression({ tokens, currentTokenHead = 0 }: NodeBuilderParams) {
-  return equality({ tokens, currentTokenHead });
+function expression({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+  const { node, currentTokenHead: tokenHeadAfterExpressionEval } =
+    buildEquality({ tokens, currentTokenHead });
+
+  return {
+    node,
+    currentTokenHead: tokenHeadAfterExpressionEval,
+  };
 }
 
 export function parse(tokens: Tokens) {
   // TODO: hide knowledge of data structure via other methods
   if (tokens.length === 0) return;
-  const ast = expression({ tokens, currentTokenHead: 0 });
+  const { node: ast } = expression({ tokens, currentTokenHead: 0 });
   return { ast };
 }
