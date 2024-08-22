@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
+// TODO: Add tests for double bang (or more)
 describe('compile', () => {
   test.each([
     {
@@ -19,6 +20,18 @@ describe('compile', () => {
       line: '!false',
       expected: true,
     },
+    {
+      line: '!!false',
+      expected: false,
+    },
+    // {
+    //   line: '!!false',
+    //   expected: true,
+    // },
+    // {
+    //   line: '!!!false',
+    //   expected: false,
+    // },
     {
       line: 'true == true',
       expected: true,
@@ -51,6 +64,42 @@ describe('compile', () => {
     {
       line: 'true == !true',
       expected: false,
+    },
+    {
+      line: '(true)',
+      expected: true,
+    },
+    {
+      line: '(!true)',
+      expected: false,
+    },
+    {
+      line: '(false)',
+      expected: false,
+    },
+    {
+      line: '(!false)',
+      expected: true,
+    },
+    {
+      line: '(false == true)',
+      expected: false,
+    },
+    {
+      line: '(!false == true)',
+      expected: true,
+    },
+    {
+      line: '(!false) == (true)',
+      expected: true,
+    },
+    {
+      line: '(false == true) == (true == false)',
+      expected: true,
+    },
+    {
+      line: '(false == true) == (true == false)',
+      expected: true,
     },
   ])(
     'given simple string expressions, it compiles',

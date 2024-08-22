@@ -43,11 +43,12 @@ function peek({
 }
 
 function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
-  if (currentTokenHead > tokens.length)
-    throw new Error(
-      `Something is advancing currentTokenHead too much. Got ${currentTokenHead}`,
-    );
-  return currentTokenHead === tokens.length;
+  // currentTokenHead is an index pointer.
+  // Hence, all tokens will be evaluated when one
+  // of the builders consumes the last token and
+  // returns a currentTokenHead equal to tokens.length,
+  // advancing the index beyond available indicies.
+  return currentTokenHead === tokens.length
 }
 
 function buildTrue({
@@ -68,9 +69,6 @@ function buildTrue({
   };
 }
 
-// TODO: I have to refactor all the builders to take into account
-// standard params and standard return values
-// UPTO: converted builTrue; have to convert buildFase, then create buildParenthetical, then update caller to accept new return values
 function buildFalse({
   tokens,
   currentTokenHead,
@@ -94,6 +92,7 @@ function buildParenthetical({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
+
   const {
     node: expressionNode,
     currentTokenHead: tokenHeadAfterExpressionEval,
@@ -103,7 +102,7 @@ function buildParenthetical({
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
     TOKEN_NAMES.RIGHT_PAREN)
   ) {
-    // TODO: Seems odd and off that node would only have one token,
+    // TODO: Seems odd and off that a parenthetical node would only have one token,
     // the right paren, when there is both a left and right paren at play.
     // Does Node really need to return token?
     const token = tokens[tokenHeadAfterExpressionEval];
@@ -111,11 +110,10 @@ function buildParenthetical({
     const node = {
       token,
       evaluate() {
-        return expressionNode.evaluate();
+        return (expressionNode.evaluate());
       },
     };
 
-    // TODO: be consistent with object return values: wrap in parens, or not.
     return {
       node,
       currentTokenHead: tokenHeadAfterExpressionEval + 1,
@@ -131,6 +129,7 @@ function buildPrimary({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
+
   const currentToken = tokens[currentTokenHead];
 
   const primaryBuilders: PrimaryBuilders = {
@@ -163,7 +162,7 @@ function buildUnary({
   const currentToken = tokens[currentTokenHead];
 
   if (matches(currentToken, TOKEN_NAMES.BANG, TOKEN_NAMES.MINUS)) {
-    const { node: right, currentTokenHead: updatedHead } = buildUnary({
+    const { node: right, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
       tokens,
       currentTokenHead: currentTokenHead + 1,
     });
@@ -178,49 +177,42 @@ function buildUnary({
       },
     };
 
-    return { node, currentTokenHead: updatedHead };
+    return { node, currentTokenHead: tokenHeadAfterUnaryEval };
   }
 
   return buildPrimary({ tokens, currentTokenHead });
 }
 
-// params { tokens, currentNodeHead }
-// return { node, currentTokenHead}
-
 function buildEquality({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  // Having each builder return the currentTokenHead,
-  // and updating the currentTokenHead + 1 below, is the equivalent of
-  // indicating that the token has been consumed.
-  // Trying to avoid a global variable lurking somewhere.
-  const { node: left, currentTokenHead: tokenHeadAfterLeftEval } = buildUnary({
+  const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
     tokens,
     currentTokenHead,
   });
 
   // Important for this to be at the top rule evaluated
-  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterLeftEval })) {
+  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterUnaryEval })) {
     return {
       node: left,
-      currentTokenHead: tokenHeadAfterLeftEval,
+      currentTokenHead: tokenHeadAfterUnaryEval,
     };
   }
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterLeftEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterUnaryEval }),
       TOKEN_NAMES.EQUAL_EQUAL,
       TOKEN_NAMES.BANG_EQUAL,
     )
   ) {
-    const token = tokens[tokenHeadAfterLeftEval];
+    const token = tokens[tokenHeadAfterUnaryEval];
 
     const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
       buildUnary({
         tokens,
-        currentTokenHead: tokenHeadAfterLeftEval,
+        currentTokenHead: tokenHeadAfterUnaryEval + 1,
       });
 
     const node = {
@@ -241,13 +233,19 @@ function buildEquality({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterRightEval + 1,
+      // Learning: Adding +1 here is the problem. Evaluating the
+      // Right side already set the currentToken head.
+      // This evaluates something in the middle, so
+      // no need to add plus 1.
+      // I didn't realize before because it was always
+      // returning after this.
+      currentTokenHead: tokenHeadAfterRightEval,
     };
   }
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterLeftEval,
+    currentTokenHead: tokenHeadAfterUnaryEval,
   };
   // TODO: Add error handling for syntax errors.
 }
@@ -256,12 +254,12 @@ function expression({
   tokens,
   currentTokenHead = 0,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node, currentTokenHead: tokenHeadAfterExpressionEval } =
+  const { node, currentTokenHead: tokenHeadAfterEqualityEval } =
     buildEquality({ tokens, currentTokenHead });
 
   return {
     node,
-    currentTokenHead: tokenHeadAfterExpressionEval,
+    currentTokenHead: tokenHeadAfterEqualityEval,
   };
 }
 
