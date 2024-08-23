@@ -36,6 +36,10 @@
 - Consider: Will scan be recursive, while using a `readLine` function? How
   much can I adhere to functional programming here, while still getting it done?
 
+- Can I hide knowledge of data structure from parser, etc., with an intermediate
+  layer of helper methods?
+
+
 ## Issues Resoled / Learnings
 
 - I wanted to use object parameters everywhere, seemingly as a way to enforce
@@ -74,3 +78,5 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 ```
 
   - Decision: Try to keep function parameters limited to one or two. Avoid object parameters and instead try to enforce consistent variable assignment by having functions return objects to be destructured by function callers.
+
+- 

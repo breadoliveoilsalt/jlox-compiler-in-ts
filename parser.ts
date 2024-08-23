@@ -105,6 +105,7 @@ function buildParenthetical({
     // TODO: Seems odd and off that a parenthetical node would only have one token,
     // the right paren, when there is both a left and right paren at play.
     // Does Node really need to return token?
+    // Consider changing token to tokens array for a node
     const token = tokens[tokenHeadAfterExpressionEval];
 
     const node = {
@@ -239,6 +240,8 @@ function buildEquality({
       // no need to add plus 1.
       // I didn't realize before because it was always
       // returning after this.
+      // Other Learning: be real careful about where you add
+      // +1 to currentTokenHead to indicate a token was consumed.
       currentTokenHead: tokenHeadAfterRightEval,
     };
   }
@@ -264,7 +267,6 @@ function expression({
 }
 
 export function parse(tokens: Tokens) {
-  // TODO: hide knowledge of data structure via other methods
   if (tokens.length === 0) return;
   const { node: ast } = expression({ tokens, currentTokenHead: 0 });
   return { ast };
