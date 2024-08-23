@@ -70,7 +70,15 @@ describe('compile', () => {
       expected: true,
     },
     {
+      line: '((true))',
+      expected: true,
+    },
+    {
       line: '(!true)',
+      expected: false,
+    },
+    {
+      line: '((!true))',
       expected: false,
     },
     {
@@ -98,7 +106,15 @@ describe('compile', () => {
       expected: true,
     },
     {
-      line: '(false == true) == (true == false)',
+      line: '(false == true) != (true == true)',
+      expected: true,
+    },
+    {
+      line: '(true) == (false != true)',
+      expected: true,
+    },
+    {
+      line: '((!true)) != (false != true)',
       expected: true,
     },
   ])(
