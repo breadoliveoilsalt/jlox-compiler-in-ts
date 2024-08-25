@@ -85,6 +85,12 @@ const tokenTypes: TokenType[] = [
     test: (buffer: string) => buffer.match(/^false\b/),
     consumeFrom: (buffer: string): string => buffer.match(/^false\b/)![0],
   },
+    // UPTO: test tokenizing numbers
+  {
+    name: TOKEN_NAMES.NUMBER,
+    test: (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?\b/),
+    consumeFrom: (buffer: string): string => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?\b/)![0],
+  },
 ];
 
 export type Token = {
