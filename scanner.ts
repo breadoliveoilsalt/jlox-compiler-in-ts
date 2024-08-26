@@ -50,16 +50,6 @@ type TokenType = {
 
 const tokenTypes: TokenType[] = [
   {
-    name: TOKEN_NAMES.EQUAL_EQUAL,
-    test: (buffer: string) => buffer.match(/^==/),
-    consumeFrom: (buffer: string): string => buffer.match(/^==/)![0],
-  },
-  {
-    name: TOKEN_NAMES.BANG_EQUAL,
-    test: (buffer: string) => buffer.match(/^!=/),
-    consumeFrom: (buffer: string): string => buffer.match(/^!=/)![0],
-  },
-  {
     name: TOKEN_NAMES.LEFT_PAREN,
     test: (buffer: string) => buffer.match(/^\(/),
     consumeFrom: (buffer: string): string => buffer.match(/^\(/)![0],
@@ -68,6 +58,16 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.RIGHT_PAREN,
     test: (buffer: string) => buffer.match(/^\)/),
     consumeFrom: (buffer: string): string => buffer.match(/^\)/)![0],
+  },
+  {
+    name: TOKEN_NAMES.EQUAL_EQUAL,
+    test: (buffer: string) => buffer.match(/^==/),
+    consumeFrom: (buffer: string): string => buffer.match(/^==/)![0],
+  },
+  {
+    name: TOKEN_NAMES.BANG_EQUAL,
+    test: (buffer: string) => buffer.match(/^!=/),
+    consumeFrom: (buffer: string): string => buffer.match(/^!=/)![0],
   },
   {
     name: TOKEN_NAMES.BANG,
@@ -86,10 +86,46 @@ const tokenTypes: TokenType[] = [
     consumeFrom: (buffer: string): string => buffer.match(/^false\b/)![0],
   },
     // UPTO: test tokenizing numbers
+  // GREATER: 'greater',
+  // GREATER_EQUAL: 'greaterEqual',
+  // LESS: 'less',
+  // LESS_EQUAL: 'lessEqual',
+  // MINUS: 'minus',
+  // PLUS: 'plus',
+  // SLASH: 'slash',
+  // STAR: 'star',
+  // NOTE: I'm removing word boundary from numbers and
+  // comparisons and operators, so 343>343 is valid.
+  // Only exeption is there must be a whitespace after a
+  // + or - indended for math. This is to avoid awkwardness from
+  // -15--5, for example.
+    // TODO: Update the order of these so they match the list in TOKEN_NAMES
   {
     name: TOKEN_NAMES.NUMBER,
-    test: (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?\b/),
-    consumeFrom: (buffer: string): string => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?\b/)![0],
+    test: (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/),
+    consumeFrom: (buffer: string): string => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)![0],
+  },
+  // GREATER_EQUAL has to come before GREATER to avoid
+  // false-positive with GREATER regex. Same with LESS.
+  {
+    name: TOKEN_NAMES.GREATER_EQUAL,
+    test: (buffer: string) => buffer.match(/^>=/),
+    consumeFrom: (buffer: string): string => buffer.match(/^>=/)![0],
+  },
+  {
+    name: TOKEN_NAMES.GREATER,
+    test: (buffer: string) => buffer.match(/^>/),
+    consumeFrom: (buffer: string): string => buffer.match(/^>/)![0],
+  },
+  {
+    name: TOKEN_NAMES.LESS_EQUAL,
+    test: (buffer: string) => buffer.match(/^<=/),
+    consumeFrom: (buffer: string): string => buffer.match(/^<=/)![0],
+  },
+  {
+    name: TOKEN_NAMES.LESS,
+    test: (buffer: string) => buffer.match(/^</),
+    consumeFrom: (buffer: string): string => buffer.match(/^</)![0],
   },
 ];
 
