@@ -100,7 +100,7 @@ function buildParenthetical({
 
   if (
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
-    TOKEN_NAMES.RIGHT_PAREN)
+      TOKEN_NAMES.RIGHT_PAREN)
   ) {
     // TODO: Seems odd and off that a parenthetical node would only have one token,
     // the right paren, when there is both a left and right paren at play.
@@ -126,10 +126,31 @@ function buildParenthetical({
   );
 }
 
+// UPTO: Add unit tests for comparisons
+function buildNumber({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead];
+
+  const node = {
+    token,
+    evaluate() {
+      return parseFloat(token.text);
+    },
+  };
+
+  return {
+    node,
+    currentTokenHead: currentTokenHead + 1,
+  };
+}
+
 function buildPrimary({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
+  console.log({tokens, currentTokenHead})
 
   const currentToken = tokens[currentTokenHead];
 
@@ -137,6 +158,7 @@ function buildPrimary({
     [TOKEN_NAMES.TRUE]: buildTrue,
     [TOKEN_NAMES.FALSE]: buildFalse,
     [TOKEN_NAMES.LEFT_PAREN]: buildParenthetical,
+    [TOKEN_NAMES.NUMBER]: buildNumber,
   };
 
   if (primaryBuilders[currentToken.name]) {
@@ -152,7 +174,7 @@ function buildPrimary({
     };
   }
 
-  throw new Error(`Jlox syntax error: ${currentToken}`);
+  throw new Error(`Jlox syntax error at token index ${currentTokenHead}: ${tokens}`);
 }
 
 // TODO: Add MINUS token to negate a number
@@ -184,16 +206,14 @@ function buildUnary({
   return buildPrimary({ tokens, currentTokenHead });
 }
 
-function buildEquality({
-  tokens,
-  currentTokenHead,
-}: NodeBuilderParams): NodeBuilderResult {
+function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
+
   const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
     tokens,
     currentTokenHead,
   });
 
-  // Important for this to be at the top rule evaluated
+  // TODO: DO I need this here, not just at the top level? Probably?
   if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterUnaryEval })) {
     return {
       node: left,
@@ -204,8 +224,10 @@ function buildEquality({
   if (
     matches(
       peek({ tokens, currentTokenHead: tokenHeadAfterUnaryEval }),
-      TOKEN_NAMES.EQUAL_EQUAL,
-      TOKEN_NAMES.BANG_EQUAL,
+      TOKEN_NAMES.GREATER_EQUAL,
+      TOKEN_NAMES.GREATER,
+      TOKEN_NAMES.LESS_EQUAL,
+      TOKEN_NAMES.LESS,
     )
   ) {
     const token = tokens[tokenHeadAfterUnaryEval];
@@ -214,6 +236,73 @@ function buildEquality({
       buildUnary({
         tokens,
         currentTokenHead: tokenHeadAfterUnaryEval + 1,
+      });
+
+    const node = {
+      token,
+      left,
+      right,
+      evaluate() {
+        const leftExpr = this.left.evaluate();
+        const rightExpr = this.right.evaluate();
+        switch (this.token.name) {
+          case TOKEN_NAMES.GREATER_EQUAL:
+            return leftExpr >= rightExpr
+          case TOKEN_NAMES.GREATER:
+            return leftExpr > rightExpr
+          case TOKEN_NAMES.LESS_EQUAL:
+            return leftExpr <= rightExpr
+          case TOKEN_NAMES.LESS:
+            return leftExpr < rightExpr
+          default:
+            throw new Error(`Failed to parse comparison: ${leftExpr}, ${token.text}, ${rightExpr}`)
+        }
+      }
+    }
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterRightEval,
+    };
+  }
+
+  return {
+    node: left,
+    currentTokenHead: tokenHeadAfterUnaryEval,
+  };
+}
+
+
+function buildEquality({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
+  const { node: left, currentTokenHead: tokenHeadAfterComparisonEval } = buildComparison({
+    tokens,
+    currentTokenHead,
+  });
+
+  // Important for this to be at the top rule evaluated
+  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterComparisonEval })) {
+    return {
+      node: left,
+      currentTokenHead: tokenHeadAfterComparisonEval,
+    };
+  }
+
+  if (
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterComparisonEval }),
+      TOKEN_NAMES.EQUAL_EQUAL,
+      TOKEN_NAMES.BANG_EQUAL,
+    )
+  ) {
+    const token = tokens[tokenHeadAfterComparisonEval];
+
+    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+      buildComparison({
+        tokens,
+        currentTokenHead: tokenHeadAfterComparisonEval + 1,
       });
 
     const node = {
@@ -248,7 +337,7 @@ function buildEquality({
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterUnaryEval,
+    currentTokenHead: tokenHeadAfterComparisonEval,
   };
   // TODO: Add error handling for syntax errors.
 }

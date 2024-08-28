@@ -144,7 +144,7 @@ const tokenTypes: TokenType[] = [
 
 export type Token = {
   name: string;
-  text?: string,
+  text: string,
 };
 
 export type Tokens = Token[];
