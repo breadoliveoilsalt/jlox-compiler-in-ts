@@ -1,6 +1,8 @@
 import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
+// TODO: Break these down into separate tests so 
+// I can isolate them with .only if needed.
 describe('compile', () => {
   test.each([
     {
