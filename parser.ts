@@ -150,8 +150,6 @@ function buildPrimary({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  console.log({tokens, currentTokenHead})
-
   const currentToken = tokens[currentTokenHead];
 
   const primaryBuilders: PrimaryBuilders = {
@@ -206,28 +204,26 @@ function buildUnary({
   return buildPrimary({ tokens, currentTokenHead });
 }
 
-function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
-
+// TODO: Note the repetition here where there is an evaluation of
+// left expression, then check, etc. Consider refactoring into
+// something like `buildBinaryExpression`.
+function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
   const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
     tokens,
     currentTokenHead,
   });
 
-  // TODO: DO I need this here, not just at the top level? Probably?
   if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterUnaryEval })) {
     return {
       node: left,
       currentTokenHead: tokenHeadAfterUnaryEval,
     };
   }
-
   if (
     matches(
       peek({ tokens, currentTokenHead: tokenHeadAfterUnaryEval }),
-      TOKEN_NAMES.GREATER_EQUAL,
-      TOKEN_NAMES.GREATER,
-      TOKEN_NAMES.LESS_EQUAL,
-      TOKEN_NAMES.LESS,
+      TOKEN_NAMES.SLASH,
+      TOKEN_NAMES.STAR,
     )
   ) {
     const token = tokens[tokenHeadAfterUnaryEval];
@@ -236,6 +232,128 @@ function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeB
       buildUnary({
         tokens,
         currentTokenHead: tokenHeadAfterUnaryEval + 1,
+      });
+
+    const node = {
+      token,
+      left,
+      right,
+      evaluate() {
+        const leftExpr = this.left.evaluate();
+        const rightExpr = this.right.evaluate();
+        switch (this.token.name) {
+          case TOKEN_NAMES.SLASH:
+            return leftExpr / rightExpr
+          case TOKEN_NAMES.STAR:
+            return leftExpr * rightExpr
+          default:
+            throw new Error(`Failed to parse factor: ${leftExpr}, ${token.text}, ${rightExpr}`)
+        }
+      }
+    }
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterRightEval,
+    };
+  }
+
+  return {
+    node: left,
+    currentTokenHead: tokenHeadAfterUnaryEval,
+  };
+}
+
+function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
+  const { node: left, currentTokenHead: tokenHeadAfterFactorEval } = buildFactor({
+    tokens,
+    currentTokenHead,
+  });
+
+  // NOTE: I do not have check for empty here
+  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterFactorEval })) {
+    return {
+      node: left,
+      currentTokenHead: tokenHeadAfterFactorEval,
+    };
+  }
+
+  if (
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterFactorEval }),
+      TOKEN_NAMES.MINUS,
+      TOKEN_NAMES.PLUS,
+    )
+  ) {
+
+    const token = tokens[tokenHeadAfterFactorEval];
+
+    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+      buildFactor({
+        tokens,
+        currentTokenHead: tokenHeadAfterFactorEval + 1,
+      });
+
+    const node = {
+      token,
+      left,
+      right,
+      evaluate() {
+        const leftExpr = this.left.evaluate();
+        const rightExpr = this.right.evaluate();
+        switch (this.token.name) {
+          case TOKEN_NAMES.MINUS:
+            return leftExpr - rightExpr
+          case TOKEN_NAMES.PLUS:
+            return leftExpr + rightExpr
+          default:
+            throw new Error(`Failed to parse term: ${leftExpr}, ${token.text}, ${rightExpr}`)
+        }
+      }
+    }
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterRightEval,
+    };
+  }
+
+  return {
+    node: left,
+    currentTokenHead: tokenHeadAfterFactorEval,
+  };
+}
+
+function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
+
+  const { node: left, currentTokenHead: tokenHeadAfterTermEval } = buildTerm({
+    tokens,
+    currentTokenHead,
+  });
+
+  // TODO: DO I need this here, not just at the top level? Probably?
+  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterTermEval })) {
+    return {
+      node: left,
+      currentTokenHead: tokenHeadAfterTermEval,
+    };
+  }
+
+  if (
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterTermEval }),
+      TOKEN_NAMES.GREATER_EQUAL,
+      TOKEN_NAMES.GREATER,
+      TOKEN_NAMES.LESS_EQUAL,
+      TOKEN_NAMES.LESS,
+    )
+  ) {
+    const token = tokens[tokenHeadAfterTermEval];
+
+    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+      buildTerm({
+        tokens,
+        currentTokenHead: tokenHeadAfterTermEval + 1,
       });
 
     const node = {
@@ -268,10 +386,9 @@ function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeB
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterUnaryEval,
+    currentTokenHead: tokenHeadAfterTermEval,
   };
 }
-
 
 function buildEquality({
   tokens,
@@ -282,6 +399,8 @@ function buildEquality({
     currentTokenHead,
   });
 
+  // TODO: refactor these comments - they seem to be important
+  // for every binary expression
   // Important for this to be at the top rule evaluated
   if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterComparisonEval })) {
     return {
