@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
-// TODO: Break these down into separate tests so 
+// TODO: Break these down into separate tests so
 // I can isolate them with .only if needed.
 describe('compile', () => {
   test.each([
@@ -135,4 +135,58 @@ describe('compile', () => {
       expect(await compile(readLine)).toEqual(expected);
     },
   );
+
+  test.each([
+    {
+      line: '24 + 31',
+      expected: 55,
+    },
+    {
+      line: '33 - 21',
+      expected: 12,
+    },
+    {
+      line: '33 / 11',
+      expected: 3,
+    },
+    {
+      line: '44 * 3',
+      expected: 132,
+    },
+    {
+      line: '2 * 3 + 2',
+      expected: 8,
+    },
+    {
+      line: '2 * (3 + 2)',
+      expected: 10,
+    },
+    {
+      line: '(2 * (3 + 2)) * 3',
+      expected: 30,
+    },
+    // TODO: currently fails. Need to beef up unary
+    // {
+    //   line: '-13 + -7',
+    //   expected: -20,
+    // },
+    {
+      line: '33.11 + 23',
+      expected: 56.11,
+    },
+    {
+      line: '10.11 - 0.11',
+      expected: 10,
+    },
+    {
+      line: '10 - 21',
+      expected: -11,
+    },
+  ])('it does basic math', async ({ line, expected }) => {
+    async function readLine() {
+      return Promise.resolve(line);
+    }
+
+    expect(await compile(readLine)).toEqual(expected);
+  });
 });
