@@ -126,7 +126,7 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'given simple string expressions, it compiles',
+    'given simple string $line, it compiles',
     async ({ line, expected }) => {
       async function readLine() {
         return Promise.resolve(line);
@@ -165,11 +165,14 @@ describe('compile', () => {
       line: '(2 * (3 + 2)) * 3',
       expected: 30,
     },
-    // TODO: currently fails. Need to beef up unary
-    // {
-    //   line: '-13 + -7',
-    //   expected: -20,
-    // },
+    {
+      line: '-13 + -7',
+      expected: -20,
+    },
+    {
+      line: '-13 + 5',
+      expected: -8,
+    },
     {
       line: '33.11 + 23',
       expected: 56.11,
@@ -182,7 +185,7 @@ describe('compile', () => {
       line: '10 - 21',
       expected: -11,
     },
-  ])('it does basic math', async ({ line, expected }) => {
+  ])('it does basic math, computing $line', async ({ line, expected }) => {
     async function readLine() {
       return Promise.resolve(line);
     }

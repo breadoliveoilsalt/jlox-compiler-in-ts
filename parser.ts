@@ -193,10 +193,12 @@ function buildUnary({
       token: currentToken,
       right,
       evaluate() {
-        if (this.token.name === TOKEN_NAMES.BANG) return !this.right.evaluate();
-        if (this.token.name === TOKEN_NAMES.MINUS)
-          throw new Error('MINUS not implemented yet');
-      },
+        const right = this.right.evaluate();
+        if (this.token.name === TOKEN_NAMES.BANG) return !right;
+        // Checking for number type to prevent javascript oddity `14 -true`,
+        // which evaluates to 13, etc.,
+        if (this.token.name === TOKEN_NAMES.MINUS && typeof right ==='number') return -right;
+      }
     };
 
     return { node, currentTokenHead: tokenHeadAfterUnaryEval };
