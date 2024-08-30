@@ -27,7 +27,16 @@ type AstTree = {
 };
 
 function matches(token: Token, ...tokenNames: string[]) {
-  return tokenNames.find((tokenName) => token.name === tokenName);
+  return tokenNames.find((tokenName) => token?.name === tokenName);
+}
+
+function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
+  // currentTokenHead is an index pointer.
+  // Hence, all tokens will be evaluated when one
+  // of the builders consumes the last token and
+  // returns a currentTokenHead equal to tokens.length,
+  // advancing the index beyond available indicies.
+  return currentTokenHead === tokens.length
 }
 
 function peek({
@@ -39,16 +48,8 @@ function peek({
   currentTokenHead: number;
   offset?: number;
 }): Token {
+  if (allTokensParsed( { tokens, currentTokenHead })) return { name: 'END', text: '' };
   return tokens[currentTokenHead + offset];
-}
-
-function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
-  // currentTokenHead is an index pointer.
-  // Hence, all tokens will be evaluated when one
-  // of the builders consumes the last token and
-  // returns a currentTokenHead equal to tokens.length,
-  // advancing the index beyond available indicies.
-  return currentTokenHead === tokens.length
 }
 
 function buildTrue({
@@ -213,12 +214,6 @@ function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuild
     currentTokenHead,
   });
 
-  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterUnaryEval })) {
-    return {
-      node: left,
-      currentTokenHead: tokenHeadAfterUnaryEval,
-    };
-  }
   if (
     matches(
       peek({ tokens, currentTokenHead: tokenHeadAfterUnaryEval }),
@@ -269,14 +264,6 @@ function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilder
     tokens,
     currentTokenHead,
   });
-
-  // NOTE: I do not have check for empty here
-  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterFactorEval })) {
-    return {
-      node: left,
-      currentTokenHead: tokenHeadAfterFactorEval,
-    };
-  }
 
   if (
     matches(
@@ -330,14 +317,6 @@ function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeB
     tokens,
     currentTokenHead,
   });
-
-  // TODO: DO I need this here, not just at the top level? Probably?
-  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterTermEval })) {
-    return {
-      node: left,
-      currentTokenHead: tokenHeadAfterTermEval,
-    };
-  }
 
   if (
     matches(
@@ -398,16 +377,6 @@ function buildEquality({
     tokens,
     currentTokenHead,
   });
-
-  // TODO: refactor these comments - they seem to be important
-  // for every binary expression
-  // Important for this to be at the top rule evaluated
-  if (allTokensParsed({ tokens, currentTokenHead: tokenHeadAfterComparisonEval })) {
-    return {
-      node: left,
-      currentTokenHead: tokenHeadAfterComparisonEval,
-    };
-  }
 
   if (
     matches(
