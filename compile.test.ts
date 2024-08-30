@@ -1,8 +1,14 @@
 import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
-// TODO: Break these down into separate tests so
-// I can isolate them with .only if needed.
+async function testCompiler({ line, expected }) {
+  async function readLine() {
+    return Promise.resolve(line);
+  }
+
+  expect(await compile(readLine)).toEqual(expected);
+}
+
 describe('compile', () => {
   test.each([
     {
@@ -33,6 +39,13 @@ describe('compile', () => {
       line: '!!!true',
       expected: false,
     },
+  ])('it compiles boolean expressions, such as $line',
+    async ({ line, expected }) => {
+      await testCompiler({line, expected})
+    }
+  );
+
+  test.each([
     {
       line: 'true == true',
       expected: true,
@@ -65,6 +78,13 @@ describe('compile', () => {
       line: 'true == !true',
       expected: false,
     },
+  ])('it compiles equality expressions, such as $line',
+    async ({ line, expected }) => {
+      await testCompiler({line, expected})
+    }
+  );
+
+  test.each([
     {
       line: '(true)',
       expected: true,
@@ -125,16 +145,12 @@ describe('compile', () => {
       line: '!(!true == false)',
       expected: false,
     },
-  ])(
-    'given simple string $line, it compiles',
+  ])('it compiles parenthetical expressions, such as $line',
     async ({ line, expected }) => {
-      async function readLine() {
-        return Promise.resolve(line);
-      }
-
-      expect(await compile(readLine)).toEqual(expected);
-    },
+      await testCompiler({line, expected})
+    }
   );
+
 
   test.each([
     {
@@ -185,11 +201,7 @@ describe('compile', () => {
       line: '10 - 21',
       expected: -11,
     },
-  ])('it does basic math, computing $line', async ({ line, expected }) => {
-    async function readLine() {
-      return Promise.resolve(line);
-    }
-
-    expect(await compile(readLine)).toEqual(expected);
+  ])('it compiles term, factor, and negating urnary expressions, to do basic math, such as $line', async ({ line, expected }) => {
+    await testCompiler({ line, expected})
   });
 });
