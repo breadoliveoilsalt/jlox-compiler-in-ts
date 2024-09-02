@@ -12,9 +12,6 @@ type NodeBuilder = ({
   currentTokenHead,
 }: NodeBuilderParams) => NodeBuilderResult;
 
-// TODO: simplify type signature by making one for the
-// buidler functions in general - no need to put arg type and return
-// type each time then
 type PrimaryBuilders = {
   [key: string]: NodeBuilder;
 };
@@ -127,7 +124,6 @@ function buildParenthetical({
   );
 }
 
-// UPTO: Add unit tests for comparisons
 function buildNumber({
   tokens,
   currentTokenHead,
@@ -413,14 +409,6 @@ function buildEquality({
 
     return {
       node,
-      // Learning: Adding +1 here is the problem. Evaluating the
-      // Right side already set the currentToken head.
-      // This evaluates something in the middle, so
-      // no need to add plus 1.
-      // I didn't realize before because it was always
-      // returning after this.
-      // Other Learning: be real careful about where you add
-      // +1 to currentTokenHead to indicate a token was consumed.
       currentTokenHead: tokenHeadAfterRightEval,
     };
   }

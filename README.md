@@ -1,27 +1,47 @@
-## Basics
+## Intro
+
+This is a just-in-time compiler based off the book [Crafting
+Interpreters](https://craftinginterpreters.com/) by Robert Nystrom. The book is
+fantastic and I'm grateful the author wrote it. To teach about the implementation
+of compilers and interpreters, he systematically walks through the grammar and
+implementation of a language he invented, `jlox`, using a compiler written in
+Java.
+
+Here I'm striving to implement `jlox`, but with a few key differences:
+
+- 1) Write the compiler in TypeScript instead of Java
+- 2) Take a more functional-programming approach, rather than an object-oriented
+  approach.
+
+I'm also attempting to document next steps and learnings along the way, in the
+relevant sections below.
+
+## Running this compiler
 
 - Node v22.5.0
 - `npm ci`
-- `npm run compile` (currently TypeScript errors are non-blocking)
+- `npm run compile`
+  - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
+  - Currently TypeScript errors are non-blocking.
+- To run tests: `npm run test`
 
-## Up next
-- Figure out how to evaluate a more complex expression where there is a left and
-  a right. Will need to peek, and will to recurse down grammar instaed of
-  matching token to builder functions
+## Done
 
-## TODOs / Questions Inbox
+- [X] Evaluate statements (up to and including Chapter 7 of Crafting
+  Interpreters). This includes booleans, parentheticals, basic math, etc.
 
-- Add line number to token object (perhaps starting position (cursor) of lexeme
-  on that line)
+## Next steps (TODOs)
+
 - Take file as input on command line
-- If no file provided at command line, start repl
-- To consider: Integrate responsibility for keeping track of line numbers to function
-  returned by `initLineReader` .
-- Add error handling
+- Start repl if no file specified at the command line
+- Begin evaluating basic statements (Chapter 8 of book)
+- Beef up error handling and error reporting to user for expressions
   - source file not present
   - syntax errors, etc.
+- Add line number to token object (perhaps starting position (cursor) of lexeme
+  on that line)
 
-## Open Issues
+## Open issues / Questions
 
 - It seems extremely difficult (impossible?) to extract from node a `readLine` function, that
   streams lines from a file, that can then be passed around to other functions
@@ -33,14 +53,15 @@
     supplying one line at a time everytime `readLine` is called. Refactor later.
     See `initLineReader`.
 
-- Consider: Will scan be recursive, while using a `readLine` function? How
-  much can I adhere to functional programming here, while still getting it done?
+- To consider:
+  - Integrate responsibility for keeping track of line numbers to function
+    returned by `initLineReader`, or in the tokenizer?.
+  - Will scan be recursive, while using a `readLine` function? How
+    much can I adhere to functional programming here, while still getting it done?
+  - Can I hide knowledge of data structure from parser, etc., with an intermediate
+    layer of helper methods?
 
-- Can I hide knowledge of data structure from parser, etc., with an intermediate
-  layer of helper methods?
-
-
-## Issues Resoled / Learnings
+## Learnings (and how certain issues were resolved)
 
 - I wanted to use object parameters everywhere, seemingly as a way to enforce
   consistent variable assignment. I'm finding, however, that it can make reading
@@ -77,6 +98,14 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 }
 ```
 
-  - Decision: Try to keep function parameters limited to one or two. Avoid object parameters and instead try to enforce consistent variable assignment by having functions return objects to be destructured by function callers.
+  - Decision: Try to keep function parameters limited to one or two. Avoid
+    object parameters and instead try to enforce consistent variable assignment
+    by having functions return objects to be destructured by function callers.
 
-- 
+- As of Chapter 7 (evaluating expressions), my biggest source of bugs has been
+  failures to properly increment the `currentTokenHead` at the end of functions
+  building nodes for the abstract syntax tree. It has taken some time to get
+  this straight in my head, particularly when a node builder evaluates both a
+  left and right expression. But chasing down and fixing these bugs has been
+  very instructive.
+
