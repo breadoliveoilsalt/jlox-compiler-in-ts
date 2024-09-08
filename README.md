@@ -16,7 +16,7 @@ Here I'm striving to implement `jlox`, but with a few key differences:
 I'm also attempting to document next steps and learnings along the way, in the
 relevant sections below.
 
-## Running this compiler
+## Running the compiler
 
 - Node v22.5.0
 - `npm ci`
@@ -34,7 +34,6 @@ relevant sections below.
 
 - Take file as input on command line
 - Start repl if no file specified at the command line
-- Begin evaluating basic statements (Chapter 8 of book)
 - Beef up error handling and error reporting to user for expressions
   - source file not present
   - syntax errors, etc.

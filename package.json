@@ -8,6 +8,9 @@
   "scripts": {
     "compile": "rm -rf build/ && (tsc || true) && npm run execute",
     "execute": "node build/index.js",
+    "compile:src" : "npm run compile -- ./src.jlox",
+    "ex": "execute() { node build/index.js $1; }; execute;",
+    "testFunction": "function thing { echo $1; }; thing",
     "test": "vitest"
   },
   "author": "",

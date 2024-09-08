@@ -1,1 +1,1 @@
-(10 * 45) / 5
+(false == true) == (true == false)
