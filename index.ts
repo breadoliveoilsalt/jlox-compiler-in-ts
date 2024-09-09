@@ -51,12 +51,6 @@ async function startRepl() {
     return line;
   }
 
-  // LEARNING: While loop not work for reading line over and over.
-  // With such an approach, node exhibited an odd behavior, repeating
-  // each character typed, increasing once per loop. 
-  // Instead need this recursive style function. See:
-  // https://stackoverflow.com/a/24182269
-  // https://stackoverflow.com/a/24466103
   async function runRepl() {
     await compile(readLine as ReadLine)
     await runRepl()

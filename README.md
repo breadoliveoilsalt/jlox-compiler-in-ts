@@ -20,20 +20,27 @@ relevant sections below.
 
 - Node v22.5.0
 - `npm ci`
-- `npm run compile`
-  - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
+- To start a repl:
+  - `npm run compile`
+- To evaluate a file:
+  - `npm run compile -- <file path>`
+  - Example: `npm run compile -- ./src.jlox`
+    - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
   - Currently TypeScript errors are non-blocking.
-- To run tests: `npm run test`
+
+## Running tests
+
+- `npm run test`
 
 ## Done
 
 - [X] Evaluate statements (up to and including Chapter 7 of Crafting
   Interpreters). This includes booleans, parentheticals, basic math, etc.
+- [X] Take file as input on command line
+- [X] Start repl if no file specified at the command line
 
 ## Next steps (TODOs)
 
-- Take file as input on command line
-- Start repl if no file specified at the command line
 - Beef up error handling and error reporting to user for expressions
   - source file not present
   - syntax errors, etc.
@@ -108,3 +115,11 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   left and right expression. But chasing down and fixing these bugs has been
   very instructive.
 
+- On adding a repl:
+  - A `while` loop does not work for reading line over and over in node. With
+    such an approach, node exhibited an odd behavior, repeating each character
+    typed, increasing once per loop. 
+  - Instead, we need this recursive style function seen in the `runRepl` function. 
+  - See also:
+    - https://stackoverflow.com/a/24182269
+    - https://stackoverflow.com/a/24466103
