@@ -52,7 +52,8 @@ async function startRepl() {
   }
 
   async function runRepl() {
-    await compile(readLine as ReadLine)
+    const result = await compile(readLine as ReadLine)
+    console.log(result)
     await runRepl()
   }
 
