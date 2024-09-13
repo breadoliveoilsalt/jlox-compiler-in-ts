@@ -48,97 +48,110 @@ type TokenType = {
   consumeFrom: (buffer: string) => string;
 };
 
-// TODO: Refactor these as much as possible
-// so consumeFrom uses this.test instead of repeating
-// the test.
+const matchLeftParen = (buffer: string) => buffer.match(/^\(/)
+const matchRightParen = (buffer: string) => buffer.match(/^\)/)
+const matchMinus = (buffer: string) => buffer.match(/^-/)
+const matchPlus = (buffer: string) => buffer.match(/^\+/)
+const matchSlash = (buffer: string) => buffer.match(/^\//)
+const matchStar = (buffer: string) => buffer.match(/^\*/)
+const matchBangEqual = (buffer: string) => buffer.match(/^!=/)
+const matchBang = (buffer: string) => buffer.match(/^\!/)
+const matchGreaterEqual = (buffer: string) => buffer.match(/^>=/)
+const matchGreater = (buffer: string) => buffer.match(/^>/)
+const matchLessEqual = (buffer: string) => buffer.match(/^<=/)
+const matchLess = (buffer: string) => buffer.match(/^</)
+const matchEqualEqual = (buffer: string) => buffer.match(/^==/)
+const matchTrue = (buffer: string) => buffer.match(/^true\b/)
+const matchFalse = (buffer: string) => buffer.match(/^false\b/)
+const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
+
 const tokenTypes: TokenType[] = [
   {
     name: TOKEN_NAMES.LEFT_PAREN,
-    test: (buffer: string) => buffer.match(/^\(/),
-    consumeFrom: (buffer: string): string => buffer.match(/^\(/)![0],
+    test: matchLeftParen,
+    consumeFrom: (buffer: string): string => matchLeftParen(buffer)![0],
   },
   {
     name: TOKEN_NAMES.RIGHT_PAREN,
-    test: (buffer: string) => buffer.match(/^\)/),
-    consumeFrom: (buffer: string): string => buffer.match(/^\)/)![0],
+    test: matchRightParen,
+    consumeFrom: (buffer: string): string => matchRightParen(buffer)![0],
   },
+  // NOTE: By not requiring a word boundary after the `-` token, the following
+  // is valid, unlike in JavaScript:
+  // -15--5
   {
     name: TOKEN_NAMES.MINUS,
-    test: (buffer: string) => buffer.match(/^-/),
-    consumeFrom: (buffer: string): string => buffer.match(/^-/)![0],
+    test: matchMinus,
+    consumeFrom: (buffer: string): string => matchMinus(buffer)![0],
   },
   {
     name: TOKEN_NAMES.PLUS,
-    test: (buffer: string) => buffer.match(/^\+/),
-    consumeFrom: (buffer: string): string => buffer.match(/^\+/)![0],
+    test: matchPlus,
+    consumeFrom: (buffer: string): string => matchPlus(buffer)![0],
   },
   {
     name: TOKEN_NAMES.SLASH,
-    test: (buffer: string) => buffer.match(/^\//),
-    consumeFrom: (buffer: string): string => buffer.match(/^\//)![0],
+    test: matchSlash,
+    consumeFrom: (buffer: string): string => matchSlash(buffer)![0],
   },
   {
     name: TOKEN_NAMES.STAR,
-    test: (buffer: string) => buffer.match(/^\*/),
-    consumeFrom: (buffer: string): string => buffer.match(/^\*/)![0],
+    test: matchStar,
+    consumeFrom: (buffer: string): string => matchStar(buffer)![0],
   },
   // NOTE: BANG_EQUAL has to come before EQUAL to avoid
   // false-positive with BANG regex. Many others below.
   {
     name: TOKEN_NAMES.BANG_EQUAL,
-    test: (buffer: string) => buffer.match(/^!=/),
-    consumeFrom: (buffer: string): string => buffer.match(/^!=/)![0],
+    test: matchBangEqual,
+    consumeFrom: (buffer: string): string => matchBangEqual(buffer)![0],
   },
   {
     name: TOKEN_NAMES.BANG,
-    test: (buffer: string) => buffer.match(/^\!/),
-    consumeFrom: (buffer: string): string => buffer.match(/^\!/)![0],
+    test: matchBang,
+    consumeFrom: (buffer: string): string => matchBang(buffer)![0],
   },
   {
     name: TOKEN_NAMES.GREATER_EQUAL,
-    test: (buffer: string) => buffer.match(/^>=/),
-    consumeFrom: (buffer: string): string => buffer.match(/^>=/)![0],
+    test: matchGreaterEqual,
+    consumeFrom: (buffer: string): string => matchGreaterEqual(buffer)![0],
   },
   {
     name: TOKEN_NAMES.GREATER,
-    test: (buffer: string) => buffer.match(/^>/),
-    consumeFrom: (buffer: string): string => buffer.match(/^>/)![0],
+    test: matchGreater,
+    consumeFrom: (buffer: string): string => matchGreater(buffer)![0],
   },
   {
     name: TOKEN_NAMES.LESS_EQUAL,
-    test: (buffer: string) => buffer.match(/^<=/),
-    consumeFrom: (buffer: string): string => buffer.match(/^<=/)![0],
+    test: matchLessEqual,
+    consumeFrom: (buffer: string): string => matchLessEqual(buffer)![0],
   },
   {
     name: TOKEN_NAMES.LESS,
-    test: (buffer: string) => buffer.match(/^</),
-    consumeFrom: (buffer: string): string => buffer.match(/^</)![0],
+    test: matchLess,
+    consumeFrom: (buffer: string): string => matchLess(buffer)![0],
   },
   {
     name: TOKEN_NAMES.EQUAL_EQUAL,
-    test: (buffer: string) => buffer.match(/^==/),
-    consumeFrom: (buffer: string): string => buffer.match(/^==/)![0],
+    test: matchEqualEqual,
+    consumeFrom: (buffer: string): string => matchEqualEqual(buffer)![0],
   },
-  // TODO: consider if word boundary needed
   {
     name: TOKEN_NAMES.TRUE,
-    test: (buffer: string) => buffer.match(/^true\b/),
-    consumeFrom: (buffer: string): string => buffer.match(/^true\b/)![0],
+    test: matchTrue,
+    consumeFrom: (buffer: string): string => matchTrue(buffer)![0],
   },
   {
     name: TOKEN_NAMES.FALSE,
-    test: (buffer: string) => buffer.match(/^false\b/),
-    consumeFrom: (buffer: string): string => buffer.match(/^false\b/)![0],
+    test: matchFalse,
+    consumeFrom: (buffer: string): string => matchFalse(buffer)![0],
   },
   // NOTE: I'm removing word boundary from numbers and
   // comparisons and operators, so 343>343 is valid.
-  // TODO: Decide whether only exeption is there must be a whitespace after a
-  // + or - indended for math. This is to avoid awkwardness from
-  // -15--5, for example.
   {
     name: TOKEN_NAMES.NUMBER,
-    test: (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/),
-    consumeFrom: (buffer: string): string => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)![0],
+    test: matchNumber,
+    consumeFrom: (buffer: string): string => matchNumber(buffer)![0],
   },
 ];
 
@@ -156,7 +169,6 @@ function assertTokenType(tokenType: unknown, currentBuffer: string): asserts tok
 }
 
 // TODO:
-// - Add literal lexeme
 // - Add line number
 // { name, literal/lexeme, lineNumber, cursorPosition }
 export async function scan(readLine: ReadLine) {

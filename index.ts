@@ -3,7 +3,6 @@ import * as readline from 'node:readline/promises';
 import { compile } from './compiler';
 import { stdin as input, stdout as output } from 'node:process';
 
-
 async function fileLineReader({ filePath }: { filePath: string }) {
   try {
     const file = fs.readFileSync(filePath, 'utf8');
