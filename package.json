@@ -9,7 +9,7 @@
     "compile": "rm -rf build/ && (tsc || true) && npm run execute",
     "execute": "node build/index.js",
     "compile:src" : "npm run compile -- ./src.jlox",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "author": "",
   "license": "ISC",

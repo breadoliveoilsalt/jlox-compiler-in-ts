@@ -2,8 +2,9 @@ import { describe, test, expect } from 'vitest';
 import { compile } from './compiler';
 
 async function testCompiler({ line, expected }) {
+  const lines = [ line, false ]
   async function readLine() {
-    return Promise.resolve(line);
+    return Promise.resolve(lines.shift());
   }
 
   expect(await compile(readLine)).toEqual(expected);

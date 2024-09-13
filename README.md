@@ -47,6 +47,7 @@ relevant sections below.
 - Beef up error handling and error reporting to user for expressions
   - source file not present
   - syntax errors, etc.
+- Fix linting/prettifying re: adding semi-colons.
 - Add line number to token object (perhaps starting position (cursor) of lexeme
   on that line)
 
@@ -59,6 +60,8 @@ relevant sections below.
     much can I adhere to functional programming here, while still getting it done?
   - Can I hide knowledge of data structure from parser, etc., with an intermediate
     layer of helper methods?
+  - Consider adding cursor position of each lexeme in scanner, for better error
+    reporting.
 
 ## Learnings (and how certain issues were resolved)
 

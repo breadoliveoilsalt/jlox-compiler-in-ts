@@ -19,7 +19,7 @@ async function fileLineReader({ filePath }: { filePath: string }) {
   }
 }
 
-export type ReadLine = () => Promise<string>;
+export type ReadLine = () => Promise<string | false>;
 
 async function evaluateFile({ filePath }: { filePath: string }) {
   console.log(`\n----- Evaluating file ${filePath} -----\n`);
@@ -40,17 +40,20 @@ async function startRepl() {
     process.exit()
   });
 
-  async function readLine() {
+  async function runRepl() {
     const line = await rl.question('> ');
+
     if (line === 'exit') {
       console.log('\n----- Goodbye! -----\n')
       rl.close();
     }
 
-    return line;
-  }
+    const lines = [line, false]
 
-  async function runRepl() {
+    async function readLine() {
+      return lines.shift();
+    }
+
     const result = await compile(readLine as ReadLine)
     console.log(result)
     await runRepl()

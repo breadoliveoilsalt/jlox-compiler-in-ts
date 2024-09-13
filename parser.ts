@@ -23,17 +23,13 @@ type AstTree = {
   evaluate: () => any;
 };
 
-function matches(token: Token, ...tokenNames: string[]) {
+function matches(token: Token | undefined, ...tokenNames: string[]) {
+  if (!token) return undefined;
   return tokenNames.find((tokenName) => token?.name === tokenName);
 }
 
 function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
-  // currentTokenHead is an index pointer.
-  // Hence, all tokens will be evaluated when one
-  // of the builders consumes the last token and
-  // returns a currentTokenHead equal to tokens.length,
-  // advancing the index beyond available indicies.
-  return currentTokenHead === tokens.length
+  return tokens[currentTokenHead].name === TOKEN_NAMES.EOF;
 }
 
 function peek({
@@ -44,8 +40,8 @@ function peek({
   tokens: Tokens;
   currentTokenHead: number;
   offset?: number;
-}): Token {
-  if (allTokensParsed( { tokens, currentTokenHead })) return { name: 'END', text: '' };
+}): Token | undefined {
+  if (allTokensParsed({ tokens, currentTokenHead })) return;
   return tokens[currentTokenHead + offset];
 }
 
@@ -172,7 +168,6 @@ function buildPrimary({
   throw new Error(`Jlox syntax error at token index ${currentTokenHead}: ${tokens}`);
 }
 
-// TODO: Add MINUS token to negate a number
 function buildUnary({
   tokens,
   currentTokenHead,
@@ -193,7 +188,7 @@ function buildUnary({
         if (this.token.name === TOKEN_NAMES.BANG) return !right;
         // Checking for number type to prevent javascript oddity `14 -true`,
         // which evaluates to 13, etc.,
-        if (this.token.name === TOKEN_NAMES.MINUS && typeof right ==='number') return -right;
+        if (this.token.name === TOKEN_NAMES.MINUS && typeof right === 'number') return -right;
       }
     };
 

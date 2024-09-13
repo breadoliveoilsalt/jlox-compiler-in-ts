@@ -157,7 +157,8 @@ const tokenTypes: TokenType[] = [
 
 export type Token = {
   name: string;
-  text: string,
+  text: string;
+  lineNumber: number;
 };
 
 export type Tokens = Token[];
@@ -168,23 +169,33 @@ function assertTokenType(tokenType: unknown, currentBuffer: string): asserts tok
   }
 }
 
-// TODO:
-// - Add line number
-// { name, literal/lexeme, lineNumber, cursorPosition }
 export async function scan(readLine: ReadLine) {
   const tokens: Tokens = [];
-  let line = await readLine();
-  let currentBuffer = line.trim();
+  let buffer = await readLine();
+  let lineNumber = 1;
 
-  while (currentBuffer !== '') {
-    const tokenType = tokenTypes.find((tokenType) =>
-      tokenType.test(currentBuffer),
-    );
-    assertTokenType(tokenType, currentBuffer);
-    const lexeme = tokenType.consumeFrom(currentBuffer);
-    currentBuffer = currentBuffer.slice(lexeme.length).trimStart();
-    tokens.push({ name: tokenType.name, text: lexeme });
+  // NOTE: scanner determines the end via `readLine`'s end
+  // signifier -- false. Meanwhile, parser will determine end
+  // via the EOF token added below.
+  while (buffer !== false) {
+    let currentLine = buffer.trim();
+
+    while (currentLine !== '') {
+      const tokenType = tokenTypes.find((tokenType) =>
+        tokenType.test(currentLine),
+      );
+      assertTokenType(tokenType, currentLine);
+      const lexeme = tokenType.consumeFrom(currentLine);
+      currentLine = currentLine.slice(lexeme.length).trimStart();
+      tokens.push({ name: tokenType.name, text: lexeme, lineNumber });
+    }
+
+    buffer = await readLine();
+
+    lineNumber = lineNumber + 1;
   }
+
+  tokens.push({ name: TOKEN_NAMES.EOF, text: '', lineNumber })
 
   return { tokens };
 }
