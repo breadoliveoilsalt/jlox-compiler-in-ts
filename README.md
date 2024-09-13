@@ -41,6 +41,9 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
+- Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/):
+  Statements and State 
+- Add ability to read multiple lines
 - Beef up error handling and error reporting to user for expressions
   - source file not present
   - syntax errors, etc.
@@ -48,16 +51,6 @@ relevant sections below.
   on that line)
 
 ## Open issues / Questions
-
-- It seems extremely difficult (impossible?) to extract from node a `readLine` function, that
-  streams lines from a file, that can then be passed around to other functions
-  and called whenever a new line is needed (e.g., tokenizing multi-line
-  strings).
-  - See, for example, [n-readlines](https://github.com/nacholibre/node-readlines).
-    Unfortunately I could not get this package working here.
-  - Decision: Load entire file into memory and write the interface I wish I had,
-    supplying one line at a time everytime `readLine` is called. Refactor later.
-    See `initLineReader`.
 
 - To consider:
   - Integrate responsibility for keeping track of line numbers to function
@@ -68,6 +61,33 @@ relevant sections below.
     layer of helper methods?
 
 ## Learnings (and how certain issues were resolved)
+
+#### Reading lines of a file with node
+
+- It seems extremely difficult (impossible?) to extract from node a `readLine` function, that
+  streams lines from a file, that can then be passed around to other functions
+  and called whenever a new line is needed (e.g., tokenizing multi-line
+  strings).
+  - See, for example, [n-readlines](https://github.com/nacholibre/node-readlines).
+    Unfortunately I could not get this package working here.
+
+- Decision: Load entire file into memory and write the interface I wish I had,
+  supplying one line at a time every time `readLine` is called. Refactor later.
+  See `initLineReader`.
+
+#### Reading lines repeatedly for a repl with node
+
+- On adding a repl:
+  - A `while` loop does not work for reading line over and over in node. With
+    such an approach, node exhibited an odd behavior, repeating each character
+    typed, increasing once per loop. 
+
+- Instead, we need this recursive style function seen in the `runRepl` function. 
+  - See also:
+    - https://stackoverflow.com/a/24182269
+    - https://stackoverflow.com/a/24466103
+
+#### Style: Object Parameters
 
 - I wanted to use object parameters everywhere, seemingly as a way to enforce
   consistent variable assignment. I'm finding, however, that it can make reading
@@ -87,6 +107,7 @@ if matches({ token: peek({ remainingTokens }), tokenName: TOKEN_NAMES.EQUAL_EQUA
 }
 
 ```
+
 vs
 
 
@@ -104,9 +125,11 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 }
 ```
 
-  - Decision: Try to keep function parameters limited to one or two. Avoid
-    object parameters and instead try to enforce consistent variable assignment
-    by having functions return objects to be destructured by function callers.
+- Decision: Try to keep function parameters limited to one or two. Avoid
+  object parameters and instead try to enforce consistent variable assignment
+  by having functions return objects to be destructured by function callers.
+
+#### Bugs I've Caused
 
 - As of Chapter 7 (evaluating expressions), my biggest source of bugs has been
   failures to properly increment the `currentTokenHead` at the end of functions
@@ -115,11 +138,4 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   left and right expression. But chasing down and fixing these bugs has been
   very instructive.
 
-- On adding a repl:
-  - A `while` loop does not work for reading line over and over in node. With
-    such an approach, node exhibited an odd behavior, repeating each character
-    typed, increasing once per loop. 
-  - Instead, we need this recursive style function seen in the `runRepl` function. 
-  - See also:
-    - https://stackoverflow.com/a/24182269
-    - https://stackoverflow.com/a/24466103
+
