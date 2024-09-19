@@ -1,4 +1,5 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
+import { CompilerError } from './errors';
 
 type NodeBuilderParams = { tokens: Tokens; currentTokenHead: number };
 
@@ -115,9 +116,11 @@ function buildParenthetical({
     };
   }
 
-  throw new Error(
-    `Something went wrong evaluating a parenthetical, at token ${tokens[tokenHeadAfterExpressionEval]}`,
-  );
+  throw new CompilerError({
+    name: 'JloxSyntaxError',
+    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses [ ) ]?',
+    lineNumber: tokens[tokenHeadAfterExpressionEval].lineNumber,
+  })
 }
 
 function buildNumber({
@@ -165,7 +168,11 @@ function buildPrimary({
     };
   }
 
-  throw new Error(`Jlox syntax error at token index ${currentTokenHead}: ${tokens}`);
+  throw new CompilerError({
+    name: 'JloxSyntaxError',
+    message: `Unrecognized primary lexeme: "${currentToken.text}"`,
+    lineNumber: currentToken.lineNumber,
+  })
 }
 
 function buildUnary({
@@ -235,7 +242,11 @@ function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuild
           case TOKEN_NAMES.STAR:
             return leftExpr * rightExpr
           default:
-            throw new Error(`Failed to parse factor: ${leftExpr}, ${token.text}, ${rightExpr}`)
+            throw new CompilerError({
+              name: 'JloxSyntaxError',
+              message: `Failed to parse factor: ${leftExpr}, ${token.text}, ${rightExpr}`,
+              lineNumber: token.lineNumber,
+            })
         }
       }
     }
@@ -287,7 +298,11 @@ function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilder
           case TOKEN_NAMES.PLUS:
             return leftExpr + rightExpr
           default:
-            throw new Error(`Failed to parse term: ${leftExpr}, ${token.text}, ${rightExpr}`)
+            throw new CompilerError({
+              name: 'JloxSyntaxError',
+              message: `Failed to parse term: ${leftExpr}, ${token.text}, ${rightExpr}`,
+              lineNumber: token.lineNumber,
+            })
         }
       }
     }
@@ -345,7 +360,11 @@ function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeB
           case TOKEN_NAMES.LESS:
             return leftExpr < rightExpr
           default:
-            throw new Error(`Failed to parse comparison: ${leftExpr}, ${token.text}, ${rightExpr}`)
+            throw new CompilerError({
+              name: 'JloxSyntaxError',
+              message: `Failed to parse comparison: ${leftExpr}, ${token.text}, ${rightExpr}`,
+              lineNumber: token.lineNumber,
+            })
         }
       }
     }

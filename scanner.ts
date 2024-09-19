@@ -1,4 +1,5 @@
-import { type ReadLine } from '.';
+import { type ReadLine } from './index';
+import { CompilerError } from './errors';
 
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',
@@ -163,9 +164,13 @@ export type Token = {
 
 export type Tokens = Token[];
 
-function assertTokenType(tokenType: unknown, currentBuffer: string): asserts tokenType is TokenType {
+function assertTokenType(tokenType: unknown, currentLine: string, lineNumber: number): asserts tokenType is TokenType {
   if (!tokenType) {
-    throw new Error("Value wasn't a tokenType: " + currentBuffer);
+    throw new CompilerError({
+      name: 'TokenError',
+      message: `Unrecognized token: "${currentLine}"`,
+      lineNumber,
+    })
   }
 }
 
@@ -184,7 +189,7 @@ export async function scan(readLine: ReadLine) {
       const tokenType = tokenTypes.find((tokenType) =>
         tokenType.test(currentLine),
       );
-      assertTokenType(tokenType, currentLine);
+      assertTokenType(tokenType, currentLine, lineNumber);
       const lexeme = tokenType.consumeFrom(currentLine);
       currentLine = currentLine.slice(lexeme.length).trimStart();
       tokens.push({ name: tokenType.name, text: lexeme, lineNumber });

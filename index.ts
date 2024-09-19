@@ -1,21 +1,18 @@
 import * as fs from 'node:fs';
 import * as readline from 'node:readline/promises';
-import { compile } from './compiler';
 import { stdin as input, stdout as output } from 'node:process';
+import { compile } from './compiler';
+import { CompilerError } from './errors';
 
 async function fileLineReader({ filePath }: { filePath: string }) {
-  try {
-    const file = fs.readFileSync(filePath, 'utf8');
-    const data = file.split('\n')
+  const file = fs.readFileSync(filePath, 'utf8');
+  const data = file.split('\n')
 
-    return {
-      readLine: () => {
-        if (data.length === 0) return Promise.resolve(false)
-        return Promise.resolve(data.shift())
-      }
+  return {
+    readLine: () => {
+      if (data.length === 0) return Promise.resolve(false)
+      return Promise.resolve(data.shift())
     }
-  } catch (e) {
-    console.log(e)
   }
 }
 
@@ -64,11 +61,21 @@ async function startRepl() {
 }
 
 async function main() {
-  const filePath = process.argv[2]
-  if (filePath) {
-    evaluateFile({ filePath })
-  } else {
-    await startRepl()
+  try {
+    const filePath = process.argv[2]
+    if (filePath) {
+      await evaluateFile({ filePath })
+    } else {
+      await startRepl()
+    }
+  } catch (e: unknown) {
+    if (e instanceof CompilerError) {
+      const { name, message, lineNumber } = e;
+      console.log(`${name}: Line ${lineNumber}: ${message}`)
+    } else {
+      console.log('Error unrecognized by jlox\n')
+      throw e
+    }
   }
 }
 

@@ -3,18 +3,20 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "module": "es2022",
   "target": "es2022",
   "scripts": {
-    "compile": "rm -rf build/ && (tsc || true) && npm run execute",
-    "execute": "node build/index.js",
-    "compile:src" : "npm run compile -- ./src.jlox",
+    "compile": "(tsc || true) && npm run execute",
+    "execute": "tsx index.ts",
+    "compile:src": "npm run compile -- ./src.jlox",
     "test": "vitest run"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.1.0",
+    "tsx": "^4.19.1",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }
