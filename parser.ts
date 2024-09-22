@@ -431,7 +431,6 @@ function buildEquality({
     node: left,
     currentTokenHead: tokenHeadAfterComparisonEval,
   };
-  // TODO: Add error handling for syntax errors.
 }
 
 function buildExpression({
@@ -447,8 +446,33 @@ function buildExpression({
   };
 }
 
-function buildExpressionStatement() {
+function buildExpressionStatement({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead]
 
+  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
+
+  if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+    const node = {
+      token,
+      evaluate() {
+        return expression.evaluate()
+      }
+    }
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterExpressionEval + 1,
+    }
+  }
+
+  throw new CompilerError({
+    name: 'JloxSynatxError',
+    message: 'Missing semicolon ";" after expression',
+    lineNumber: token.lineNumber,
+  })
 }
 
 function buildStatement({
@@ -461,6 +485,9 @@ function buildStatement({
   ) {
     const token = tokens[currentTokenHead]
 
+    // NOTE: print statement evaluation jumps straight to
+    // expression in the grammar, rather than expressionStatement.
+    // Below is not an error.
     const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
 
     if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
@@ -479,7 +506,7 @@ function buildStatement({
 
     throw new CompilerError({
       name: 'JloxSynatxError',
-      message: 'Missing semicolon after expression',
+      message: 'Missing semicolon ";" after expression',
       lineNumber: token.lineNumber,
     })
   }
