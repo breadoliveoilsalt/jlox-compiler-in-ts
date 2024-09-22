@@ -488,6 +488,8 @@ function buildStatement({
     // NOTE: print statement evaluation jumps straight to
     // expression in the grammar, rather than expressionStatement.
     // Below is not an error.
+    // Important lesson here about the nature of recursive decent
+    // in the grammar.
     const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
 
     if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
@@ -514,8 +516,23 @@ function buildStatement({
   return buildExpressionStatement({ tokens, currentTokenHead })
 }
 
+// TODO: CONSIDER: CAN THIS BE RECURSIVE?
+// UPTO HERE: Make this recursive...set arguments and defaults
+
+export function parse({tokens, currentTokenHead, statements
 export function parse(tokens: Tokens) {
+
+  // TODO: Do I want to add an error for line below, or something
+  // expressive of 0 tokens being present.
   if (tokens.length === 0) return;
-  const { node: ast } = buildExpression({ tokens, currentTokenHead: 0 });
-  return { ast };
+  const statements = [];
+  let rollingTokenHead = 0;
+  const { node, currentTokenHead: tokenHeadAfterFirstExprEval } = buildExpression({ tokens, currentTokenHead: rollingTokenHead });
+  statements.push(node)
+  rollingTokenHead = tokenHeadAfterFirstExprEval
+  
+  while 
+  return statements;
+  // not returning ast anymore! Will have to refactor signature
+  // and caller
 }
