@@ -70,6 +70,7 @@ const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
   return (buffer: string) => {
     if (typeof buffer === 'string') {
+      // TODO: Add typecheck here to avoid ! assertion
       return matcher(buffer)![0]
     }
     throw new GrammarError({

@@ -91,7 +91,7 @@ function buildParenthetical({
   const {
     node: expressionNode,
     currentTokenHead: tokenHeadAfterExpressionEval,
-  } = expression({ tokens, currentTokenHead: currentTokenHead + 1 });
+  } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
 
   if (
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
@@ -434,7 +434,7 @@ function buildEquality({
   // TODO: Add error handling for syntax errors.
 }
 
-function expression({
+function buildExpression({
   tokens,
   currentTokenHead = 0,
 }: NodeBuilderParams): NodeBuilderResult {
@@ -447,8 +447,48 @@ function expression({
   };
 }
 
+function buildExpressionStatement() {
+
+}
+
+function buildStatement({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+  if (
+    (matches(peek({ tokens, currentTokenHead })),
+      TOKEN_NAMES.PRINT)
+  ) {
+    const token = tokens[currentTokenHead]
+
+    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
+
+    if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token,
+        evaluate() {
+          console.log(expression.evaluate())
+        }
+      }
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterExpressionEval + 1,
+      }
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing semicolon after expression',
+      lineNumber: token.lineNumber,
+    })
+  }
+
+  return buildExpressionStatement({ tokens, currentTokenHead })
+}
+
 export function parse(tokens: Tokens) {
   if (tokens.length === 0) return;
-  const { node: ast } = expression({ tokens, currentTokenHead: 0 });
+  const { node: ast } = buildExpression({ tokens, currentTokenHead: 0 });
   return { ast };
 }
