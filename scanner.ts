@@ -1,5 +1,5 @@
 import { type ReadLine } from './index';
-import { CompilerError } from './errors';
+import { CompilerError, GrammarError } from './errors';
 
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',
@@ -65,12 +65,26 @@ const matchEqualEqual = (buffer: string) => buffer.match(/^==/)
 const matchTrue = (buffer: string) => buffer.match(/^true\b/)
 const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
+const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 
+function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
+  return (buffer: string) => {
+    if (typeof buffer === 'string') {
+      return matcher(buffer)![0]
+    }
+    throw new GrammarError({
+      name: 'GrammarError',
+      message: `Error string not passed to token consumer. This was passed instead: ${buffer}`,
+    })
+  }
+}
+
+// TODO: Refactor all consumeFroms below to use buildConsumer
 const tokenTypes: TokenType[] = [
   {
     name: TOKEN_NAMES.LEFT_PAREN,
     test: matchLeftParen,
-    consumeFrom: (buffer: string): string => matchLeftParen(buffer)![0],
+    consumeFrom: buildConsumer(matchLeftParen),
   },
   {
     name: TOKEN_NAMES.RIGHT_PAREN,
@@ -152,7 +166,12 @@ const tokenTypes: TokenType[] = [
   {
     name: TOKEN_NAMES.NUMBER,
     test: matchNumber,
-    consumeFrom: (buffer: string): string => matchNumber(buffer)![0],
+    consumeFrom: buildConsumer(matchNumber),
+  },
+  {
+    name: TOKEN_NAMES.PRINT,
+    test: matchPrint,
+    consumeFrom: buildConsumer(matchPrint),
   },
 ];
 
