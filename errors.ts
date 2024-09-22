@@ -21,3 +21,18 @@ export class CompilerError extends Error {
   }
 }
 
+export class GrammarError extends Error {
+  name: ErrorType;
+
+  constructor({
+    name,
+    message,
+  }: {
+    name: ErrorType,
+    message: string,
+  }) {
+    super(message);
+    this.name = name;
+  }
+}
+
