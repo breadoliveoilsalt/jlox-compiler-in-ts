@@ -519,20 +519,29 @@ function buildStatement({
 // TODO: CONSIDER: CAN THIS BE RECURSIVE?
 // UPTO HERE: Make this recursive...set arguments and defaults
 
-export function parse({tokens, currentTokenHead, statements
-export function parse(tokens: Tokens) {
+export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<NodeBuilderResult | AstTree> }) {
+  if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
 
-  // TODO: Do I want to add an error for line below, or something
-  // expressive of 0 tokens being present.
-  if (tokens.length === 0) return;
-  const statements = [];
-  let rollingTokenHead = 0;
-  const { node, currentTokenHead: tokenHeadAfterFirstExprEval } = buildExpression({ tokens, currentTokenHead: rollingTokenHead });
-  statements.push(node)
-  rollingTokenHead = tokenHeadAfterFirstExprEval
-  
-  while 
-  return statements;
-  // not returning ast anymore! Will have to refactor signature
-  // and caller
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildStatement({ tokens, currentTokenHead });
+
+  const updatedStatements = [...statements, node]
+
+  return parse({ tokens, currentTokenHead: tokenHeadAfterExprEval, statements: updatedStatements })
 }
+
+// export function parse(tokens: Tokens) {
+
+//   // TODO: Do I want to add an error for line below, or something
+//   // expressive of 0 tokens being present.
+//   if (tokens.length === 0) return;
+//   const statements = [];
+//   let rollingTokenHead = 0;
+//   const { node, currentTokenHead: tokenHeadAfterFirstExprEval } = buildExpression({ tokens, currentTokenHead: rollingTokenHead });
+//   statements.push(node)
+//   rollingTokenHead = tokenHeadAfterFirstExprEval
+
+//   while
+//   return statements;
+//   // not returning ast anymore! Will have to refactor signature
+//   // and caller
+// }
