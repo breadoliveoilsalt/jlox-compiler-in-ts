@@ -203,12 +203,14 @@ function assertTokenType(tokenType: unknown, currentLine: string, lineNumber: nu
 export async function scan(readLine: ReadLine) {
   const tokens: Tokens = [];
   let buffer = await readLine();
-  let lineNumber = 1;
+  let lineNumber = 0;
 
   // NOTE: scanner determines the end via `readLine`'s end
   // signifier -- false. Meanwhile, parser will determine end
   // via the EOF token added below.
   while (buffer !== false) {
+    lineNumber = lineNumber + 1;
+
     let currentLine = buffer.trim();
 
     while (currentLine !== '') {
@@ -222,8 +224,6 @@ export async function scan(readLine: ReadLine) {
     }
 
     buffer = await readLine();
-
-    lineNumber = lineNumber + 1;
   }
 
   tokens.push({ name: TOKEN_NAMES.EOF, text: '', lineNumber })
