@@ -490,7 +490,7 @@ function buildStatement({
     // Below is not an error.
     // Important lesson here about the nature of recursive decent
     // in the grammar.
-    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
+    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 })
 
     if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
       const node = {
@@ -516,10 +516,7 @@ function buildStatement({
   return buildExpressionStatement({ tokens, currentTokenHead })
 }
 
-// TODO: CONSIDER: CAN THIS BE RECURSIVE?
-// UPTO HERE: Make this recursive...set arguments and defaults
-
-export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<NodeBuilderResult | AstTree> }) {
+export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<AstTree> }) {
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
 
   const { node, currentTokenHead: tokenHeadAfterExprEval } = buildStatement({ tokens, currentTokenHead });

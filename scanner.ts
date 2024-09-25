@@ -53,6 +53,7 @@ const matchLeftParen = (buffer: string) => buffer.match(/^\(/)
 const matchRightParen = (buffer: string) => buffer.match(/^\)/)
 const matchMinus = (buffer: string) => buffer.match(/^-/)
 const matchPlus = (buffer: string) => buffer.match(/^\+/)
+const matchSemicolon = (buffer: string) => buffer.match(/^;/);
 const matchSlash = (buffer: string) => buffer.match(/^\//)
 const matchStar = (buffer: string) => buffer.match(/^\*/)
 const matchBangEqual = (buffer: string) => buffer.match(/^!=/)
@@ -104,6 +105,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.PLUS,
     test: matchPlus,
     consumeFrom: (buffer: string): string => matchPlus(buffer)![0],
+  },
+  {
+    name: TOKEN_NAMES.SEMICOLON,
+    test: matchSemicolon,
+    consumeFrom: buildConsumer(matchSemicolon),
   },
   {
     name: TOKEN_NAMES.SLASH,

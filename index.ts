@@ -23,9 +23,10 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
-  const result = await compile(readLine)
+  // const result = await compile(readLine)
+  await compile(readLine)
 
-  if (result) console.log(result)
+  // if (result) console.log(result)
 }
 
 async function startRepl() {
@@ -72,6 +73,7 @@ async function main() {
     if (e instanceof CompilerError) {
       const { name, message, lineNumber } = e;
       console.log(`${name}: Line ${lineNumber}: ${message}`)
+      console.trace(e)
     } else {
       console.log('Error unrecognized by jlox\n')
       throw e
