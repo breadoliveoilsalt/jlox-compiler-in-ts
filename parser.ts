@@ -25,6 +25,7 @@ type AstTree = {
 };
 
 function matches(token: Token | undefined, ...tokenNames: string[]) {
+  console.log('inside matches', {token, tokenNames})
   if (!token) return undefined;
   return tokenNames.find((tokenName) => token?.name === tokenName);
 }
@@ -42,6 +43,7 @@ function peek({
   currentTokenHead: number;
   offset?: number;
 }): Token | undefined {
+  console.log('inside peek', {tokens, currentTokenHead, offset})
   if (allTokensParsed({ tokens, currentTokenHead })) return;
   return tokens[currentTokenHead + offset];
 }
@@ -91,7 +93,7 @@ function buildParenthetical({
   const {
     node: expressionNode,
     currentTokenHead: tokenHeadAfterExpressionEval,
-  } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
+  } = buildStatement({ tokens, currentTokenHead: currentTokenHead + 1 });
 
   if (
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
@@ -118,7 +120,7 @@ function buildParenthetical({
 
   throw new CompilerError({
     name: 'JloxSyntaxError',
-    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses [ ) ]?',
+    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses ")"?',
     lineNumber: tokens[tokenHeadAfterExpressionEval].lineNumber,
   })
 }
@@ -479,11 +481,17 @@ function buildStatement({
   tokens,
   currentTokenHead = 0,
 }: NodeBuilderParams): NodeBuilderResult {
-  if (
-    (matches(peek({ tokens, currentTokenHead })),
-      TOKEN_NAMES.PRINT)
-  ) {
-    const token = tokens[currentTokenHead]
+  console.log('hitting build statement')
+  const token = tokens[currentTokenHead]
+  // UPTO: Need to figure out why below causes everything 
+  // to blow up when src file is true;
+  // if (
+  //   (matches(peek({ tokens, currentTokenHead })),
+  //     TOKEN_NAMES.PRINT)
+  // ) {
+
+  if (matches(token, TOKEN_NAMES.PRINT)) {
+    console.log('inside build statement if')
 
     // NOTE: print statement evaluation jumps straight to
     // expression in the grammar, rather than expressionStatement.
@@ -513,6 +521,7 @@ function buildStatement({
     })
   }
 
+  console.log('about to call buildExpressionStatement')
   return buildExpressionStatement({ tokens, currentTokenHead })
 }
 

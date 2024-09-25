@@ -1,3 +1,18 @@
+## Current Issues/TODOs 240925
+- remove console.logs in parser
+- Need to update tests with semicolons
+  - all tests are commented out right now, mostly; add them back in; see `only`
+- in parser, need to figure out why one if statement makes things go wonky for
+  `true;`. Is there something wrong with peek or match or what?
+- in compile, need to figure out how I will return values or something for the
+  purpose of running tests.
+- there are changes here that will likely break the repl, especially if I start
+  to lean on `print` instead of `console.log` to print values. Or is that
+  something I only want to do when compiling a file. Basically: with the repl,
+  how do I want the evaluation of a line to be printed to the repl on the line
+  below after the
+  evaluation?
+
 ## Intro
 
 This is a just-in-time compiler based off the book [Crafting
