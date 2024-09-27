@@ -504,6 +504,7 @@ function buildStatement({
       const node = {
         token,
         evaluate() {
+          // NOTE: Do not delete this console.log!
           console.log(expression.evaluate())
         }
       }
