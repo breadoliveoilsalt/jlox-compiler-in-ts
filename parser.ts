@@ -91,7 +91,7 @@ function buildParenthetical({
   const {
     node: expressionNode,
     currentTokenHead: tokenHeadAfterExpressionEval,
-  } = expression({ tokens, currentTokenHead: currentTokenHead + 1 });
+  } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
 
   if (
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
@@ -118,7 +118,7 @@ function buildParenthetical({
 
   throw new CompilerError({
     name: 'JloxSyntaxError',
-    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses [ ) ]?',
+    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses ")"?',
     lineNumber: tokens[tokenHeadAfterExpressionEval].lineNumber,
   })
 }
@@ -205,9 +205,6 @@ function buildUnary({
   return buildPrimary({ tokens, currentTokenHead });
 }
 
-// TODO: Note the repetition here where there is an evaluation of
-// left expression, then check, etc. Consider refactoring into
-// something like `buildBinaryExpression`.
 function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
   const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
     tokens,
@@ -431,10 +428,9 @@ function buildEquality({
     node: left,
     currentTokenHead: tokenHeadAfterComparisonEval,
   };
-  // TODO: Add error handling for syntax errors.
 }
 
-function expression({
+function buildExpression({
   tokens,
   currentTokenHead = 0,
 }: NodeBuilderParams): NodeBuilderResult {
@@ -447,8 +443,75 @@ function expression({
   };
 }
 
-export function parse(tokens: Tokens) {
-  if (tokens.length === 0) return;
-  const { node: ast } = expression({ tokens, currentTokenHead: 0 });
-  return { ast };
+function buildExpressionStatement({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead]
+
+  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
+
+  if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+    const node = {
+      token,
+      evaluate() {
+        return expression.evaluate()
+      }
+    }
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterExpressionEval + 1,
+    }
+  }
+
+  throw new CompilerError({
+    name: 'JloxSynatxError',
+    message: 'Missing semicolon ";" after expression',
+    lineNumber: token.lineNumber,
+  })
+}
+
+function buildStatement({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead]
+
+  if (matches(token, TOKEN_NAMES.PRINT)) {
+    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 })
+
+    if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token,
+        evaluate() {
+          // NOTE: Do not delete this console.log!
+          console.log(expression.evaluate())
+        }
+      }
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterExpressionEval + 1,
+      }
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing semicolon ";" after expression',
+      lineNumber: token.lineNumber,
+    })
+  }
+
+  return buildExpressionStatement({ tokens, currentTokenHead })
+}
+
+export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<AstTree> }) {
+  if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
+
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildStatement({ tokens, currentTokenHead });
+
+  const updatedStatements = [...statements, node]
+
+  return parse({ tokens, currentTokenHead: tokenHeadAfterExprEval, statements: updatedStatements })
 }

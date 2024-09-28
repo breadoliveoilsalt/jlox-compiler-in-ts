@@ -1,5 +1,5 @@
 import { type ReadLine } from './index';
-import { CompilerError } from './errors';
+import { CompilerError, GrammarError } from './errors';
 
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',
@@ -53,6 +53,7 @@ const matchLeftParen = (buffer: string) => buffer.match(/^\(/)
 const matchRightParen = (buffer: string) => buffer.match(/^\)/)
 const matchMinus = (buffer: string) => buffer.match(/^-/)
 const matchPlus = (buffer: string) => buffer.match(/^\+/)
+const matchSemicolon = (buffer: string) => buffer.match(/^;/);
 const matchSlash = (buffer: string) => buffer.match(/^\//)
 const matchStar = (buffer: string) => buffer.match(/^\*/)
 const matchBangEqual = (buffer: string) => buffer.match(/^!=/)
@@ -65,12 +66,27 @@ const matchEqualEqual = (buffer: string) => buffer.match(/^==/)
 const matchTrue = (buffer: string) => buffer.match(/^true\b/)
 const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
+const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 
+function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
+  return (buffer: string) => {
+    if (typeof buffer === 'string') {
+      // TODO: Add typecheck here to avoid ! assertion
+      return matcher(buffer)![0]
+    }
+    throw new GrammarError({
+      name: 'GrammarError',
+      message: `Error string not passed to token consumer. This was passed instead: ${buffer}`,
+    })
+  }
+}
+
+// TODO: Refactor all consumeFroms below to use buildConsumer
 const tokenTypes: TokenType[] = [
   {
     name: TOKEN_NAMES.LEFT_PAREN,
     test: matchLeftParen,
-    consumeFrom: (buffer: string): string => matchLeftParen(buffer)![0],
+    consumeFrom: buildConsumer(matchLeftParen),
   },
   {
     name: TOKEN_NAMES.RIGHT_PAREN,
@@ -89,6 +105,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.PLUS,
     test: matchPlus,
     consumeFrom: (buffer: string): string => matchPlus(buffer)![0],
+  },
+  {
+    name: TOKEN_NAMES.SEMICOLON,
+    test: matchSemicolon,
+    consumeFrom: buildConsumer(matchSemicolon),
   },
   {
     name: TOKEN_NAMES.SLASH,
@@ -152,7 +173,12 @@ const tokenTypes: TokenType[] = [
   {
     name: TOKEN_NAMES.NUMBER,
     test: matchNumber,
-    consumeFrom: (buffer: string): string => matchNumber(buffer)![0],
+    consumeFrom: buildConsumer(matchNumber),
+  },
+  {
+    name: TOKEN_NAMES.PRINT,
+    test: matchPrint,
+    consumeFrom: buildConsumer(matchPrint),
   },
 ];
 
@@ -177,12 +203,14 @@ function assertTokenType(tokenType: unknown, currentLine: string, lineNumber: nu
 export async function scan(readLine: ReadLine) {
   const tokens: Tokens = [];
   let buffer = await readLine();
-  let lineNumber = 1;
+  let lineNumber = 0;
 
   // NOTE: scanner determines the end via `readLine`'s end
   // signifier -- false. Meanwhile, parser will determine end
   // via the EOF token added below.
   while (buffer !== false) {
+    lineNumber = lineNumber + 1;
+
     let currentLine = buffer.trim();
 
     while (currentLine !== '') {
@@ -196,8 +224,6 @@ export async function scan(readLine: ReadLine) {
     }
 
     buffer = await readLine();
-
-    lineNumber = lineNumber + 1;
   }
 
   tokens.push({ name: TOKEN_NAMES.EOF, text: '', lineNumber })

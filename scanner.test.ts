@@ -25,7 +25,7 @@ describe('scan', () => {
       { name: 'bang', text: '!', lineNumber: 2 },
       { name: 'bang', text: '!', lineNumber: 2 },
       { name: 'true', text: 'true', lineNumber : 2 },
-      { name: 'eof', text: '', lineNumber: 3 }
+      { name: 'eof', text: '', lineNumber: 2 }
     ]
 
     expect(tokens).toEqual(expectedTokens)

@@ -26,6 +26,7 @@ relevant sections below.
   - `npm run compile -- <file path>`
   - Example: `npm run compile -- ./src.jlox`
     - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
+  - `npm run compile:src` evaluates `src.jlox`. 
   - Currently TypeScript errors are non-blocking.
 
 ## Running tests
@@ -41,15 +42,17 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
-- Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/):
-  Statements and State
-- Add ability to read multiple lines
-- Beef up error handling and error reporting to user for expressions
-  - source file not present
-  - syntax errors, etc.
-- Fix linting/prettifying re: adding semi-colons.
-- Add line number to token object (perhaps starting position (cursor) of lexeme
-  on that line)
+- [ ] Fix Repl loop - it can handle one error and repeats the loop,
+  but it forcefully exits after a second error
+
+- Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/): Statements and State
+  - [X] Add `print` functionality
+  - [ ] Add envs and ability to read multiple lines
+- [X] Beef up error handling and error reporting to user for expressions
+- Fix linting/prettifying re: adding semi-colons in TS code.
+- [X] Add line number to token object
+
+## Notes on fixing repl [WIP]
 - Refactor top level error boundary and `startRepl` so that, say, a jlox syntax
   error does not cause the repl to freeze; the error is reported and the prompt
   re-appears.
@@ -90,10 +93,6 @@ async function main() {
 ## Open issues / Questions
 
 - To consider:
-  - Integrate responsibility for keeping track of line numbers to function
-    returned by `initLineReader`, or in the tokenizer?.
-  - Will scan be recursive, while using a `readLine` function? How
-    much can I adhere to functional programming here, while still getting it done?
   - Can I hide knowledge of data structure from parser, etc., with an intermediate
     layer of helper methods?
   - Consider adding cursor position of each lexeme in scanner, for better error
@@ -208,3 +207,24 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   the evaluation. So it will look like our error boundary is failing to catch
   the error.
   - See [here](https://stackoverflow.com/questions/59716534/try-catch-issues-with-nested-functons-in-javascript) for a description.
+
+
+#### The order of following grammar rules and recursive descent
+- Just because this is a "recursive descent" grammar, it does not mean that the
+  grammar rules are evaluated strictly from top to bottom. Nor does it mean that
+  when you get to the bottom and have a parenthetical, that you must jump to the
+  very top of the grammar.
+  - Failing to recognize this caused a number of bugs along the way.
+  - Examples of how the grammar can jump around, not go strictly in one
+    direction and then loop:
+    - For example, `statement` is the top grammar rule. Building a `parenthetical`
+      node is one of the last. BUT parenthetical jumps to `buildExpression`, not
+      `buildStatement`. In other words, to evaluate what is inside parentheses, we
+      jump to a rule somewhere in the middle of the grammar.
+    - On a similar theme of not going strictly in one direction, note that
+      `buildStatement` jumps *over* `buildExpressionStatement`, going straight to
+      `buildExpression`, if the condition for an expression token is met. 
+
+#### Recursion can be cool
+- I'm proud of realizing that `parse` can be a recursive function and
+  implementing it that way.
