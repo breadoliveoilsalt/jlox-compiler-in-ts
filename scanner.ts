@@ -67,11 +67,13 @@ const matchTrue = (buffer: string) => buffer.match(/^true\b/)
 const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
 const matchPrint = (buffer: string) => buffer.match(/^print\b/)
+const matchVar = (buffer: string) => buffer.match(/^var\b/)
 
 function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
   return (buffer: string) => {
     if (typeof buffer === 'string') {
-      // TODO: Add typecheck here to avoid ! assertion
+      // TS assertion ok here because we've already called
+      // the matcher to test that there is a match.
       return matcher(buffer)![0]
     }
     throw new GrammarError({
@@ -179,6 +181,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.PRINT,
     test: matchPrint,
     consumeFrom: buildConsumer(matchPrint),
+  },
+  {
+    name: TOKEN_NAMES.VAR,
+    test: matchVar,
+    consumeFrom: buildConsumer(matchVar),
   },
 ];
 
