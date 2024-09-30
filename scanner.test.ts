@@ -31,4 +31,20 @@ describe('scan', () => {
     expect(tokens).toEqual(expectedTokens)
   })
 
+  test('it correctly identifies var and identifier tokens', async () => {
+    // TODO: Beef up this test
+    const lines = ['var fiddle_12343423;', false]
+    async function readLine() { return lines.shift() }
+
+    const { tokens } = await scan(readLine as ReadLine)
+
+    const expectedTokens = [
+      { name: 'var', text: 'var', lineNumber: 1 },
+      { name: 'identifier', text: 'fiddle_12343423', lineNumber: 1 },
+      { name: 'semicolon', text: ';', lineNumber: 1 },
+      { name: 'eof', text: '', lineNumber: 1 }
+    ]
+
+    expect(tokens).toEqual(expectedTokens)
+  })
 })

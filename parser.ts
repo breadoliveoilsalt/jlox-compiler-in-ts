@@ -97,7 +97,7 @@ function buildParenthetical({
     (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
       TOKEN_NAMES.RIGHT_PAREN)
   ) {
-    // TODO: Seems odd and off that a parenthetical node would only have one token,
+    // NOTE: It's interesting that and off that a parenthetical node would only have one token in the token property,
     // the right paren, when there is both a left and right paren at play.
     // Does Node really need to return token?
     // Consider changing token to tokens array for a node
@@ -148,6 +148,7 @@ function buildPrimary({
 }: NodeBuilderParams): NodeBuilderResult {
   const currentToken = tokens[currentTokenHead];
 
+  // UPTO: add identifier
   const primaryBuilders: PrimaryBuilders = {
     [TOKEN_NAMES.TRUE]: buildTrue,
     [TOKEN_NAMES.FALSE]: buildFalse,
@@ -432,7 +433,7 @@ function buildEquality({
 
 function buildExpression({
   tokens,
-  currentTokenHead = 0,
+  currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
   const { node, currentTokenHead: tokenHeadAfterEqualityEval } =
     buildEquality({ tokens, currentTokenHead });
@@ -445,7 +446,7 @@ function buildExpression({
 
 function buildExpressionStatement({
   tokens,
-  currentTokenHead = 0,
+  currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead]
 
@@ -474,7 +475,7 @@ function buildExpressionStatement({
 
 function buildStatement({
   tokens,
-  currentTokenHead = 0,
+  currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead]
 
@@ -504,6 +505,14 @@ function buildStatement({
   }
 
   return buildExpressionStatement({ tokens, currentTokenHead })
+}
+
+function buildDeclaration({
+  tokens,
+  currentTokenHead = 0,
+}: NodeBuilderParams): NodeBuilderResult {
+
+
 }
 
 export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<AstTree> }) {

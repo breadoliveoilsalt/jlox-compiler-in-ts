@@ -68,6 +68,7 @@ const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
 const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 const matchVar = (buffer: string) => buffer.match(/^var\b/)
+const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/)
 
 function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
   return (buffer: string) => {
@@ -186,6 +187,14 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.VAR,
     test: matchVar,
     consumeFrom: buildConsumer(matchVar),
+  },
+  // NOTE: Again, ordering of this list matters.
+  // `matchIdentifier` must come as one of the last so as
+  // not to accidentially consume and misidentify other tokens.
+  {
+    name: TOKEN_NAMES.IDENTIFIER,
+    test: matchIdentifier,
+    consumeFrom: buildConsumer(matchIdentifier),
   },
 ];
 
