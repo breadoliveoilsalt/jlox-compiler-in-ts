@@ -1,11 +1,23 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 import { CompilerError } from './errors';
 
-type NodeBuilderParams = { tokens: Tokens; currentTokenHead: number };
+type Environment = {
+  outterScope: null | Environment;
+  [key: string]: any;
+}
 
+// TODO: make environment required
+type NodeBuilderParams = {
+  tokens: Tokens;
+  currentTokenHead: number;
+  environment?: Environment;
+};
+
+// TODO: make environment required
 type NodeBuilderResult = {
   node: AstTree;
   currentTokenHead: number;
+  environment?: Environment;
 };
 
 type NodeBuilder = ({
@@ -26,6 +38,13 @@ type AstTree = {
 
 function matches(token: Token | undefined, ...tokenNames: string[]) {
   if (!token) return undefined;
+  if (tokenNames.length === 0) {
+    throw new CompilerError({
+      name: 'DeveloperError',
+      message: 'matches function requires at least one tokenName',
+      lineNumber: token.lineNumber,
+    })
+  }
   return tokenNames.find((tokenName) => token?.name === tokenName);
 }
 
@@ -94,12 +113,12 @@ function buildParenthetical({
   } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
 
   if (
-    (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval })),
-      TOKEN_NAMES.RIGHT_PAREN)
+    (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.RIGHT_PAREN))
   ) {
-    // NOTE: It's interesting that and off that a parenthetical node would only have one token in the token property,
-    // the right paren, when there is both a left and right paren at play.
-    // Does Node really need to return token?
+    // NOTE: It's interesting (and off-putting) that a parenthetical
+    // node would only have one token in the token property,
+    // the right paren, when there is both a left and right
+    // paren at play. Does Node really need to return token?
     // Consider changing token to tokens array for a node
     const token = tokens[tokenHeadAfterExpressionEval];
 
@@ -154,6 +173,7 @@ function buildPrimary({
     [TOKEN_NAMES.FALSE]: buildFalse,
     [TOKEN_NAMES.LEFT_PAREN]: buildParenthetical,
     [TOKEN_NAMES.NUMBER]: buildNumber,
+    // [TOKEN_NAMES.IDENTIFIER]: buildIdentifier,
   };
 
   if (primaryBuilders[currentToken.name]) {
@@ -507,18 +527,96 @@ function buildStatement({
   return buildExpressionStatement({ tokens, currentTokenHead })
 }
 
+const globalScope: Environment = { outterScope: null };
+
 function buildDeclaration({
   tokens,
   currentTokenHead = 0,
+  environment = globalScope,
 }: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead]
 
+  // TODO: Refactor? Oof a lot of conditionals here.
+  if (matches(token, TOKEN_NAMES.VAR)) {
+    // TODO: Refactor `peek` calls to use offset
+    if (matches(
+      peek({ tokens, currentTokenHead, offset: 1 }),
+      TOKEN_NAMES.IDENTIFIER
+    )) {
+      const varToken = tokens[currentTokenHead + 1];
+      const varName = varToken.text
+
+      if (matches(
+        peek({ tokens, currentTokenHead, offset: 2 }),
+        TOKEN_NAMES.EQUAL,
+      )) {
+        const {
+          node: expressionNode,
+          currentTokenHead: tokenHeadAfterExpressionEval,
+        } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 3 });
+
+
+        if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+          // TODO: refactor for immutability
+          environment[varName] = expressionNode.evaluate();
+
+          const node = {
+            token: varToken,
+            evaluate() {
+              return environment[varName];
+            }
+          }
+
+          return {
+            node,
+            currentTokenHead: tokenHeadAfterExpressionEval,
+            environment,
+          }
+        }
+
+        throw new CompilerError({
+          name: 'JloxSynatxError',
+          message: 'Missing semicolon ";" after variable initialization and assignment',
+          lineNumber: token.lineNumber,
+        })
+      }
+      // Not followed to equal sign; set to null;
+
+      if (matches(peek({ tokens, currentTokenHead: currentTokenHead + 2 }), TOKEN_NAMES.SEMICOLON)) {
+        environment[varName] = null;
+
+        const node = {
+          token: varToken,
+          evaluate() {
+            return environment[varName];
+          }
+        }
+
+        return {
+          node,
+          currentTokenHead: currentTokenHead + 3,
+          environment,
+        }
+      }
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: '"var" declared without identifier token as variable name',
+      lineNumber: token.lineNumber,
+    })
+
+  }
+
+
+  return buildStatement({ tokens, currentTokenHead })
 
 }
 
 export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<AstTree> }) {
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
 
-  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildStatement({ tokens, currentTokenHead });
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({ tokens, currentTokenHead });
 
   const updatedStatements = [...statements, node]
 
