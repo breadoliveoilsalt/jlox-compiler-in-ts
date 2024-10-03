@@ -1,5 +1,6 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 import { CompilerError } from './errors';
+import { matches, peek } from './helpers'
 
 type Environment = {
   outterScope: null | Environment;
@@ -7,20 +8,20 @@ type Environment = {
 }
 
 // TODO: make environment required
-type NodeBuilderParams = {
+export type NodeBuilderParams = {
   tokens: Tokens;
   currentTokenHead: number;
   environment?: Environment;
 };
 
 // TODO: make environment required
-type NodeBuilderResult = {
+export type NodeBuilderResult = {
   node: AstTree;
   currentTokenHead: number;
   environment?: Environment;
 };
 
-type NodeBuilder = ({
+export type NodeBuilder = ({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams) => NodeBuilderResult;
@@ -35,35 +36,6 @@ type AstTree = {
   right?: AstTree;
   evaluate: () => any;
 };
-
-function matches(token: Token | undefined, ...tokenNames: string[]) {
-  if (!token) return undefined;
-  if (tokenNames.length === 0) {
-    throw new CompilerError({
-      name: 'DeveloperError',
-      message: 'matches function requires at least one tokenName',
-      lineNumber: token.lineNumber,
-    })
-  }
-  return tokenNames.find((tokenName) => token?.name === tokenName);
-}
-
-function allTokensParsed({ tokens, currentTokenHead }: NodeBuilderParams) {
-  return tokens[currentTokenHead].name === TOKEN_NAMES.EOF;
-}
-
-function peek({
-  tokens,
-  currentTokenHead,
-  offset = 0,
-}: {
-  tokens: Tokens;
-  currentTokenHead: number;
-  offset?: number;
-}): Token | undefined {
-  if (allTokensParsed({ tokens, currentTokenHead })) return;
-  return tokens[currentTokenHead + offset];
-}
 
 function buildTrue({
   tokens,
