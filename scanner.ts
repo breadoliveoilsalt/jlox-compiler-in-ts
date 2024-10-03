@@ -63,6 +63,7 @@ const matchGreater = (buffer: string) => buffer.match(/^>/)
 const matchLessEqual = (buffer: string) => buffer.match(/^<=/)
 const matchLess = (buffer: string) => buffer.match(/^</)
 const matchEqualEqual = (buffer: string) => buffer.match(/^==/)
+const matchEqual = (buffer: string) => buffer.match(/^=/)
 const matchTrue = (buffer: string) => buffer.match(/^true\b/)
 const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
@@ -160,6 +161,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.EQUAL_EQUAL,
     test: matchEqualEqual,
     consumeFrom: (buffer: string): string => matchEqualEqual(buffer)![0],
+  },
+  {
+    name: TOKEN_NAMES.EQUAL,
+    test: matchEqual,
+    consumeFrom: buildConsumer(matchEqual),
   },
   {
     name: TOKEN_NAMES.TRUE,

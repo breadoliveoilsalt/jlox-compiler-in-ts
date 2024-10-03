@@ -529,6 +529,14 @@ function buildStatement({
 
 const globalScope: Environment = { outterScope: null };
 
+// UPTO: Working on bulding this out.
+// Took my first crack, now trying to debug
+// failures when parsing src.jlox file.
+// var thing; seems ok (how to verify)?
+// but not var thing = true;
+// Consider writing a test
+// Consider refactoring conditionals b/c they are
+// unreadable
 function buildDeclaration({
   tokens,
   currentTokenHead = 0,
@@ -537,6 +545,9 @@ function buildDeclaration({
   const token = tokens[currentTokenHead]
 
   // TODO: Refactor? Oof a lot of conditionals here.
+  // Consider a funtion like `matchesTokenSequence`
+  // that lists a series of expected tokens, and then
+  // retunrs based on the various conditions.
   if (matches(token, TOKEN_NAMES.VAR)) {
     // TODO: Refactor `peek` calls to use offset
     if (matches(
@@ -556,7 +567,7 @@ function buildDeclaration({
         } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 3 });
 
 
-        if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+        if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval + 1 }), TOKEN_NAMES.SEMICOLON)) {
           // TODO: refactor for immutability
           environment[varName] = expressionNode.evaluate();
 
@@ -569,7 +580,7 @@ function buildDeclaration({
 
           return {
             node,
-            currentTokenHead: tokenHeadAfterExpressionEval,
+            currentTokenHead: tokenHeadAfterExpressionEval + 2,
             environment,
           }
         }
