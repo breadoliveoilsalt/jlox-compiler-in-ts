@@ -43,6 +43,8 @@ export const TOKEN_NAMES = {
   EOF: 'eof',
 };
 
+export type TokenNames = (typeof TOKEN_NAMES)[keyof typeof TOKEN_NAMES];
+
 type TokenType = {
   name: string;
   test: (buffer: string) => string[] | null;
