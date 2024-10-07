@@ -1,7 +1,7 @@
 import {
   type Token,
   type Tokens,
-  type TokenNames,
+  type TokenName,
   TOKEN_NAMES,
 } from './scanner';
 import type { NodeBuilderParams } from './parser';
@@ -42,16 +42,34 @@ export function not(token: Token): NegatedToken {
   return { ...token, negate: true };
 }
 
-export function assertTokenSequence({
+
+type NegatedToken = {
+  name: TokenName;
+  negate: true;
+}
+
+export function not(name: TokenName): NegatedToken {
+  return ({
+    name,
+    negate: true,
+  })
+}
+
+export function sequencer(data: (TokenName | NegatedToken[]) {
+
+}
+
+
+function assertTokenSequence({
   tokens,
   currentTokenHead,
   expectedTokenSequence,
 }: {
-  tokens: Tokens | NegatedToken[];
+  tokens: Tokens;
   currentTokenHead: number;
-  expectedTokenSequence: TokenNames[];
+  expectedTokenSequence: { name: TokenName, negated?: true};
 }): boolean {
-  expectedTokenSequence.forEach((expectedName, index) => {
+  expectedTokenSequence.forEach((expected, index: number) => {
     // UPTO: fix ts error below; write tests for this funciton
     // REM that the negate property will be on the names, not the
     // tokens. I see the problem now
@@ -63,11 +81,9 @@ export function assertTokenSequence({
 
     const tokenToTest = tokens[currentTokenHead + index];
     function namesMatch() {
-      return expectedName === tokenToTest.name;
+      return expected.name === tokenToTest.name;
     }
-    if (tokenToTest.negate) {
-    }
-    if (tokenToTest.negate && namesMatch()) return false;
+    if (expected.negate && namesMatch()) return false;
     if (!namesMatch()) return false;
   });
 
