@@ -1,9 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { sequencer } from './helpers';
-import {
-  type Tokens,
-  TOKEN_NAMES,
-} from './scanner';
+import { type Tokens, TOKEN_NAMES } from './scanner';
 
 describe('sequencer', () => {
   test('it confirms that a token sequence exists', () => {
@@ -140,7 +137,6 @@ describe('sequencer', () => {
 
     const currentTokenHead = 1;
 
-
     const { assertTokenSequence, not } = sequencer();
 
     const expectedTokens = [
@@ -194,7 +190,6 @@ describe('sequencer', () => {
 
     const currentTokenHead = 1;
 
-
     const { assertTokenSequence, not } = sequencer();
 
     const expectedTokens = [
@@ -216,29 +211,27 @@ describe('sequencer', () => {
       assertTokenSequence({ tokens, currentTokenHead, expectedTokens }),
     ).toEqual(false);
   });
+
+  test('it passes an example that tripped me up earlier', () => {
+    const tokens: Tokens = [
+      { name: 'var', text: 'var', lineNumber: 1 },
+      { name: 'identifier', text: 'thing', lineNumber: 1 },
+      { name: 'semicolon', text: ';', lineNumber: 1 },
+      { name: 'eof', text: '', lineNumber: 2 },
+    ];
+    const currentTokenHead = 0;
+
+    const { assertTokenSequence, not } = sequencer();
+
+    const expectedTokens = [
+      { name: TOKEN_NAMES.VAR },
+      { name: TOKEN_NAMES.IDENTIFIER },
+      not({ name: TOKEN_NAMES.SEMICOLON }),
+    ];
+
+    expect(
+      assertTokenSequence({ tokens, currentTokenHead, expectedTokens }),
+    ).toEqual(false);
+  });
 });
 
-
-UPTO: add test based on this
-  tokens: [
-    { name: 'var', text: 'var', lineNumber: 1 },
-    { name: 'identifier', text: 'thing', lineNumber: 1 },
-    { name: 'semicolon', text: ';', lineNumber: 1 },
-    { name: 'eof', text: '', lineNumber: 2 }
-  ],
-  currentTokenHead: 0,
-
-  expectedTokens: [
-    { name: 'var' },
-    { name: 'identifier' },
-    { name: 'semicolon', isNegated: true }
-  ],
-    assertTokenSequence({
-      tokens,
-      currentTokenHead,
-      expectedTokens: [
-        { name: TOKEN_NAMES.VAR },
-        { name: TOKEN_NAMES.IDENTIFIER },
-        not({ name: TOKEN_NAMES.SEMICOLON }),
-      ],
-    })
