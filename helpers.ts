@@ -54,23 +54,20 @@ export function sequencer() {
     expectedTokens: { name: TokenName; isNegated?: boolean }[];
   }): boolean {
     if (currentTokenHead + expectedTokens.length > tokens.length) {
-      throw new Error ('Developer: You have accidentally added too many expected tokens to assertTokenSequence')
+      throw new Error(
+        'Developer: You have accidentally added too many expected tokens to assertTokenSequence',
+      );
     }
 
     const mismatch = expectedTokens.find((expected, index: number) => {
       const tokenToTest = tokens[currentTokenHead + index];
-      console.log({tokenToTest, expected})
-      function namesMatch() {
-        return expected.name === tokenToTest.name;
+      function namesMismatch() {
+        return expected.name !== tokenToTest.name;
       }
-      // Can just turn these to return statements
-      // if (namesMatch() && expected.isNegated ) return tokenToTest;
-      console.log('attempting second test')
-      if (!namesMatch() && !expected.isNegated) return tokenToTest;
+      return namesMismatch() && !expected.isNegated;
     });
 
-    console.log({mismatch})
-    return mismatch ? false : true;
+    return !mismatch;
   }
 
   return { assertTokenSequence, not };
