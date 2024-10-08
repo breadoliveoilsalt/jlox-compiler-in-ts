@@ -548,7 +548,6 @@ function buildVar({
   const { assertTokenSequence, not } = sequencer();
   const token = tokens[currentTokenHead];
 
-  // UPTO: figure out why this is not working -- need new test!
   if (
     assertTokenSequence({
       tokens,
@@ -557,6 +556,26 @@ function buildVar({
         { name: TOKEN_NAMES.VAR },
         { name: TOKEN_NAMES.IDENTIFIER },
         not({ name: TOKEN_NAMES.SEMICOLON }),
+      ],
+    })
+  ) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: 'Syntax Error. Did you forget a semicolon ";" after variable declaration?',
+      lineNumber: token.lineNumber,
+    });
+  }
+
+  if (
+    assertTokenSequence({
+      tokens,
+      currentTokenHead,
+      expectedTokens: [
+        { name: TOKEN_NAMES.VAR },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        { name: TOKEN_NAMES.SEMICOLON }
       ],
     })
   ) {
