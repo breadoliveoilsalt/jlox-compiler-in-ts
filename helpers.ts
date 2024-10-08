@@ -36,56 +36,34 @@ export function peek({
   return tokens[currentTokenHead + offset];
 }
 
-type NegatedToken = Token & { negate: true };
+export function sequencer() {
+  function not({ name }: { name: TokenName }) {
+    return {
+      name,
+      isNegated: true,
+    };
+  }
 
-export function not(token: Token): NegatedToken {
-  return { ...token, negate: true };
-}
+  function assertTokenSequence({
+    tokens,
+    currentTokenHead,
+    expectedTokens,
+  }: {
+    tokens: Tokens;
+    currentTokenHead: number;
+    expectedTokens: { name: TokenName; isNegated?: true }[];
+  }): boolean {
+    expectedTokens.forEach((expected, index: number) => {
+      const tokenToTest = tokens[currentTokenHead + index];
+      function namesMatch() {
+        return expected.name === tokenToTest.name;
+      }
+      if (expected.isNegated && namesMatch()) return false;
+      if (!namesMatch()) return false;
+    });
 
+    return true;
+  }
 
-type NegatedToken = {
-  name: TokenName;
-  negate: true;
-}
-
-export function not(name: TokenName): NegatedToken {
-  return ({
-    name,
-    negate: true,
-  })
-}
-
-export function sequencer(data: (TokenName | NegatedToken[]) {
-
-}
-
-
-function assertTokenSequence({
-  tokens,
-  currentTokenHead,
-  expectedTokenSequence,
-}: {
-  tokens: Tokens;
-  currentTokenHead: number;
-  expectedTokenSequence: { name: TokenName, negated?: true};
-}): boolean {
-  expectedTokenSequence.forEach((expected, index: number) => {
-    // UPTO: fix ts error below; write tests for this funciton
-    // REM that the negate property will be on the names, not the
-    // tokens. I see the problem now
-    // Idea: make the signature like this
-
-    // assertTokenSequence({ tokens, currentTokenHead, expected: sequence(TOKEN_NAME.TRUE, not(TOKEN_NAME.SEMICOLON))}
-    // the squence method will turn each into an object with a `name` and optional `negated` property. Not will turn it into an object
-    // like that automatically. So sequence will need to check if it's gettingn an object or a string and create objects accordingly
-
-    const tokenToTest = tokens[currentTokenHead + index];
-    function namesMatch() {
-      return expected.name === tokenToTest.name;
-    }
-    if (expected.negate && namesMatch()) return false;
-    if (!namesMatch()) return false;
-  });
-
-  return true;
+  return { assertTokenSequence, not };
 }
