@@ -548,6 +548,12 @@ function buildVar({
   const { assertTokenSequence, not } = sequencer();
   const token = tokens[currentTokenHead];
 
+  // UPTO: haha silly me this blocks everything that follows...
+  // I should change this to a positive assertion...check if semicolon
+  // does follow, and if so, just return a node with an env where the idenfiier
+  // name is undefined
+  // Actually, do that before anything else, and the see if compiler works
+  // with a new line printing that variable. Get that hooked up before anything else
   if (
     assertTokenSequence({
       tokens,
@@ -561,7 +567,8 @@ function buildVar({
   ) {
     throw new CompilerError({
       name: 'JloxSyntaxError',
-      message: 'Syntax Error. Did you forget a semicolon ";" after variable declaration?',
+      message:
+        'Syntax Error. Did you forget a semicolon ";" after variable declaration?',
       lineNumber: token.lineNumber,
     });
   }
@@ -573,17 +580,17 @@ function buildVar({
       expectedTokens: [
         { name: TOKEN_NAMES.VAR },
         { name: TOKEN_NAMES.IDENTIFIER },
-        { name: TOKEN_NAMES.IDENTIFIER },
-        { name: TOKEN_NAMES.IDENTIFIER },
-        { name: TOKEN_NAMES.SEMICOLON }
+        { name: TOKEN_NAMES.EQUAL },
       ],
     })
   ) {
-    throw new CompilerError({
-      name: 'JloxSynatxError',
-      message: 'Missing semicolon ";" after variable declaration',
-      lineNumber: token.lineNumber,
-    });
+    const identifier = tokens[currentTokenHead + 1];
+    const varName = identifier.text;
+    const {
+      node: expressionNode,
+      currentTokenHead: tokenHeadAfterExpressionEval,
+    } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 3 });
+    console.log('expression', expressionNode.evaluate());
   }
 }
 
