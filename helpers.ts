@@ -59,13 +59,17 @@ export function sequencer() {
 
     const mismatch = expectedTokens.find((expected, index: number) => {
       const tokenToTest = tokens[currentTokenHead + index];
+      console.log({tokenToTest, expected})
       function namesMatch() {
         return expected.name === tokenToTest.name;
       }
-      if (expected.isNegated && namesMatch()) return tokenToTest;
-      if (!namesMatch()) return tokenToTest;
+      // Can just turn these to return statements
+      // if (namesMatch() && expected.isNegated ) return tokenToTest;
+      console.log('attempting second test')
+      if (!namesMatch() && !expected.isNegated) return tokenToTest;
     });
 
+    console.log({mismatch})
     return mismatch ? false : true;
   }
 
