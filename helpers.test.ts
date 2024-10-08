@@ -91,16 +91,15 @@ describe('sequencer', () => {
     const currentTokenHead = 2;
 
     const expectedTokens = [
-      // {
-      //   name: TOKEN_NAMES.EQUAL,
-      // },
+      {
+        name: TOKEN_NAMES.EQUAL,
+      },
       {
         name: TOKEN_NAMES.BANG,
-        // isNegated:true
       },
-      // {
-      //   name: TOKEN_NAMES.SEMICOLON,
-      // },
+      {
+        name: TOKEN_NAMES.SEMICOLON,
+      },
     ];
 
     const { assertTokenSequence } = sequencer();
