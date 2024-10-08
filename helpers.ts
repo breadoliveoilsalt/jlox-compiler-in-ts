@@ -67,6 +67,8 @@ export function sequencer() {
       return namesMismatch() && !expected.isNegated;
     });
 
+    console.log({tokens, currentTokenHead, expectedTokens, mismatch})
+
     return !mismatch;
   }
 

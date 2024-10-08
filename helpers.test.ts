@@ -217,3 +217,28 @@ describe('sequencer', () => {
     ).toEqual(false);
   });
 });
+
+
+UPTO: add test based on this
+  tokens: [
+    { name: 'var', text: 'var', lineNumber: 1 },
+    { name: 'identifier', text: 'thing', lineNumber: 1 },
+    { name: 'semicolon', text: ';', lineNumber: 1 },
+    { name: 'eof', text: '', lineNumber: 2 }
+  ],
+  currentTokenHead: 0,
+
+  expectedTokens: [
+    { name: 'var' },
+    { name: 'identifier' },
+    { name: 'semicolon', isNegated: true }
+  ],
+    assertTokenSequence({
+      tokens,
+      currentTokenHead,
+      expectedTokens: [
+        { name: TOKEN_NAMES.VAR },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        not({ name: TOKEN_NAMES.SEMICOLON }),
+      ],
+    })

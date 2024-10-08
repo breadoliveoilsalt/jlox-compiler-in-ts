@@ -1,11 +1,11 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 import { CompilerError } from './errors';
-import { matches, peek } from './helpers'
+import { matches, peek, sequencer } from './helpers';
 
 type Environment = {
   outterScope: null | Environment;
   [key: string]: any;
-}
+};
 
 // TODO: make environment required
 export type NodeBuilderParams = {
@@ -78,14 +78,16 @@ function buildParenthetical({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-
   const {
     node: expressionNode,
     currentTokenHead: tokenHeadAfterExpressionEval,
   } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
 
   if (
-    (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.RIGHT_PAREN))
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+      TOKEN_NAMES.RIGHT_PAREN,
+    )
   ) {
     // NOTE: It's interesting (and off-putting) that a parenthetical
     // node would only have one token in the token property,
@@ -97,7 +99,7 @@ function buildParenthetical({
     const node = {
       token,
       evaluate() {
-        return (expressionNode.evaluate());
+        return expressionNode.evaluate();
       },
     };
 
@@ -109,9 +111,10 @@ function buildParenthetical({
 
   throw new CompilerError({
     name: 'JloxSyntaxError',
-    message: 'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses ")"?',
+    message:
+      'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses ")"?',
     lineNumber: tokens[tokenHeadAfterExpressionEval].lineNumber,
-  })
+  });
 }
 
 function buildNumber({
@@ -165,7 +168,7 @@ function buildPrimary({
     name: 'JloxSyntaxError',
     message: `Unrecognized primary lexeme: "${currentToken.text}"`,
     lineNumber: currentToken.lineNumber,
-  })
+  });
 }
 
 function buildUnary({
@@ -175,10 +178,11 @@ function buildUnary({
   const currentToken = tokens[currentTokenHead];
 
   if (matches(currentToken, TOKEN_NAMES.BANG, TOKEN_NAMES.MINUS)) {
-    const { node: right, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
-      tokens,
-      currentTokenHead: currentTokenHead + 1,
-    });
+    const { node: right, currentTokenHead: tokenHeadAfterUnaryEval } =
+      buildUnary({
+        tokens,
+        currentTokenHead: currentTokenHead + 1,
+      });
 
     const node = {
       token: currentToken,
@@ -188,8 +192,9 @@ function buildUnary({
         if (this.token.name === TOKEN_NAMES.BANG) return !right;
         // Checking for number type to prevent javascript oddity `14 -true`,
         // which evaluates to 13, etc.,
-        if (this.token.name === TOKEN_NAMES.MINUS && typeof right === 'number') return -right;
-      }
+        if (this.token.name === TOKEN_NAMES.MINUS && typeof right === 'number')
+          return -right;
+      },
     };
 
     return { node, currentTokenHead: tokenHeadAfterUnaryEval };
@@ -198,7 +203,10 @@ function buildUnary({
   return buildPrimary({ tokens, currentTokenHead });
 }
 
-function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
+function buildFactor({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
   const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
     tokens,
     currentTokenHead,
@@ -228,18 +236,18 @@ function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuild
         const rightExpr = this.right.evaluate();
         switch (this.token.name) {
           case TOKEN_NAMES.SLASH:
-            return leftExpr / rightExpr
+            return leftExpr / rightExpr;
           case TOKEN_NAMES.STAR:
-            return leftExpr * rightExpr
+            return leftExpr * rightExpr;
           default:
             throw new CompilerError({
               name: 'JloxSyntaxError',
               message: `Failed to parse factor: ${leftExpr}, ${token.text}, ${rightExpr}`,
               lineNumber: token.lineNumber,
-            })
+            });
         }
-      }
-    }
+      },
+    };
 
     return {
       node,
@@ -253,11 +261,15 @@ function buildFactor({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuild
   };
 }
 
-function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterFactorEval } = buildFactor({
-    tokens,
-    currentTokenHead,
-  });
+function buildTerm({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
+  const { node: left, currentTokenHead: tokenHeadAfterFactorEval } =
+    buildFactor({
+      tokens,
+      currentTokenHead,
+    });
 
   if (
     matches(
@@ -266,7 +278,6 @@ function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilder
       TOKEN_NAMES.PLUS,
     )
   ) {
-
     const token = tokens[tokenHeadAfterFactorEval];
 
     const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
@@ -284,18 +295,18 @@ function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilder
         const rightExpr = this.right.evaluate();
         switch (this.token.name) {
           case TOKEN_NAMES.MINUS:
-            return leftExpr - rightExpr
+            return leftExpr - rightExpr;
           case TOKEN_NAMES.PLUS:
-            return leftExpr + rightExpr
+            return leftExpr + rightExpr;
           default:
             throw new CompilerError({
               name: 'JloxSyntaxError',
               message: `Failed to parse term: ${leftExpr}, ${token.text}, ${rightExpr}`,
               lineNumber: token.lineNumber,
-            })
+            });
         }
-      }
-    }
+      },
+    };
 
     return {
       node,
@@ -309,8 +320,10 @@ function buildTerm({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilder
   };
 }
 
-function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeBuilderResult {
-
+function buildComparison({
+  tokens,
+  currentTokenHead,
+}: NodeBuilderParams): NodeBuilderResult {
   const { node: left, currentTokenHead: tokenHeadAfterTermEval } = buildTerm({
     tokens,
     currentTokenHead,
@@ -342,22 +355,22 @@ function buildComparison({ tokens, currentTokenHead }: NodeBuilderParams): NodeB
         const rightExpr = this.right.evaluate();
         switch (this.token.name) {
           case TOKEN_NAMES.GREATER_EQUAL:
-            return leftExpr >= rightExpr
+            return leftExpr >= rightExpr;
           case TOKEN_NAMES.GREATER:
-            return leftExpr > rightExpr
+            return leftExpr > rightExpr;
           case TOKEN_NAMES.LESS_EQUAL:
-            return leftExpr <= rightExpr
+            return leftExpr <= rightExpr;
           case TOKEN_NAMES.LESS:
-            return leftExpr < rightExpr
+            return leftExpr < rightExpr;
           default:
             throw new CompilerError({
               name: 'JloxSyntaxError',
               message: `Failed to parse comparison: ${leftExpr}, ${token.text}, ${rightExpr}`,
               lineNumber: token.lineNumber,
-            })
+            });
         }
-      }
-    }
+      },
+    };
 
     return {
       node,
@@ -375,10 +388,11 @@ function buildEquality({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterComparisonEval } = buildComparison({
-    tokens,
-    currentTokenHead,
-  });
+  const { node: left, currentTokenHead: tokenHeadAfterComparisonEval } =
+    buildComparison({
+      tokens,
+      currentTokenHead,
+    });
 
   if (
     matches(
@@ -427,8 +441,10 @@ function buildExpression({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node, currentTokenHead: tokenHeadAfterEqualityEval } =
-    buildEquality({ tokens, currentTokenHead });
+  const { node, currentTokenHead: tokenHeadAfterEqualityEval } = buildEquality({
+    tokens,
+    currentTokenHead,
+  });
 
   return {
     node,
@@ -440,66 +456,117 @@ function buildExpressionStatement({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const token = tokens[currentTokenHead]
+  const token = tokens[currentTokenHead];
 
-  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead })
+  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
+    buildExpression({ tokens, currentTokenHead });
 
-  if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+  if (
+    matches(
+      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+      TOKEN_NAMES.SEMICOLON,
+    )
+  ) {
     const node = {
       token,
       evaluate() {
-        return expression.evaluate()
-      }
-    }
+        return expression.evaluate();
+      },
+    };
 
     return {
       node,
       currentTokenHead: tokenHeadAfterExpressionEval + 1,
-    }
+    };
   }
 
   throw new CompilerError({
     name: 'JloxSynatxError',
     message: 'Missing semicolon ";" after expression',
     lineNumber: token.lineNumber,
-  })
+  });
 }
 
 function buildStatement({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const token = tokens[currentTokenHead]
+  const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
-    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 })
+    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
+      buildExpression({ tokens, currentTokenHead: currentTokenHead + 1 });
 
-    if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }), TOKEN_NAMES.SEMICOLON)) {
+    if (
+      matches(
+        peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+        TOKEN_NAMES.SEMICOLON,
+      )
+    ) {
       const node = {
         token,
         evaluate() {
           // NOTE: Do not delete this console.log!
-          console.log(expression.evaluate())
-        }
-      }
+          console.log(expression.evaluate());
+        },
+      };
 
       return {
         node,
         currentTokenHead: tokenHeadAfterExpressionEval + 1,
-      }
+      };
     }
 
     throw new CompilerError({
       name: 'JloxSynatxError',
       message: 'Missing semicolon ";" after expression',
       lineNumber: token.lineNumber,
-    })
+    });
   }
 
-  return buildExpressionStatement({ tokens, currentTokenHead })
+  return buildExpressionStatement({ tokens, currentTokenHead });
 }
 
 const globalScope: Environment = { outterScope: null };
+
+// TODO: Consider, if I do a context, whether I can
+// call a method on that context to get the currentToken...
+// But then that smells like OO...a combo of data and methods
+// on that data
+
+// TODO: refactor these variables I use over and over
+// to keep them simpler
+// currentTokenHead => head
+// perhaps object params to => context
+// sequencer => tokenSequencer
+// expectedTokens => expected
+function buildVar({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const { assertTokenSequence, not } = sequencer();
+  const token = tokens[currentTokenHead];
+
+  // UPTO: figure out why this is not working -- need new test!
+  if (
+    assertTokenSequence({
+      tokens,
+      currentTokenHead,
+      expectedTokens: [
+        { name: TOKEN_NAMES.VAR },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        not({ name: TOKEN_NAMES.SEMICOLON }),
+      ],
+    })
+  ) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing semicolon ";" after variable declaration',
+      lineNumber: token.lineNumber,
+    });
+  }
+}
 
 // UPTO: Working on bulding this out.
 // Took my first crack, now trying to debug
@@ -514,32 +581,50 @@ function buildDeclaration({
   currentTokenHead = 0,
   environment = globalScope,
 }: NodeBuilderParams): NodeBuilderResult {
-  const token = tokens[currentTokenHead]
+  const token = tokens[currentTokenHead];
 
+  if (matches(token, TOKEN_NAMES.VAR)) {
+    return buildVar({ tokens, currentTokenHead, environment });
+  }
+
+  return buildStatement({ tokens, currentTokenHead });
+
+  // NOTE: BELOW IS OLD CODE
   // TODO: Refactor? Oof a lot of conditionals here.
   // Consider a funtion like `matchesTokenSequence`
   // that lists a series of expected tokens, and then
   // retunrs based on the various conditions.
   if (matches(token, TOKEN_NAMES.VAR)) {
     // TODO: Refactor `peek` calls to use offset
-    if (matches(
-      peek({ tokens, currentTokenHead, offset: 1 }),
-      TOKEN_NAMES.IDENTIFIER
-    )) {
+    if (
+      matches(
+        peek({ tokens, currentTokenHead, offset: 1 }),
+        TOKEN_NAMES.IDENTIFIER,
+      )
+    ) {
       const varToken = tokens[currentTokenHead + 1];
-      const varName = varToken.text
+      const varName = varToken.text;
 
-      if (matches(
-        peek({ tokens, currentTokenHead, offset: 2 }),
-        TOKEN_NAMES.EQUAL,
-      )) {
+      if (
+        matches(
+          peek({ tokens, currentTokenHead, offset: 2 }),
+          TOKEN_NAMES.EQUAL,
+        )
+      ) {
         const {
           node: expressionNode,
           currentTokenHead: tokenHeadAfterExpressionEval,
         } = buildExpression({ tokens, currentTokenHead: currentTokenHead + 3 });
 
-
-        if (matches(peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval + 1 }), TOKEN_NAMES.SEMICOLON)) {
+        if (
+          matches(
+            peek({
+              tokens,
+              currentTokenHead: tokenHeadAfterExpressionEval + 1,
+            }),
+            TOKEN_NAMES.SEMICOLON,
+          )
+        ) {
           // TODO: refactor for immutability
           environment[varName] = expressionNode.evaluate();
 
@@ -547,39 +632,45 @@ function buildDeclaration({
             token: varToken,
             evaluate() {
               return environment[varName];
-            }
-          }
+            },
+          };
 
           return {
             node,
             currentTokenHead: tokenHeadAfterExpressionEval + 2,
             environment,
-          }
+          };
         }
 
         throw new CompilerError({
           name: 'JloxSynatxError',
-          message: 'Missing semicolon ";" after variable initialization and assignment',
+          message:
+            'Missing semicolon ";" after variable initialization and assignment',
           lineNumber: token.lineNumber,
-        })
+        });
       }
       // Not followed to equal sign; set to null;
 
-      if (matches(peek({ tokens, currentTokenHead: currentTokenHead + 2 }), TOKEN_NAMES.SEMICOLON)) {
+      if (
+        matches(
+          peek({ tokens, currentTokenHead: currentTokenHead + 2 }),
+          TOKEN_NAMES.SEMICOLON,
+        )
+      ) {
         environment[varName] = null;
 
         const node = {
           token: varToken,
           evaluate() {
             return environment[varName];
-          }
-        }
+          },
+        };
 
         return {
           node,
           currentTokenHead: currentTokenHead + 3,
           environment,
-        }
+        };
       }
     }
 
@@ -587,21 +678,33 @@ function buildDeclaration({
       name: 'JloxSynatxError',
       message: '"var" declared without identifier token as variable name',
       lineNumber: token.lineNumber,
-    })
-
+    });
   }
 
-
-  return buildStatement({ tokens, currentTokenHead })
-
+  return buildStatement({ tokens, currentTokenHead });
 }
 
-export function parse({ tokens, currentTokenHead = 0, statements = [] }: { tokens: Tokens, currentTokenHead?: number, statements?: Array<AstTree> }) {
+export function parse({
+  tokens,
+  currentTokenHead = 0,
+  statements = [],
+}: {
+  tokens: Tokens;
+  currentTokenHead?: number;
+  statements?: Array<AstTree>;
+}) {
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
 
-  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({ tokens, currentTokenHead });
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
+    tokens,
+    currentTokenHead,
+  });
 
-  const updatedStatements = [...statements, node]
+  const updatedStatements = [...statements, node];
 
-  return parse({ tokens, currentTokenHead: tokenHeadAfterExprEval, statements: updatedStatements })
+  return parse({
+    tokens,
+    currentTokenHead: tokenHeadAfterExprEval,
+    statements: updatedStatements,
+  });
 }
