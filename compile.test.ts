@@ -13,20 +13,16 @@ export async function compile(readLine: ReadLine) {
 }
 
 function buildReadLine(lines: string[]) {
-  const linesWithEOF = [...lines, false]
   async function readLine() {
-    if (linesWithEOF.length === 0) return Promise.resolve(false)
-    return Promise.resolve(linesWithEOF.shift());
+    if (lines.length === 0) return Promise.resolve(false as const)
+    const line = lines.shift();
+    if (typeof line === "string") return Promise.resolve(line);
+    throw new Error("Test Error: readLine called without string")
   }
   return readLine;
 }
 
 async function testCompiler({ line, expected }) {
-  // const lines = [line, false];
-  // async function readLine() {
-  //   return Promise.resolve(lines.shift());
-  // }
-  
   const readLine = buildReadLine([line])
 
   expect(await compile(readLine)).toEqual(expected);
@@ -250,7 +246,7 @@ describe('compile', () => {
     testCompiler({line: 'var thing = 14 + 2; thing + 3;', expected: 19})
   })
 
-  test.only('assigning to an uninitialized variable throws and error', async () => {
+  test('assigning to an uninitialized variable throws and error', async () => {
     const lines = [
       'var thing = 14;',
       'thing + 15;',
