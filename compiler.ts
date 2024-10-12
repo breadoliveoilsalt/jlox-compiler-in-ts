@@ -15,5 +15,9 @@ export async function compile(readLine: ReadLine) {
   //
   // TODO: solve for how to deal with repl and seeing value
   // after entering something.
-  return parsedResults.forEach((statement) => statement.evaluate())
+  // TODO: I'm going to need to come up with
+  // different compile methods for file compiler
+  // vs repl compiler. Repl will need to continually
+  // pass env to parser
+  parsedResults.forEach((statement) => statement.evaluate())
 }

@@ -1,8 +1,16 @@
 import { describe, test, expect } from 'vitest';
-import { compile } from './compiler';
+import { scan } from './scanner';
+import { parse } from './parser';
+import { type ReadLine } from './index';
+
+export async function compile(readLine: ReadLine) {
+  const { tokens } = await scan(readLine);
+  const parsedResults = parse({ tokens });
+  return parsedResults[0].evaluate();
+}
 
 async function testCompiler({ line, expected }) {
-  const lines = [ line, false ]
+  const lines = [line, false];
   async function readLine() {
     return Promise.resolve(lines.shift());
   }
@@ -40,10 +48,11 @@ describe('compile', () => {
       line: '!!!true;',
       expected: false,
     },
-  ])('it compiles boolean expressions, such as $line',
+  ])(
+    'it compiles boolean expressions, such as $line',
     async ({ line, expected }) => {
-      await testCompiler({line, expected})
-    }
+      await testCompiler({ line, expected });
+    },
   );
 
   test.each([
@@ -79,10 +88,11 @@ describe('compile', () => {
       line: 'true == !true;',
       expected: false,
     },
-  ])('it compiles equality expressions, such as $line;',
+  ])(
+    'it compiles equality expressions, such as $line;',
     async ({ line, expected }) => {
-      await testCompiler({line, expected})
-    }
+      await testCompiler({ line, expected });
+    },
   );
 
   test.each([
@@ -146,10 +156,11 @@ describe('compile', () => {
       line: '!(!true == false);',
       expected: false,
     },
-  ])('it compiles parenthetical expressions, such as $line',
+  ])(
+    'it compiles parenthetical expressions, such as $line',
     async ({ line, expected }) => {
-      await testCompiler({line, expected})
-    }
+      await testCompiler({ line, expected });
+    },
   );
 
   test.each([
@@ -201,7 +212,10 @@ describe('compile', () => {
       line: '10 - 21;',
       expected: -11,
     },
-  ])('it compiles term, factor, and negating urnary expressions, to do basic math, such as $line', async ({ line, expected }) => {
-    await testCompiler({ line, expected})
-  });
+  ])(
+    'it compiles term, factor, and negating urnary expressions, to do basic math, such as $line',
+    async ({ line, expected }) => {
+      await testCompiler({ line, expected });
+    },
+  );
 });
