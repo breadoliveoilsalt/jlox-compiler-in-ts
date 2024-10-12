@@ -155,14 +155,25 @@ function buildIdentifier({
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+  const identifierName = token.text;
+
+  if (!Object.hasOwn(environment, identifierName)) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: `Undefined variable (identifier): "${token.text}"`,
+      lineNumber: token.lineNumber,
+    });
+  }
 
   const node = {
     token,
     evaluate() {
+      return environment[identifierName]
       // TODO when I add scope: helper method to
       // get var traversing up outter scope.
       // Currently this assumes global scope
-      return environment[token.text];
+      const identifierValue = environment[token.text];
+      if (identifierValue) return identifierValue;
     },
   };
 
