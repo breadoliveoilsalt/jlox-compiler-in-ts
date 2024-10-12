@@ -3,9 +3,6 @@ import { scan } from './scanner';
 import { parse } from './parser';
 import { type ReadLine } from './index';
 
-// TODO: Refactor b/c I can't tell which test is failing thanks
-// to assertion being elsewhere
-
 export async function compile(readLine: ReadLine) {
   const { tokens } = await scan(readLine);
   const parsedResults = parse({ tokens });

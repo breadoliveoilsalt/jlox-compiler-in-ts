@@ -731,19 +731,15 @@ function buildVar({
   //  X  - reassignment and use
   //  X  - throwing an error when there is use of a variable
   //  X    that is not declared
-  //  - complete commented-out condition below where variable is
-  //    declared but not initialized
-  //  - Add some error handling below, eg, if semicolon not used
-  //    or if you got here and syntax is not right (misuse of var)
-  //  - Update buildIdentifier so that if value is undefined in env
-  //    return value is "nil"
+  //  X - complete commented-out condition below where variable is
+  //  X   declared but not initialized
+  //  X - Add some error handling below, eg, if semicolon not used
+  //  X   or if you got here and syntax is not right (misuse of var)
+  //  X - Update buildIdentifier so that if value is undefined in env
+  //  X   return value is "nil"
   //  - Add graceful error handling if identifier evaluates to
   //    nil but someone tries to divide by it nil / 6
-
-  // TODO: Conditional below and more error handling
-  // for buildVar
-  // - make sure to handle returning "nil" on evaluation
-  //   if variable is not assigned a value
+  //  - more error handling for buildVar below
   const identifier = tokens[currentTokenHead + 1];
   const varName = identifier.text;
 
