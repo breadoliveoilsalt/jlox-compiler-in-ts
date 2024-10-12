@@ -157,6 +157,12 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
+  console.log('inisde buildIdenifier', {
+    currentTokenHead,
+    identifierName,
+    environment,
+  });
+
   if (!Object.hasOwn(environment, identifierName)) {
     throw new CompilerError({
       name: 'JloxSyntaxError',
@@ -168,7 +174,7 @@ function buildIdentifier({
   const node = {
     token,
     evaluate() {
-      return environment[identifierName]
+      return environment[identifierName];
       // TODO when I add scope: helper method to
       // get var traversing up outter scope.
       // Currently this assumes global scope
@@ -572,14 +578,25 @@ function buildAssignment({
       environment: envAfterEqualityEval,
     });
 
+    // console.log('inside assignment', environment)
+    // console.log('inside assignment equality', envAfterEqualityEval)
+    console.log('inside assignment ass', envAfterAssignmentEval);
+    console.log('currentTokenHead', currentTokenHead);
+    console.log(
+      'nodeFromRecursiveAssignmentEval',
+      nodeFromRecursiveAssignmentEval.evaluate(),
+    );
+
+    console.log('key', nodeFromEqualityEval.token.text);
+    envAfterAssignmentEval[nodeFromEqualityEval.token.text] =
+      nodeFromRecursiveAssignmentEval.evaluate();
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
         evaluate() {
-          envAfterEqualityEval[nodeFromEqualityEval.token.text] =
-            nodeFromRecursiveAssignmentEval.evaluate();
+          return null;
         },
       };
 
@@ -719,8 +736,8 @@ function buildVar({
 }: NodeBuilderParams): NodeBuilderResult {
   const { assertTokenSequence } = sequencer();
   const token = tokens[currentTokenHead];
-  // UPTO: 
-  //  X - variable assignment; 
+  // UPTO:
+  //  X - variable assignment;
   //  - write tests for global variables suing multiline compiler
   //    - variable declaration & use
   //    - reassignment and use
@@ -732,7 +749,7 @@ function buildVar({
   //    or if you got here and syntax is not right (misuse of var)
   //  - Update buildIdentifier so that if value is undefined in env
   //    return value is "nil"
-  //  - Add graceful error handling if identifier evaluates to 
+  //  - Add graceful error handling if identifier evaluates to
   //    nil but someone tries to divide by it nil / 6
 
   // TODO: Conditional below and more error handling

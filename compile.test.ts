@@ -14,20 +14,19 @@ export async function compile(readLine: ReadLine) {
 
 function buildReadLine(lines: string[]) {
   async function readLine() {
-    if (lines.length === 0) return Promise.resolve(false as const)
+    if (lines.length === 0) return Promise.resolve(false as const);
     const line = lines.shift();
-    if (typeof line === "string") return Promise.resolve(line);
-    throw new Error("Test Error: readLine called without string")
+    if (typeof line === 'string') return Promise.resolve(line);
+    throw new Error('Test Error: readLine called without string');
   }
   return readLine;
 }
 
 async function testCompiler({ line, expected }) {
-  const readLine = buildReadLine([line])
+  const readLine = buildReadLine([line]);
 
   expect(await compile(readLine)).toEqual(expected);
 }
-
 
 describe('compile', () => {
   test.each([
@@ -231,30 +230,48 @@ describe('compile', () => {
   );
 
   test('it permits the declaration of global variables', () => {
-    testCompiler({line: 'var thing = true;', expected: null})
-  })
+    testCompiler({ line: 'var thing = true;', expected: null });
+  });
 
   test('initialized global variable are assigned a value', () => {
-    testCompiler({line: 'var thing = 14 + 2; thing;', expected: 16})
-  })
+    testCompiler({ line: 'var thing = 14 + 2; thing;', expected: 16 });
+  });
 
-  test.skip('initialized global variable can be reassigned', () => {
-    testCompiler({line: 'var thing = 14 + 2; thing = 17; thing;', expected: 17})
-  })
+  test('initialized global variable can be reassigned (one line)', () => {
+    testCompiler({
+      line: 'var thing = 14 + 2; thing = 17; thing;',
+      expected: 17,
+    });
+  });
+
+  test('initialized global variable can be reassigned (multiline)', async () => {
+    const lines = ['var thing = 14;', 'thing = 15;', 'thing;'];
+
+    const readLine = buildReadLine(lines);
+
+    expect(await compile(readLine)).toEqual(15);
+  });
 
   test('initialized global variable can be evaluated with other expressions', () => {
-    testCompiler({line: 'var thing = 14 + 2; thing + 3;', expected: 19})
-  })
+    testCompiler({ line: 'var thing = 14 + 2; thing + 3;', expected: 19 });
+  });
 
-  test('assigning to an uninitialized variable throws and error', async () => {
-    const lines = [
-      'var thing = 14;',
-      'thing + 15;',
-    ]
+  test('initialized global variables can be evaluated with other expressions (multiline)', async () => {
+    const lines = ['var thing = 14;', 'thing + 15;'];
 
-    const readLine = buildReadLine(lines)
+    const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual(29)
+    expect(await compile(readLine)).toEqual(29);
+  });
 
-  })
+  test('assigning a variable without initialization throws an error', async () => {
+    try {
+      const lines = ['thing = 14;'];
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+    } catch (e) {
+      expect(e.message).toEqual('Undefined variable (identifier): "thing"')
+    }
+  });
 });
