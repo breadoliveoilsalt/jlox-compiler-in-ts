@@ -168,7 +168,7 @@ function buildIdentifier({
   const node = {
     token,
     evaluate() {
-      return environment[identifierName];
+      return environment[identifierName] ?? "nil";
       // TODO when I add scope: helper method to
       // get var traversing up outter scope.
       // Currently this assumes global scope
@@ -726,11 +726,11 @@ function buildVar({
   const token = tokens[currentTokenHead];
   // UPTO:
   //  X - variable assignment;
-  //  - write tests for global variables suing multiline compiler
-  //    - variable declaration & use
-  //    - reassignment and use
-  //    - throwing an error when there is use of a variable
-  //      that is not declared
+  //  X - write tests for global variables suing multiline compiler
+  //  X  - variable declaration & use
+  //  X  - reassignment and use
+  //  X  - throwing an error when there is use of a variable
+  //  X    that is not declared
   //  - complete commented-out condition below where variable is
   //    declared but not initialized
   //  - Add some error handling below, eg, if semicolon not used
@@ -744,18 +744,34 @@ function buildVar({
   // for buildVar
   // - make sure to handle returning "nil" on evaluation
   //   if variable is not assigned a value
-  // if (
-  //   assertTokenSequence({
-  //     tokens,
-  //     currentTokenHead,
-  //     expectedTokens: [
-  //       { name: TOKEN_NAMES.VAR },
-  //       { name: TOKEN_NAMES.IDENTIFIER },
-  //       { name: TOKEN_NAMES.SEMICOLON },
-  //     ],
-  //   })
-  // ) {
-  // }
+  const identifier = tokens[currentTokenHead + 1];
+  const varName = identifier.text;
+
+  if (
+    assertTokenSequence({
+      tokens,
+      currentTokenHead,
+      expectedTokens: [
+        { name: TOKEN_NAMES.VAR },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        { name: TOKEN_NAMES.SEMICOLON },
+      ],
+    })
+  ) {
+    environment[varName] = undefined;
+    const node = {
+      token: tokens[currentTokenHead + 1],
+      evaluate() {
+        return null;
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: currentTokenHead + 3,
+      environment,
+    };
+  }
 
   if (
     assertTokenSequence({
@@ -768,8 +784,6 @@ function buildVar({
       ],
     })
   ) {
-    const identifier = tokens[currentTokenHead + 1];
-    const varName = identifier.text;
     const {
       node: expressionNode,
       currentTokenHead: tokenHeadAfterExpressionEval,

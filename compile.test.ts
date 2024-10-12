@@ -264,7 +264,7 @@ describe('compile', () => {
     expect(await compile(readLine)).toEqual(29);
   });
 
-  test('assigning a variable without initialization throws an error', async () => {
+  test('assigning a variable a value without initialization throws an error', async () => {
     try {
       const lines = ['thing = 14;'];
       const readLine = buildReadLine(lines);
@@ -277,7 +277,6 @@ describe('compile', () => {
 
   test.each([
     [['var thing = 15']],
-    // [['var thing = 15;', 'thing = 16']],
   ])('when initializing or assigning a variable, forgetting a semicolon results in an error', async (lines) => {
     try {
       const readLine = buildReadLine(lines);
@@ -300,5 +299,21 @@ describe('compile', () => {
     } catch (e) {
       expect(e.message).toEqual('Missing semicolon ";" after expression')
     }
+  });
+
+  test('a declared but uninitialized variable compiles to nil', async () => {
+    const lines = ['var thing;', 'thing;'];
+
+    const readLine = buildReadLine(lines);
+
+    expect(await compile(readLine)).toEqual("nil");
+  });
+
+  test('a declared but uninitialized variable can be assigned a value', async () => {
+    const lines = ['var thing;', 'thing = 24 / 4; thing;'];
+
+    const readLine = buildReadLine(lines);
+
+    expect(await compile(readLine)).toEqual(6);
   });
 });

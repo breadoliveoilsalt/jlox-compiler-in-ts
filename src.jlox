@@ -1,3 +1,2 @@
-var thing = true;
-thing = false;
+var thing;
 print thing;
