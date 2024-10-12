@@ -1,4 +1,4 @@
-const ERROR_TYPES = ['TokenError', 'JloxSyntaxError'];
+const ERROR_TYPES = ['TokenError', 'JloxSyntaxError', 'DeveloperError'];
 
 export type ErrorType = typeof ERROR_TYPES[number];
 

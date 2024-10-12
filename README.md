@@ -26,7 +26,7 @@ relevant sections below.
   - `npm run compile -- <file path>`
   - Example: `npm run compile -- ./src.jlox`
     - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
-  - `npm run compile:src` evaluates `src.jlox`. 
+  - `npm run compile:src` evaluates `src.jlox`.
   - Currently TypeScript errors are non-blocking.
 
 ## Running tests
@@ -166,6 +166,18 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 - Decision: Try to keep function parameters limited to one or two. Avoid
   object parameters and instead try to enforce consistent variable assignment
   by having functions return objects to be destructured by function callers.
+
+- At some point, but my code had a pattern of destructuring all object
+  parameters and returning an object with those same keys. That is, the node
+  builders would both receive and return an object with the same keys. The
+  larger that object grew, the more of a pain it was to maintain this style.
+  Every time a new key was added to this object, I had to update each builder
+  signature and return value. In other words, because I had decided early on to
+  destructure in each builder's signature, any additional argument created
+  massive updates to the code. There were many builders.
+  -  I'm considering moving away from such a pattern and instead having each
+     builder function accept a `context` object that is not destructured and
+     then return an update `context` argument.
 
 #### Bugs I've Caused
 

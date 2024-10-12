@@ -1,1 +1,2 @@
-print (3+4/2);
+var thing = 2 * 8; 
+print thing;
