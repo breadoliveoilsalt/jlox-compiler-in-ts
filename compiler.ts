@@ -8,7 +8,7 @@ export async function compile(readLine: ReadLine) {
   // Using `reduce` below does not work because
   // some statements do not return anything to be passed
   // along to the accumulator, e.g., `var thing = 2 * 8;`
-  // return parsedResults.reduce((statement) => {
+  // return parsedResults.reduce((_, statement) => {
   //   console.log('statement inside reduce', statement)
   //   return statement.evaluate()
   // })
