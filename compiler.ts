@@ -4,7 +4,6 @@ import { type ReadLine } from './index';
 
 export async function compile(readLine: ReadLine) {
   const { tokens } = await scan(readLine);
-  console.log('tokens', tokens) 
   const parsedResults = parse({ tokens });
   // Using `reduce` below does not work because
   // some statements do not return anything to be passed

@@ -717,10 +717,23 @@ function buildVar({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { assertTokenSequence, not } = sequencer();
+  const { assertTokenSequence } = sequencer();
   const token = tokens[currentTokenHead];
-  // UPTO: variable reassignment; then condition below for variable
-  // initialization. Can test that with reassinment.
+  // UPTO: 
+  //  X - variable assignment; 
+  //  - write tests for global variables suing multiline compiler
+  //    - variable declaration & use
+  //    - reassignment and use
+  //    - throwing an error when there is use of a variable
+  //      that is not declared
+  //  - complete commented-out condition below where variable is
+  //    declared but not initialized
+  //  - Add some error handling below, eg, if semicolon not used
+  //    or if you got here and syntax is not right (misuse of var)
+  //  - Update buildIdentifier so that if value is undefined in env
+  //    return value is "nil"
+  //  - Add graceful error handling if identifier evaluates to 
+  //    nil but someone tries to divide by it nil / 6
 
   // TODO: Conditional below and more error handling
   // for buildVar
