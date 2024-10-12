@@ -274,4 +274,31 @@ describe('compile', () => {
       expect(e.message).toEqual('Undefined variable (identifier): "thing"')
     }
   });
+
+  test.each([
+    [['var thing = 15']],
+    // [['var thing = 15;', 'thing = 16']],
+  ])('when initializing or assigning a variable, forgetting a semicolon results in an error', async (lines) => {
+    try {
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+    } catch (e) {
+      expect(e.message).toEqual('Syntax Error. Did you forget a semicolon ";" after variable declaration?')
+    }
+  });
+
+  test.each([
+    [['var thing = 15;', 'thing = 16']],
+    [['true']],
+    [['3 + 4']],
+  ])('forgetting a semicolon results in an error', async (lines) => {
+    try {
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+    } catch (e) {
+      expect(e.message).toEqual('Missing semicolon ";" after expression')
+    }
+  });
 });

@@ -157,12 +157,6 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
-  console.log('inisde buildIdenifier', {
-    currentTokenHead,
-    identifierName,
-    environment,
-  });
-
   if (!Object.hasOwn(environment, identifierName)) {
     throw new CompilerError({
       name: 'JloxSyntaxError',
@@ -578,18 +572,12 @@ function buildAssignment({
       environment: envAfterEqualityEval,
     });
 
-    // console.log('inside assignment', environment)
-    // console.log('inside assignment equality', envAfterEqualityEval)
-    console.log('inside assignment ass', envAfterAssignmentEval);
-    console.log('currentTokenHead', currentTokenHead);
-    console.log(
-      'nodeFromRecursiveAssignmentEval',
-      nodeFromRecursiveAssignmentEval.evaluate(),
-    );
-
-    console.log('key', nodeFromEqualityEval.token.text);
+    // TODO: Add to lessons: environment update has to be done
+    // outside the `evaluate` call of a node, so the updated
+    // env is available to the receiving node(s).
     envAfterAssignmentEval[nodeFromEqualityEval.token.text] =
       nodeFromRecursiveAssignmentEval.evaluate();
+
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
