@@ -535,13 +535,13 @@ function buildEquality({
   };
 }
 
-function buildExpression({
+function buildAssignment({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const {
-    node,
+    node: nodeFromEqualityEval,
     currentTokenHead: tokenHeadAfterEqualityEval,
     environment: envAfterEqualityEval,
   } = buildEquality({
@@ -550,11 +550,46 @@ function buildExpression({
     environment,
   });
 
-  return {
-    node,
-    currentTokenHead: tokenHeadAfterEqualityEval,
+  // return {
+  //   node,
+  //   currentTokenHead: tokenHeadAfterEqualityEval,
+  //   environment: envAfterEqualityEval,
+  // };
+
+  if (matches(tokens[tokenHeadAfterEqualityEval], TOKEN_NAMES.EQUAL)) {
+  const {
+    node: nodeFromRecursiveAssignmentEval,
+    currentTokenHead: tokenHeadAfterAssignmentEval,
+    environment: envAfterAssignmentEval,
+  } = buildAssignment({
+    tokens,
+    currentTokenHead: tokenHeadAfterEqualityEval + 1,
     environment: envAfterEqualityEval,
-  };
+  });
+
+  if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
+    const node = {
+      token: tokenHeadAfterAssignmentEval,
+      evaluate() {
+        envAfterEqualityEval[nodeFromEqualityEval.token.text] = nodeFromEqualityEval.evaluate();
+      }
+
+      // UPTO return node after setting env; handle case if we are outside
+      // this if conditional because there is no equality sign
+
+    }
+
+  }
+
+  }
+}
+
+function buildExpression({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  return buildAssignment({ tokens, currentTokenHead, environment });
 }
 
 function buildExpressionStatement({
