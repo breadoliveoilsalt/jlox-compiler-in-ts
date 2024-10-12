@@ -550,38 +550,47 @@ function buildAssignment({
     environment,
   });
 
-  // return {
-  //   node,
-  //   currentTokenHead: tokenHeadAfterEqualityEval,
-  //   environment: envAfterEqualityEval,
-  // };
-
   if (matches(tokens[tokenHeadAfterEqualityEval], TOKEN_NAMES.EQUAL)) {
-  const {
-    node: nodeFromRecursiveAssignmentEval,
-    currentTokenHead: tokenHeadAfterAssignmentEval,
-    environment: envAfterAssignmentEval,
-  } = buildAssignment({
-    tokens,
-    currentTokenHead: tokenHeadAfterEqualityEval + 1,
-    environment: envAfterEqualityEval,
-  });
+    const {
+      node: nodeFromRecursiveAssignmentEval,
+      currentTokenHead: tokenHeadAfterAssignmentEval,
+      environment: envAfterAssignmentEval,
+    } = buildAssignment({
+      tokens,
+      currentTokenHead: tokenHeadAfterEqualityEval + 1,
+      environment: envAfterEqualityEval,
+    });
 
-  if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
-    const node = {
-      token: tokenHeadAfterAssignmentEval,
-      evaluate() {
-        envAfterEqualityEval[nodeFromEqualityEval.token.text] = nodeFromEqualityEval.evaluate();
-      }
+    const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
-      // UPTO return node after setting env; handle case if we are outside
-      // this if conditional because there is no equality sign
+    if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
+      const node = {
+        token: assignmentToken,
+        evaluate() {
+          envAfterEqualityEval[nodeFromEqualityEval.token.text] =
+            nodeFromRecursiveAssignmentEval.evaluate();
+        },
+      };
 
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterAssignmentEval,
+        environment: envAfterAssignmentEval,
+      };
     }
 
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Invalid assignment to variable (identifier)',
+      lineNumber: assignmentToken.lineNumber,
+    });
   }
 
-  }
+  return {
+    node: nodeFromEqualityEval,
+    currentTokenHead: tokenHeadAfterEqualityEval,
+    environment: envAfterEqualityEval,
+  };
 }
 
 function buildExpression({
@@ -704,6 +713,8 @@ function buildVar({
 
   // TODO: Conditional below and more error handling
   // for buildVar
+  // - make sure to handle returning "nil" on evaluation
+  //   if variable is not assigned a value
   // if (
   //   assertTokenSequence({
   //     tokens,
