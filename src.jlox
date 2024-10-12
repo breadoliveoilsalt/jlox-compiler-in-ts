@@ -1,3 +1,4 @@
 var thingOne = 2 * 8;
 var thingTwo = thingOne / 4;
+thingTwo = thingOne / 3;
 print thingTwo;
