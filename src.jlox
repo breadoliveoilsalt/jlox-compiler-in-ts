@@ -1,2 +1,3 @@
-var thing = 2 * 8; 
+var thing = 2 * 8;
+thing = 3 / 9;
 print thing;
