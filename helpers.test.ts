@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { sequencer } from './helpers';
+import { sequencer, envHelpers } from './helpers';
 import { type Tokens, TOKEN_NAMES } from './scanner';
 
 describe('sequencer', () => {
@@ -232,6 +232,25 @@ describe('sequencer', () => {
     expect(
       assertTokenSequence({ tokens, currentTokenHead, expectedTokens }),
     ).toEqual(false);
+  });
+});
+
+describe.only('envHelpers', () => {
+  describe('update', () => {
+    test('it returns a new environment with the updated key and value', () => {
+      const { update } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      const updatedEnv = update(env, 'cost', 27);
+
+      expect(updatedEnv).toEqual({ ...env, cost: 27});
+      expect(env).not.toBe(updatedEnv);
+    });
   });
 });
 
