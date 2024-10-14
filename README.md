@@ -42,14 +42,19 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
-- [ ] Fix Repl loop - it can handle one error and repeats the loop,
-  but it forcefully exits after a second error
+- [ ] Fix Repl
+  - [ ] it can handle one error and repeats the loop,
+        but it forcefully exits after a second error
+  - [ ] it needs a global env for variables to work
+  - [ ] print evaluation of expressions to console even if `print`
+        not used
 
 - Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/): Statements and State
   - [X] Add `print` functionality
-  - [ ] Add envs and ability to read multiple lines
+  - [X] Add gloabal env and ability to read multiple lines
+  - [ ] Add scoped envs
 - [X] Beef up error handling and error reporting to user for expressions
-- Fix linting/prettifying re: adding semi-colons in TS code.
+- [X] Fix linting/prettifying re: adding semi-colons in TS code.
 - [X] Add line number to token object
 
 ## Notes on fixing repl [WIP]
