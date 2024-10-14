@@ -248,9 +248,81 @@ describe.only('envHelpers', () => {
 
       const updatedEnv = update(env, 'cost', 27);
 
-      expect(updatedEnv).toEqual({ ...env, cost: 27});
+      expect(updatedEnv).toEqual({ ...env, cost: 27 });
       expect(env).not.toBe(updatedEnv);
     });
   });
-});
 
+  describe('get', () => {
+    test('it returns a variable value if it exists in the global environment', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('it returns a variable value if it exists in the global environment but not an inner scope', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: 
+          { outterScope: null,
+          groceries: ['apples', 'oranges'],
+          cost: 24,
+        },
+        store: 'Hannaford',
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('given a deep inner scope, it returns a variable value if it exists in the global environment but not an inner scope', () => {
+      const { get } = envHelpers();
+
+      // UPTO HERE - writing this test
+      const env = {
+        outterScope
+        outterScope: {
+
+        outterScope: 
+          { outterScope: null,
+          groceries: ['apples', 'oranges'],
+          cost: 24,
+        },
+        store: 'Hannaford',
+        }
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('it returns the inner scope variable value if it exists in the global environment and in the inner scope', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: 
+          { outterScope: null,
+          groceries: ['apples', 'oranges'],
+          cost: 24,
+        },
+        store: 'Hannaford',
+        cost: 30,
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(30);
+    });
+  });
+});

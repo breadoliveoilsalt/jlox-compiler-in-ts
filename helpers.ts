@@ -97,6 +97,7 @@ export function envHelpers() {
   }
 
   function has(env: Environment, key: string) {
+    // TODO: this has to recurse down outterScope too
     return Object.hasOwn(env, key);
   }
 
