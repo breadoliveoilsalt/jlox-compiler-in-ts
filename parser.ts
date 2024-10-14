@@ -155,14 +155,25 @@ function buildIdentifier({
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+  const identifierName = token.text;
+
+  if (!Object.hasOwn(environment, identifierName)) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: `Undefined variable (identifier): "${token.text}"`,
+      lineNumber: token.lineNumber,
+    });
+  }
 
   const node = {
     token,
     evaluate() {
+      return environment[identifierName] ?? 'nil';
       // TODO when I add scope: helper method to
       // get var traversing up outter scope.
       // Currently this assumes global scope
-      return environment[token.text];
+      const identifierValue = environment[token.text];
+      if (identifierValue) return identifierValue;
     },
   };
 
@@ -296,6 +307,13 @@ function buildFactor({
       evaluate() {
         const leftExpr = this.left.evaluate();
         const rightExpr = this.right.evaluate();
+        if (leftExpr === 'nil' || rightExpr === 'nil') {
+          throw new CompilerError({
+            name: 'JloxSyntaxError',
+            message: `Cannot evaluate ${token.text} with a nil value: ${leftExpr} ${token.text} ${rightExpr}.`,
+            lineNumber: token.lineNumber,
+          });
+        }
         switch (this.token.name) {
           case TOKEN_NAMES.SLASH:
             return leftExpr / rightExpr;
@@ -366,6 +384,14 @@ function buildTerm({
       evaluate() {
         const leftExpr = this.left.evaluate();
         const rightExpr = this.right.evaluate();
+        console.log({leftExpr, rightExpr})
+        if (leftExpr === 'nil' || rightExpr === 'nil') {
+          throw new CompilerError({
+            name: 'JloxSyntaxError',
+            message: `Cannot evaluate ${token.text} with a nil value: ${leftExpr} ${token.text} ${rightExpr}.`,
+            lineNumber: token.lineNumber,
+          });
+        }
         switch (this.token.name) {
           case TOKEN_NAMES.MINUS:
             return leftExpr - rightExpr;
@@ -535,13 +561,13 @@ function buildEquality({
   };
 }
 
-function buildExpression({
+function buildAssignment({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const {
-    node,
+    node: nodeFromEqualityEval,
     currentTokenHead: tokenHeadAfterEqualityEval,
     environment: envAfterEqualityEval,
   } = buildEquality({
@@ -550,11 +576,60 @@ function buildExpression({
     environment,
   });
 
+  if (matches(tokens[tokenHeadAfterEqualityEval], TOKEN_NAMES.EQUAL)) {
+    const {
+      node: nodeFromRecursiveAssignmentEval,
+      currentTokenHead: tokenHeadAfterAssignmentEval,
+      environment: envAfterAssignmentEval,
+    } = buildAssignment({
+      tokens,
+      currentTokenHead: tokenHeadAfterEqualityEval + 1,
+      environment: envAfterEqualityEval,
+    });
+
+    // TODO: Add to lessons: environment update has to be done
+    // outside the `evaluate` call of a node, so the updated
+    // env is available to the receiving node(s).
+    envAfterAssignmentEval[nodeFromEqualityEval.token.text] =
+      nodeFromRecursiveAssignmentEval.evaluate();
+
+    const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
+
+    if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
+      const node = {
+        token: assignmentToken,
+        evaluate() {
+          return null;
+        },
+      };
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterAssignmentEval,
+        environment: envAfterAssignmentEval,
+      };
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Invalid assignment to variable (identifier)',
+      lineNumber: assignmentToken.lineNumber,
+    });
+  }
+
   return {
-    node,
+    node: nodeFromEqualityEval,
     currentTokenHead: tokenHeadAfterEqualityEval,
     environment: envAfterEqualityEval,
   };
+}
+
+function buildExpression({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  return buildAssignment({ tokens, currentTokenHead, environment });
 }
 
 function buildExpressionStatement({
@@ -662,25 +737,38 @@ function buildVar({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { assertTokenSequence, not } = sequencer();
-  const token = tokens[currentTokenHead];
-  // UPTO: variable reassignment; then condition below for variable
-  // initialization. Can test that with reassinment.
+  const { assertTokenSequence } = sequencer();
 
-  // TODO: Conditional below and more error handling
-  // for buildVar
-  // if (
-  //   assertTokenSequence({
-  //     tokens,
-  //     currentTokenHead,
-  //     expectedTokens: [
-  //       { name: TOKEN_NAMES.VAR },
-  //       { name: TOKEN_NAMES.IDENTIFIER },
-  //       { name: TOKEN_NAMES.SEMICOLON },
-  //     ],
-  //   })
-  // ) {
-  // }
+  const token = tokens[currentTokenHead];
+
+  const identifier = tokens[currentTokenHead + 1];
+  const varName = identifier.text;
+
+  if (
+    assertTokenSequence({
+      tokens,
+      currentTokenHead,
+      expectedTokens: [
+        { name: TOKEN_NAMES.VAR },
+        { name: TOKEN_NAMES.IDENTIFIER },
+        { name: TOKEN_NAMES.SEMICOLON },
+      ],
+    })
+  ) {
+    environment[varName] = undefined;
+    const node = {
+      token: tokens[currentTokenHead + 1],
+      evaluate() {
+        return null;
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: currentTokenHead + 3,
+      environment,
+    };
+  }
 
   if (
     assertTokenSequence({
@@ -693,8 +781,6 @@ function buildVar({
       ],
     })
   ) {
-    const identifier = tokens[currentTokenHead + 1];
-    const varName = identifier.text;
     const {
       node: expressionNode,
       currentTokenHead: tokenHeadAfterExpressionEval,

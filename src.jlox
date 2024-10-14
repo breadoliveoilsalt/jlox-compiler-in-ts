@@ -1,2 +1,2 @@
-var thing = 2 * 8; 
-print thing;
+var thing;
+print thing / 3;
