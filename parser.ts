@@ -1,8 +1,8 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 import { CompilerError } from './errors';
-import { matches, peek, sequencer } from './helpers';
+import { matches, peek, sequencer, envHelpers } from './helpers';
 
-type Environment = {
+export type Environment = {
   outterScope: null | Environment;
   [key: string]: any;
 };
@@ -34,6 +34,8 @@ type AstTree = {
   right?: AstTree;
   evaluate: () => any;
 };
+
+const { update, get, has } = envHelpers();
 
 function buildTrue({
   tokens,
@@ -157,7 +159,7 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
-  if (!Object.hasOwn(environment, identifierName)) {
+  if (!has(environment, identifierName)) {
     throw new CompilerError({
       name: 'JloxSyntaxError',
       message: `Undefined variable (identifier): "${token.text}"`,
@@ -168,12 +170,7 @@ function buildIdentifier({
   const node = {
     token,
     evaluate() {
-      return environment[identifierName] ?? 'nil';
-      // TODO when I add scope: helper method to
-      // get var traversing up outter scope.
-      // Currently this assumes global scope
-      const identifierValue = environment[token.text];
-      if (identifierValue) return identifierValue;
+      return get(environment, identifierName) ?? 'nil';
     },
   };
 
@@ -249,7 +246,7 @@ function buildUnary({
       evaluate() {
         const right = this.right.evaluate();
         if (this.token.name === TOKEN_NAMES.BANG) return !right;
-        // Checking for number type to prevent javascript oddity `14 -true`,
+        // NOTE: Checking for number type to prevent javascript oddity `14 -true`,
         // which evaluates to 13, etc.,
         if (this.token.name === TOKEN_NAMES.MINUS && typeof right === 'number')
           return -right;
@@ -384,7 +381,6 @@ function buildTerm({
       evaluate() {
         const leftExpr = this.left.evaluate();
         const rightExpr = this.right.evaluate();
-        console.log({leftExpr, rightExpr})
         if (leftExpr === 'nil' || rightExpr === 'nil') {
           throw new CompilerError({
             name: 'JloxSyntaxError',
@@ -587,11 +583,9 @@ function buildAssignment({
       environment: envAfterEqualityEval,
     });
 
-    // TODO: Add to lessons: environment update has to be done
-    // outside the `evaluate` call of a node, so the updated
-    // env is available to the receiving node(s).
-    envAfterAssignmentEval[nodeFromEqualityEval.token.text] =
-      nodeFromRecursiveAssignmentEval.evaluate();
+    const key = nodeFromEqualityEval.token.text;
+    const value = nodeFromRecursiveAssignmentEval.evaluate();
+    const updatedEnv = update(envAfterAssignmentEval, key, value);
 
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
@@ -606,7 +600,7 @@ function buildAssignment({
       return {
         node,
         currentTokenHead: tokenHeadAfterAssignmentEval,
-        environment: envAfterAssignmentEval,
+        environment: updatedEnv,
       };
     }
 
@@ -699,7 +693,8 @@ function buildStatement({
       const node = {
         token,
         evaluate() {
-          // NOTE: Do not delete this console.log!
+          // NOTE: Do not delete this log!
+          // TODO: Wrap the log in a function that can be mocked
           console.log(expression.evaluate());
         },
       };
@@ -755,7 +750,8 @@ function buildVar({
       ],
     })
   ) {
-    environment[varName] = undefined;
+    const updatedEnv = update(environment, varName, undefined);
+
     const node = {
       token: tokens[currentTokenHead + 1],
       evaluate() {
@@ -766,7 +762,7 @@ function buildVar({
     return {
       node,
       currentTokenHead: currentTokenHead + 3,
-      environment,
+      environment: updatedEnv,
     };
   }
 
@@ -792,7 +788,11 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      environment[varName] = expressionNode.evaluate();
+      const updatedEnv = update(
+        envAfterExpressionEval,
+        varName,
+        expressionNode.evaluate(),
+      );
 
       const node = {
         token: identifier,
@@ -804,7 +804,7 @@ function buildVar({
       return {
         node,
         currentTokenHead: tokenHeadAfterExpressionEval + 1,
-        environment: envAfterExpressionEval,
+        environment: updatedEnv,
       };
     }
 
@@ -823,8 +823,6 @@ function buildVar({
   });
 }
 
-const globalScope: Environment = { outterScope: null };
-
 function buildDeclaration({
   tokens,
   currentTokenHead = 0,
@@ -839,21 +837,29 @@ function buildDeclaration({
   return buildStatement({ tokens, currentTokenHead, environment });
 }
 
+const globalScope: Environment = { outterScope: null };
+
 export function parse({
   tokens,
   currentTokenHead = 0,
   statements = [],
+  environment = globalScope,
 }: {
   tokens: Tokens;
   currentTokenHead?: number;
   statements?: Array<AstTree>;
+  environment?: Environment;
 }) {
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
 
-  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
+  const {
+    node,
+    currentTokenHead: tokenHeadAfterExprEval,
+    environment: envAfterDeclarationEval,
+  } = buildDeclaration({
     tokens,
     currentTokenHead,
-    environment: globalScope,
+    environment,
   });
 
   const updatedStatements = [...statements, node];
@@ -862,5 +868,6 @@ export function parse({
     tokens,
     currentTokenHead: tokenHeadAfterExprEval,
     statements: updatedStatements,
+    environment: envAfterDeclarationEval,
   });
 }

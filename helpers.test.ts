@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { sequencer } from './helpers';
+import { sequencer, envHelpers } from './helpers';
 import { type Tokens, TOKEN_NAMES } from './scanner';
 
 describe('sequencer', () => {
@@ -235,3 +235,154 @@ describe('sequencer', () => {
   });
 });
 
+describe('envHelpers', () => {
+  describe('update', () => {
+    test('it returns a new environment with the updated key and value', () => {
+      const { update } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      const updatedEnv = update(env, 'cost', 27);
+
+      expect(updatedEnv).toEqual({ ...env, cost: 27 });
+      expect(env).not.toBe(updatedEnv);
+    });
+  });
+
+  describe('get', () => {
+    test('it returns a variable value if it exists in the global environment', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('it returns a variable value if it exists in the global environment but not an inner scope', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: {
+          outterScope: null,
+          groceries: ['apples', 'oranges'],
+          cost: 24,
+        },
+        store: 'Hannaford',
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('given a deep inner scope, it returns a variable value if it exists in the global environment but not an inner scope', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: {
+          outterScope: {
+            outterScope: null,
+            groceries: ['apples', 'oranges'],
+            cost: 24,
+          },
+          store: 'Hannaford',
+        },
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(24);
+    });
+
+    test('it returns the inner scope variable value if it exists in the global environment and in the inner scope', () => {
+      const { get } = envHelpers();
+
+      const env = {
+        outterScope: {
+          outterScope: null,
+          groceries: ['apples', 'oranges'],
+          cost: 24,
+        },
+        store: 'Hannaford',
+        cost: 30,
+      };
+
+      const value = get(env, 'cost');
+
+      expect(value).toEqual(30);
+    });
+  });
+
+  describe('has', () => {
+    test('it identifies that a key exists in the global env', () => {
+      const { has } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      expect(has(env, 'cost')).toEqual(true);
+    });
+
+    test('it identifies that a key does not exists in the global env', () => {
+      const { has } = envHelpers();
+
+      const env = {
+        outterScope: null,
+        groceries: ['apples', 'oranges'],
+        cost: 24,
+      };
+
+      expect(has(env, 'tax')).toEqual(false);
+    });
+
+    test('it identifies that a key exists in the global scope from a deep inner scope', () => {
+      const { has } = envHelpers();
+
+      const env = {
+        outterScope: {
+          outterScope: {
+            outterScope: null,
+            groceries: ['apples', 'oranges'],
+            cost: 24,
+          },
+          store: 'Hannaford',
+        },
+      };
+
+      expect(has(env, 'cost')).toEqual(true);
+    });
+
+    test('it identifies that a key exists in an inner scope', () => {
+      const { has } = envHelpers();
+
+      const env = {
+        outterScope: {
+          outterScope: {
+            outterScope: null,
+            groceries: ['apples', 'oranges'],
+            cost: 24,
+          },
+          store: 'Hannaford',
+        },
+        shopper: 'you',
+      };
+
+      expect(has(env, 'shopper')).toEqual(true);
+      expect(has(env, 'store')).toEqual(true);
+      expect(has(env, 'tax')).toEqual(false);
+    });
+  });
+});

@@ -268,42 +268,44 @@ describe('compile', () => {
 
       await compile(readLine);
     } catch (e) {
-      expect(e.message).toEqual('Undefined variable (identifier): "thing"')
+      expect(e.message).toEqual('Undefined variable (identifier): "thing"');
     }
   });
 
-  test.each([
-    [['var thing = 15']],
-  ])('when initializing or assigning a variable, forgetting a semicolon results in an error', async (lines) => {
-    try {
-      const readLine = buildReadLine(lines);
+  test.each([[['var thing = 15']]])(
+    'when initializing or assigning a variable, forgetting a semicolon results in an error',
+    async (lines) => {
+      try {
+        const readLine = buildReadLine(lines);
 
-      await compile(readLine);
-    } catch (e) {
-      expect(e.message).toEqual('Syntax Error. Did you forget a semicolon ";" after variable declaration?')
-    }
-  });
+        await compile(readLine);
+      } catch (e) {
+        expect(e.message).toEqual(
+          'Syntax Error. Did you forget a semicolon ";" after variable declaration?',
+        );
+      }
+    },
+  );
 
-  test.each([
-    [['var thing = 15;', 'thing = 16']],
-    [['true']],
-    [['3 + 4']],
-  ])('forgetting a semicolon results in an error', async (lines) => {
-    try {
-      const readLine = buildReadLine(lines);
+  test.each([[['var thing = 15;', 'thing = 16']], [['true']], [['3 + 4']]])(
+    'forgetting a semicolon results in an error',
+    async (lines) => {
+      try {
+        const readLine = buildReadLine(lines);
 
-      await compile(readLine);
-    } catch (e) {
-      expect(e.message).toEqual('Missing semicolon ";" after expression')
-    }
-  });
+        await compile(readLine);
+      } catch (e) {
+        expect(e.message).toEqual('Missing semicolon ";" after expression');
+      }
+    },
+  );
 
   test('a declared but uninitialized variable compiles to nil', async () => {
     const lines = ['var thing;', 'thing;'];
 
     const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual("nil");
+    expect(await compile(readLine)).toEqual('nil');
   });
 
   test('a declared but uninitialized variable can be assigned a value', async () => {
@@ -314,31 +316,31 @@ describe('compile', () => {
     expect(await compile(readLine)).toEqual(6);
   });
 
-  test.each([
-    [['var thing;', 'thing + 16;']],
-    [['var thing;', '2 - thing; ']],
-  ])('addition or subtraction with a nil value results in an error', async (lines) => {
-    try {
-      const readLine = buildReadLine(lines);
+  test.each([[['var thing;', 'thing + 16;']], [['var thing;', '2 - thing; ']]])(
+    'addition or subtraction with a nil value results in an error',
+    async (lines) => {
+      try {
+        const readLine = buildReadLine(lines);
 
-      await compile(readLine);
-    } catch (e) {
-      expect(e.message).toContain('Cannot evaluate')
-      expect(e.message).toContain('with a nil value')
-    }
-  });
+        await compile(readLine);
+      } catch (e) {
+        expect(e.message).toContain('Cannot evaluate');
+        expect(e.message).toContain('with a nil value');
+      }
+    },
+  );
 
-  test.each([
-    [['var thing;', 'thing / 16;']],
-    [['var thing;', '2 * thing; ']],
-  ])('multiplcation or division with a nil value results in an error', async (lines) => {
-    try {
-      const readLine = buildReadLine(lines);
+  test.each([[['var thing;', 'thing / 16;']], [['var thing;', '2 * thing; ']]])(
+    'multiplcation or division with a nil value results in an error',
+    async (lines) => {
+      try {
+        const readLine = buildReadLine(lines);
 
-      await compile(readLine);
-    } catch (e) {
-      expect(e.message).toContain('Cannot evaluate')
-      expect(e.message).toContain('with a nil value')
-    }
-  });
+        await compile(readLine);
+      } catch (e) {
+        expect(e.message).toContain('Cannot evaluate');
+        expect(e.message).toContain('with a nil value');
+      }
+    },
+  );
 });
