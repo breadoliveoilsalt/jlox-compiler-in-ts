@@ -25,7 +25,7 @@ async function testCompiler({ line, expected }) {
   expect(await compile(readLine)).toEqual(expected);
 }
 
-describe('compile', () => {
+describe('boolean expressions', () => {
   test.each([
     {
       line: 'true;',
@@ -56,12 +56,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles boolean expressions, such as $line',
+    'boolean expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('equality expressions', () => {
   test.each([
     {
       line: 'true == true;',
@@ -96,12 +98,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles equality expressions, such as $line;',
+    'equality expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('parenthetical expressions', () => {
   test.each([
     {
       line: '(true);',
@@ -164,12 +168,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles parenthetical expressions, such as $line',
+    'parenthetical expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('doing math', () => {
   test.each([
     {
       line: '24 + 31;',
@@ -220,12 +226,14 @@ describe('compile', () => {
       expected: -11,
     },
   ])(
-    'it compiles term, factor, and negating urnary expressions, to do basic math, such as $line',
+    'term and factor expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('global variables', () => {
   test('it permits the declaration of global variables', () => {
     testCompiler({ line: 'var thing = true;', expected: null });
   });
@@ -287,6 +295,7 @@ describe('compile', () => {
     },
   );
 
+  // UPTO HERE - pull this out
   test.each([[['var thing = 15;', 'thing = 16']], [['true']], [['3 + 4']]])(
     'forgetting a semicolon results in an error',
     async (lines) => {
