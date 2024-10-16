@@ -666,12 +666,94 @@ function buildExpressionStatement({
   });
 }
 
+function buildBlock({
+  tokens,
+  currentTokenHead,
+  statements = [],
+  environment,
+}: {
+  tokens: Tokens;
+  currentTokenHead: number;
+  statements?: Array<AstTree>;
+  environment: Environment;
+}) {
+  const currentTokenName = tokens[currentTokenHead].name;
+
+  if (
+    currentTokenName === TOKEN_NAMES.RIGHT_BRACE ||
+    currentTokenName === TOKEN_NAMES.EOF
+  )
+    return {
+      currentTokenHead:
+        currentTokenName === TOKEN_NAMES.EOF
+          ? currentTokenHead
+          : currentTokenHead + 1,
+      // NOTE: Important to reset evn to outter scope once block evaluation is complete
+      environment: environment.outterScope,
+      statements,
+    };
+
+  const {
+    node,
+    currentTokenHead: tokenHeadAfterExprEval,
+    environment: envAfterDeclarationEval,
+  } = buildDeclaration({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+  const updatedStatements = [...statements, node];
+
+  return buildBlock({
+    tokens,
+    currentTokenHead: tokenHeadAfterExprEval,
+    statements: updatedStatements,
+    environment: envAfterDeclarationEval,
+  });
+}
+
 function buildStatement({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+
+  if (matches(token, TOKEN_NAMES.RIGHT_BRACE)) {
+    const newScope = { outterScope: environment };
+
+    const {
+      currentTokenHead: tokenHeadAfterBlockEval,
+      environment: envAfterBlockEval,
+      statements,
+    } = buildBlock({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+      environment: newScope,
+    });
+
+    if (!envAfterBlockEval) {
+      throw new CompilerError({
+        name: 'DeveloperError',
+        message: 'Missing env in return from buildBlock',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const node = {
+      token,
+      evaluate() {
+        statements.forEach((statement) => statement.evaluate());
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterBlockEval,
+      environment: envAfterBlockEval,
+    };
+  }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
     const {
