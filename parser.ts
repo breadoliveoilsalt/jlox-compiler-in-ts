@@ -720,7 +720,7 @@ function buildStatement({
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
 
-  if (matches(token, TOKEN_NAMES.RIGHT_BRACE)) {
+  if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
     const newScope = { outterScope: environment };
 
     const {

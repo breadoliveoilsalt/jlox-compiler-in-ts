@@ -53,6 +53,8 @@ type TokenType = {
 
 const matchLeftParen = (buffer: string) => buffer.match(/^\(/)
 const matchRightParen = (buffer: string) => buffer.match(/^\)/)
+const matchLeftBrace = (buffer: string) => buffer.match(/^\{/)
+const matchRightBrace = (buffer: string) => buffer.match(/^\}/)
 const matchMinus = (buffer: string) => buffer.match(/^-/)
 const matchPlus = (buffer: string) => buffer.match(/^\+/)
 const matchSemicolon = (buffer: string) => buffer.match(/^;/);
@@ -98,6 +100,16 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.RIGHT_PAREN,
     test: matchRightParen,
     consumeFrom: (buffer: string): string => matchRightParen(buffer)![0],
+  },
+  {
+    name: TOKEN_NAMES.LEFT_BRACE,
+    test: matchLeftBrace,
+    consumeFrom: buildConsumer(matchLeftBrace),
+  },
+  {
+    name: TOKEN_NAMES.RIGHT_BRACE,
+    test: matchRightBrace,
+    consumeFrom: buildConsumer(matchRightBrace),
   },
   // NOTE: By not requiring a word boundary after the `-` token, the following
   // is valid, unlike in JavaScript:
