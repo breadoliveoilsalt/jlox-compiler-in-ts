@@ -2,11 +2,8 @@ var thing = 10;
 {
   var thing = 12;
   {
-    var thing = 15;
-    print thing;
-
+    print thing + 3;
   }
-
-  print thing;
+  print thing / 4;
 }
-print thing;
+print thing * 30;
