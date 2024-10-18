@@ -32,7 +32,6 @@ describe('scan', () => {
   })
 
   test('it correctly identifies var and identifier tokens', async () => {
-    // TODO: Beef up this test
     const lines = ['var fiddle_12343423;', false]
     async function readLine() { return lines.shift() }
 

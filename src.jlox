@@ -1,2 +1,9 @@
-var thing;
-print thing / 3;
+var thing = 10;
+{
+  var thing = 12;
+  {
+    print thing + 3;
+  }
+  print thing / 4;
+}
+print thing * 30;

@@ -1,23 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { scan } from './scanner';
-import { parse } from './parser';
-import { type ReadLine } from './index';
-
-export async function compile(readLine: ReadLine) {
-  const { tokens } = await scan(readLine);
-  const parsedResults = parse({ tokens });
-  return parsedResults[parsedResults.length - 1].evaluate();
-}
-
-function buildReadLine(lines: string[]) {
-  async function readLine() {
-    if (lines.length === 0) return Promise.resolve(false as const);
-    const line = lines.shift();
-    if (typeof line === 'string') return Promise.resolve(line);
-    throw new Error('Test Error: readLine called without string');
-  }
-  return readLine;
-}
+import { buildReadLine, compile } from './testHelpers';
 
 async function testCompiler({ line, expected }) {
   const readLine = buildReadLine([line]);
@@ -25,7 +7,7 @@ async function testCompiler({ line, expected }) {
   expect(await compile(readLine)).toEqual(expected);
 }
 
-describe('compile', () => {
+describe('boolean expressions', () => {
   test.each([
     {
       line: 'true;',
@@ -56,12 +38,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles boolean expressions, such as $line',
+    'boolean expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('equality expressions', () => {
   test.each([
     {
       line: 'true == true;',
@@ -96,12 +80,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles equality expressions, such as $line;',
+    'equality expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('parenthetical expressions', () => {
   test.each([
     {
       line: '(true);',
@@ -164,12 +150,14 @@ describe('compile', () => {
       expected: false,
     },
   ])(
-    'it compiles parenthetical expressions, such as $line',
+    'parenthetical expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('doing math', () => {
   test.each([
     {
       line: '24 + 31;',
@@ -220,12 +208,14 @@ describe('compile', () => {
       expected: -11,
     },
   ])(
-    'it compiles term, factor, and negating urnary expressions, to do basic math, such as $line',
+    'term and factor expressions compile, such as $line',
     async ({ line, expected }) => {
       await testCompiler({ line, expected });
     },
   );
+});
 
+describe('global variables', () => {
   test('it permits the declaration of global variables', () => {
     testCompiler({ line: 'var thing = true;', expected: null });
   });

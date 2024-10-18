@@ -1,6 +1,7 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
 import { CompilerError } from './errors';
 import { matches, peek, sequencer, envHelpers } from './helpers';
+import { systemPrint } from './systemPrint';
 
 export type Environment = {
   outterScope: null | Environment;
@@ -101,7 +102,7 @@ function buildParenthetical({
       TOKEN_NAMES.RIGHT_PAREN,
     )
   ) {
-    // NOTE: It's interesting (and off-putting) that a parenthetical
+    // TODO: It's interesting (and off-putting) that a parenthetical
     // node would only have one token in the token property,
     // the right paren, when there is both a left and right
     // paren at play. Does Node really need to return token?
@@ -246,8 +247,8 @@ function buildUnary({
       evaluate() {
         const right = this.right.evaluate();
         if (this.token.name === TOKEN_NAMES.BANG) return !right;
-        // NOTE: Checking for number type to prevent javascript oddity `14 -true`,
-        // which evaluates to 13, etc.,
+        // NOTE: Below checks for number type to prevent
+        // javascript oddities like `14 -true`, which evaluates to 13
         if (this.token.name === TOKEN_NAMES.MINUS && typeof right === 'number')
           return -right;
       },
@@ -666,12 +667,95 @@ function buildExpressionStatement({
   });
 }
 
+function buildBlock({
+  tokens,
+  currentTokenHead,
+  statements = [],
+  environment,
+}: {
+  tokens: Tokens;
+  currentTokenHead: number;
+  statements?: Array<AstTree>;
+  environment: Environment;
+}) {
+  const currentTokenName = tokens[currentTokenHead].name;
+
+  if (
+    currentTokenName === TOKEN_NAMES.RIGHT_BRACE ||
+    currentTokenName === TOKEN_NAMES.EOF
+  )
+    return {
+      currentTokenHead:
+        currentTokenName === TOKEN_NAMES.EOF
+          ? currentTokenHead
+          : currentTokenHead + 1,
+      // NOTE: It's important to reset env to the outter
+      // scope once block evaluation is complete
+      environment: environment.outterScope,
+      statements,
+    };
+
+  const {
+    node,
+    currentTokenHead: tokenHeadAfterExprEval,
+    environment: envAfterDeclarationEval,
+  } = buildDeclaration({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+  const updatedStatements = [...statements, node];
+
+  return buildBlock({
+    tokens,
+    currentTokenHead: tokenHeadAfterExprEval,
+    statements: updatedStatements,
+    environment: envAfterDeclarationEval,
+  });
+}
+
 function buildStatement({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+
+  if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
+    const newScope = { outterScope: environment };
+
+    const {
+      currentTokenHead: tokenHeadAfterBlockEval,
+      environment: envAfterBlockEval,
+      statements,
+    } = buildBlock({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+      environment: newScope,
+    });
+
+    if (!envAfterBlockEval) {
+      throw new CompilerError({
+        name: 'DeveloperError',
+        message: 'Missing env in return from buildBlock',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const node = {
+      token,
+      evaluate() {
+        statements.forEach((statement) => statement.evaluate());
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterBlockEval,
+      environment: envAfterBlockEval,
+    };
+  }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
     const {
@@ -693,9 +777,7 @@ function buildStatement({
       const node = {
         token,
         evaluate() {
-          // NOTE: Do not delete this log!
-          // TODO: Wrap the log in a function that can be mocked
-          console.log(expression.evaluate());
+          systemPrint(expression.evaluate());
         },
       };
 
@@ -715,11 +797,6 @@ function buildStatement({
 
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
 }
-
-// TODO: Consider, if I do a context, whether I can
-// call a method on that context to get the currentToken...
-// But then that smells like OO...a combo of data and methods
-// on that data
 
 // TODO: refactor these variables I use over and over
 // to keep them simpler
