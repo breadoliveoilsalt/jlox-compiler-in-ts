@@ -1,23 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { scan } from './scanner';
-import { parse } from './parser';
-import { type ReadLine } from './index';
-
-export async function compile(readLine: ReadLine) {
-  const { tokens } = await scan(readLine);
-  const parsedResults = parse({ tokens });
-  return parsedResults[parsedResults.length - 1].evaluate();
-}
-
-function buildReadLine(lines: string[]) {
-  async function readLine() {
-    if (lines.length === 0) return Promise.resolve(false as const);
-    const line = lines.shift();
-    if (typeof line === 'string') return Promise.resolve(line);
-    throw new Error('Test Error: readLine called without string');
-  }
-  return readLine;
-}
+import { buildReadLine, compile } from './testHelpers';
 
 async function testCompiler({ line, expected }) {
   const readLine = buildReadLine([line]);
