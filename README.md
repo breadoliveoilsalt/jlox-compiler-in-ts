@@ -33,13 +33,6 @@ relevant sections below.
 
 - `npm run test`
 
-## Done
-
-- [X] Evaluate statements (up to and including Chapter 7 of Crafting
-  Interpreters). This includes booleans, parentheticals, basic math, etc.
-- [X] Take file as input on command line
-- [X] Start repl if no file specified at the command line
-
 ## Next steps (TODOs)
 
 - [ ] Fix Repl
@@ -48,14 +41,26 @@ relevant sections below.
   - [ ] it needs a global env for variables to work
   - [ ] print evaluation of expressions to console even if `print`
         not used
+- [ ] Refactor tests, breaking integration tests into different files for
+  expressions, variables, etc.
+- [ ] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/):
+  Control Flow
 
-- Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/): Statements and State
-  - [X] Add `print` functionality
-  - [X] Add gloabal env and ability to read multiple lines
-  - [ ] Add scoped envs
+## Done
+- [X] Chapters 1-7 of [Crafting Interpreters](https://craftinginterpreters.com/):
+  Scan for tokens, parse into abstract syntax tree, and evaluate statements.
+  - [X] Evaluate booleans, parentheticals, and basic math.
+- [X] Get rudimentary repl going.
+- [X] Take file as input on command line
+- [X] Start repl if no file specified at the command line
 - [X] Beef up error handling and error reporting to user for expressions
 - [X] Fix linting/prettifying re: adding semi-colons in TS code.
 - [X] Add line number to token object
+- [X] Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/): Statements and State
+  - [X] Add `print` functionality
+  - [X] Add global env and ability to read multiple lines
+  - [X] Add scoped envs
+  - [X] Add block statements
 
 ## Notes on fixing repl [WIP]
 - Refactor top level error boundary and `startRepl` so that, say, a jlox syntax
