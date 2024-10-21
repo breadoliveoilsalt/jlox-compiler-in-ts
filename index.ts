@@ -23,10 +23,7 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
-  // const result = await compile(readLine)
   await compile(readLine)
-
-  // if (result) console.log(result)
 }
 
 async function startRepl() {
