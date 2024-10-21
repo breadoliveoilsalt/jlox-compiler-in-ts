@@ -1,5 +1,6 @@
 import { afterEach, describe, test, expect, vi } from 'vitest';
-import { buildReadLine, compile } from './testHelpers';
+import { buildReadLine } from './testHelpers';
+import { compile } from './compiler';
 import * as outputModule from './systemPrint';
 
 describe('compiling block statements', () => {

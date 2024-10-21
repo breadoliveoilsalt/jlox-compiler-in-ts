@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { buildReadLine, compile } from './testHelpers';
+import { buildReadLine } from './testHelpers';
+import { compile } from './compiler';
 
 async function testCompiler({ line, expected }) {
   const readLine = buildReadLine([line]);
