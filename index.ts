@@ -6,14 +6,14 @@ import { CompilerError } from './errors';
 
 async function fileLineReader({ filePath }: { filePath: string }) {
   const file = fs.readFileSync(filePath, 'utf8');
-  const data = file.split('\n')
+  const data = file.split('\n');
 
   return {
     readLine: () => {
-      if (data.length === 0) return Promise.resolve(false)
-      return Promise.resolve(data.shift())
-    }
-  }
+      if (data.length === 0) return Promise.resolve(false);
+      return Promise.resolve(data.shift());
+    },
+  };
 }
 
 export type ReadLine = () => Promise<string | false>;
@@ -23,73 +23,83 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
-  await compile(readLine)
+  await compile(readLine);
 }
 
 async function startRepl() {
-  console.log('\n----- Starting jlox repl -----')
-  console.log('----- Type \"exit\" to end -----\n')
+  console.log('\n----- Starting jlox repl -----');
+  console.log('----- Type "exit" to end -----\n');
   const rl = readline.createInterface({ input, output });
 
   rl.on('close', () => {
-    process.exit()
+    process.exit();
   });
 
   async function runRepl() {
+    console.log('at start of run repl');
     const line = await rl.question('> ');
 
     if (line === 'exit') {
-      console.log('\n----- Goodbye! -----\n')
+      console.log('\n----- Goodbye! -----\n');
       rl.close();
     }
 
-    const lines = [line, false]
+    const lines = [line, false];
 
     async function readLine() {
       return lines.shift();
     }
 
-    const result = await compile(readLine as ReadLine)
-    console.log(result)
-    await runRepl()
-  }
-
-  try {
-    await runRepl()
-  } catch (e: unknown) {
-    if (e instanceof CompilerError) {
+    try {
+      const result = await compile(readLine as ReadLine);
+      console.log(result);
+    } catch (e) {
       const { name, message, lineNumber } = e;
-      console.log(`${name}: Line ${lineNumber}: ${message}`)
-      // await runRepl()
-      // console.trace(e)
-    } else {
-      rl.close()
-      console.log('Error unrecognized by jlox\n')
-      throw e
+      console.log(`${name}: Line ${lineNumber}: ${message}`);
     }
-  } finally {
-    await runRepl()
+
+    await runRepl();
   }
 
+  await runRepl();
+
+  // try {
+  //   await runRepl()
+  // } catch (e: unknown) {
+  //   console.log('catching error!')
+  //   if (e instanceof CompilerError) {
+  //     const { name, message, lineNumber } = e;
+  //     console.log(`${name}: Line ${lineNumber}: ${message}`)
+  //     // await runRepl()
+  //     // console.trace(e)
+  //   } else {
+  //     rl.close()
+  //     console.log('Error unrecognized by jlox\n')
+  //     throw e
+  //   }
+  // } finally {
+  //   console.log("in finally")
+  //   await runRepl()
+  // }
 }
 
 async function main() {
   // try {
-    const filePath = process.argv[2]
-    if (filePath) {
-      await evaluateFile({ filePath })
-    } else {
-      await startRepl()
-    }
+  const filePath = process.argv[2];
+  if (filePath) {
+    await evaluateFile({ filePath });
+  } else {
+    await startRepl();
+  }
   // } catch (e: unknown) {
-    // if (e instanceof CompilerError) {
-    //   const { name, message, lineNumber } = e;
-    //   console.log(`${name}: Line ${lineNumber}: ${message}`)
-    //   console.trace(e)
-    // } else {
-    //   console.log('Error unrecognized by jlox\n')
-    //   throw e
-    // }
+  // if (e instanceof CompilerError) {
+  //   const { name, message, lineNumber } = e;
+  //   console.log(`${name}: Line ${lineNumber}: ${message}`)
+  //   console.trace(e)
+  // } else {
+  //   console.log('Error unrecognized by jlox\n')
+  //   throw e
+  // }
   // }
 }
 

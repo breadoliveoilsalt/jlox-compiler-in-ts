@@ -778,6 +778,7 @@ function buildStatement({
         token,
         evaluate() {
           systemPrint(expression.evaluate());
+          return 'nil';
         },
       };
 
