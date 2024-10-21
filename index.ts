@@ -36,7 +36,6 @@ async function startRepl() {
   });
 
   async function runRepl() {
-    console.log('at start of run repl');
     const line = await rl.question('> ');
 
     if (line === 'exit') {
@@ -53,9 +52,15 @@ async function startRepl() {
     try {
       const result = await compile(readLine as ReadLine);
       console.log(result);
-    } catch (e) {
-      const { name, message, lineNumber } = e;
-      console.log(`${name}: Line ${lineNumber}: ${message}`);
+    } catch (e: unknown) {
+      if (e instanceof CompilerError) {
+        const { name, message, lineNumber } = e;
+        console.log(`${name}: Line ${lineNumber}: ${message}`);
+      } else {
+        rl.close();
+        console.log('Error unrecognized by jlox\n');
+        throw e;
+      }
     }
 
     await runRepl();
@@ -63,44 +68,15 @@ async function startRepl() {
 
   await runRepl();
 
-  // try {
-  //   await runRepl()
-  // } catch (e: unknown) {
-  //   console.log('catching error!')
-  //   if (e instanceof CompilerError) {
-  //     const { name, message, lineNumber } = e;
-  //     console.log(`${name}: Line ${lineNumber}: ${message}`)
-  //     // await runRepl()
-  //     // console.trace(e)
-  //   } else {
-  //     rl.close()
-  //     console.log('Error unrecognized by jlox\n')
-  //     throw e
-  //   }
-  // } finally {
-  //   console.log("in finally")
-  //   await runRepl()
-  // }
 }
 
 async function main() {
-  // try {
   const filePath = process.argv[2];
   if (filePath) {
     await evaluateFile({ filePath });
   } else {
     await startRepl();
   }
-  // } catch (e: unknown) {
-  // if (e instanceof CompilerError) {
-  //   const { name, message, lineNumber } = e;
-  //   console.log(`${name}: Line ${lineNumber}: ${message}`)
-  //   console.trace(e)
-  // } else {
-  //   console.log('Error unrecognized by jlox\n')
-  //   throw e
-  // }
-  // }
 }
 
 main();
