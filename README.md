@@ -36,7 +36,7 @@ relevant sections below.
 ## Next steps (TODOs)
 
 - [ ] Fix Repl
-  - [ ] it can handle one error and repeats the loop,
+  - [X] it can handle one error and repeats the loop,
         but it forcefully exits after a second error
   - [ ] it needs a global env for variables to work
   - [ ] print evaluation of expressions to console even if `print`
@@ -125,15 +125,23 @@ async function main() {
 
 #### Reading lines repeatedly for a repl with node
 
-- On adding a repl:
+- Learning: On adding a repl:
   - A `while` loop does not work for reading line over and over in node. With
     such an approach, node exhibited an odd behavior, repeating each character
     typed, increasing once per loop.
+  - Instead, we need this recursive style function seen in the `runRepl` function.
+    - See also:
+      - https://stackoverflow.com/a/24182269
+      - https://stackoverflow.com/a/24466103
 
-- Instead, we need this recursive style function seen in the `runRepl` function. 
-  - See also:
-    - https://stackoverflow.com/a/24182269
-    - https://stackoverflow.com/a/24466103
+- Learning: At some point, I broke my repl - it would crash after two jlox
+  syntax errors, rather than handling them gracefully. The problem was I had a
+  `try` block surrounding the entire procedure of creating the interface,
+  closing the interface, etc.
+  - The solution was I needed a more focused scope for the try -- surrounding
+    only the call to `compile` and the `console.log` of the result. Once the
+    error was caught and handled, then recursively call the function that in
+    turn calls `question` on the `readline` instance.
 
 #### Style: Object Parameters
 
@@ -250,8 +258,8 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
       jump to a rule somewhere in the middle of the grammar.
     - On a similar theme of not going strictly in one direction, note that
       `buildStatement` jumps *over* `buildExpressionStatement`, going straight to
-      `buildExpression`, if the condition for an expression token is met. 
+      `buildExpression`, if the condition for an expression token is met.
 
-#### Recursion can be cool
+#### Extra appreciation of recursion
 - I'm proud of realizing that `parse` can be a recursive function and
   implementing it that way.

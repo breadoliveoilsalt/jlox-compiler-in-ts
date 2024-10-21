@@ -67,7 +67,6 @@ async function startRepl() {
   }
 
   await runRepl();
-
 }
 
 async function main() {
