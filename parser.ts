@@ -915,20 +915,23 @@ function buildDeclaration({
   return buildStatement({ tokens, currentTokenHead, environment });
 }
 
-const globalScope: Environment = { outterScope: null };
-
 export function parse({
   tokens,
   currentTokenHead = 0,
   statements = [],
-  environment = globalScope,
+  environment,
 }: {
   tokens: Tokens;
   currentTokenHead?: number;
   statements?: Array<AstTree>;
-  environment?: Environment;
+  environment: Environment;
 }) {
-  if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) return statements;
+  if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
+    return ({
+      statements,
+      environment,
+    })
+  }
 
   const {
     node,
