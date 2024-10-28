@@ -23,7 +23,7 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
-  await compile(readLine);
+  await compile({ readLine });
 }
 
 async function startRepl() {
@@ -50,7 +50,8 @@ async function startRepl() {
     }
 
     try {
-      const result = await compile(readLine as ReadLine);
+      // UPTO HOW TO FIX THS TS ERROR?
+      const { result, environment } = await compile({ readLine });
       console.log(result);
     } catch (e: unknown) {
       if (e instanceof CompilerError) {

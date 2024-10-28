@@ -5,9 +5,9 @@ import { type ReadLine } from './index';
 // UPTO - I think I need to return
 // parsedResult and env, and pass in env
 // optionally for repl
-export async function compile(readLine: ReadLine) {
+export async function compile({readLine, env}: {readLine: ReadLine, env?: Environment} ) {
   const { tokens } = await scan(readLine);
-  const globalScope: Environment = { outterScope: null };
+  const globalScope: Environment = env ?? { outterScope: null };
 
   // UPTO HERE:
   //  compiling a file seems to work, although there are TS errors
