@@ -36,8 +36,8 @@ async function startRepl() {
     process.exit();
   });
 
-  async function runRepl(env?: Environment) {
-    console.log('runrepl: env at start of runRepl', env)
+  async function runRepl(environment?: Environment) {
+    // console.log('runrepl: env at start of runRepl', env)
     const line = await rl.question('> ');
 
     if (line === 'exit') {
@@ -52,16 +52,16 @@ async function startRepl() {
       return Promise.resolve(lines.shift());
     }
 
-    const globalScope: Environment = env ?? { outterScope: null };
-    console.log('runrepl: globalScope set', globalScope)
+    const globalScope: Environment = environment ?? { outterScope: null };
+    // console.log('runrepl: globalScope set', globalScope)
     let updatedGlobalScope: Environment;
 
     try {
-      const args = {
-        readLine,
-        environment: globalScope,
-      } as { readLine: ReadLine; environment: Environment };
-      const { result, environment } = await compile(args);
+      // const args = {
+      //   readLine,
+      //   environment: globalScope,
+      // } as { readLine: ReadLine; environment: Environment };
+      const { result, environment } = await compile(readLine as ReadLine, globalScope);
       console.log('runrepl: environment after compile', environment);
       updatedGlobalScope = environment;
       console.log('runrepl: updatedGlobalScope after compile', updatedGlobalScope);
@@ -78,7 +78,7 @@ async function startRepl() {
       }
     }
 
-    console.log('updatedGlobalScope outside', updatedGlobalScope);
+    // console.log('updatedGlobalScope outside', updatedGlobalScope);
   }
 
   await runRepl();
