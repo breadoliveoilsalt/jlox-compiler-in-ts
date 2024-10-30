@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { compile } from './compiler';
+import { type Environment } from './parser';
 import { CompilerError } from './errors';
 
 async function fileLineReader({ filePath }: { filePath: string }) {
@@ -35,7 +36,8 @@ async function startRepl() {
     process.exit();
   });
 
-  async function runRepl() {
+  async function runRepl(env?: Environment) {
+    console.log('runrepl: env at start of runRepl', env)
     const line = await rl.question('> ');
 
     if (line === 'exit') {
@@ -46,12 +48,24 @@ async function startRepl() {
     const lines = [line, false];
 
     async function readLine() {
-      return lines.shift();
+      if (lines.length === 0) return Promise.resolve(false);
+      return Promise.resolve(lines.shift());
     }
 
+    const globalScope: Environment = env ?? { outterScope: null };
+    console.log('runrepl: globalScope set', globalScope)
+    let updatedGlobalScope: Environment;
+
     try {
-      // UPTO HOW TO FIX THS TS ERROR?
-      const { result, environment } = await compile({ readLine });
+      const args = {
+        readLine,
+        environment: globalScope,
+      } as { readLine: ReadLine; environment: Environment };
+      const { result, environment } = await compile(args);
+      console.log('runrepl: environment after compile', environment);
+      updatedGlobalScope = environment;
+      console.log('runrepl: updatedGlobalScope after compile', updatedGlobalScope);
+      await runRepl(updatedGlobalScope);
       console.log(result);
     } catch (e: unknown) {
       if (e instanceof CompilerError) {
@@ -64,7 +78,7 @@ async function startRepl() {
       }
     }
 
-    await runRepl();
+    console.log('updatedGlobalScope outside', updatedGlobalScope);
   }
 
   await runRepl();
