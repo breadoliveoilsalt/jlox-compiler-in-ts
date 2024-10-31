@@ -263,3 +263,21 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 #### Extra appreciation of recursion
 - I'm proud of realizing that `parse` can be a recursive function and
   implementing it that way.
+
+#### Problems with classic deep clone with JSON.stringify & JSON.parse
+
+- To allow variables to be declared but not initialized, I save them to my env
+  object with a value of `undefined`. My `update` method had a `deepClone`
+  method to copy the environment to keep things immutable/functional. It used
+  `JSON.parse(JSON.stringify(obj))` to accomplish this simply. I learned through
+  debugging that this is problematic and will not work here, because
+  `JSON.stringify` strips out keys with values of `undefined`! So my declared
+  but initialized variables were getting removed when another variable was
+  declared and `update` was called again.
+
+```js
+> const obj = { outterScope: null, fish: undefined }
+undefined
+> JSON.stringify(obj)
+'{"outterScope":null}'
+```
