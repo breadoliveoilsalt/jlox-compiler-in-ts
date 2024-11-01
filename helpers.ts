@@ -1,3 +1,4 @@
+import { clone } from 'ramda';
 import {
   type Token,
   type Tokens,
@@ -82,13 +83,13 @@ export function sequencer() {
 
 export function envHelpers() {
   function deepClone(env: Environment): Environment {
-    return JSON.parse(JSON.stringify(env));
+    return clone(env);
   }
 
   function update(env: Environment, key: string, value: any) {
-    console.log('update: env before update', env)
+    console.log('update: env before update', env);
     const envCopy = deepClone(env);
-    console.log('update: env after update', envCopy)
+    console.log('update: env after update', envCopy);
 
     envCopy[key] = value;
     return envCopy;
@@ -96,7 +97,7 @@ export function envHelpers() {
 
   function get(env: Environment, key: string): any {
     if (!env.outterScope) return env[key];
-    return env[key] ?? get(env.outterScope, key)
+    return env[key] ?? get(env.outterScope, key);
   }
 
   function has(env: Environment, key: string): boolean {

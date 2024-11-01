@@ -6,7 +6,8 @@
     "skipLibCheck": true,
     "noImplicitAny": true,
     "types": ["node"],
-    "noEmit": true
+    "noEmit": true,
+    "moduleResolution": "Node"
   },
   "include": ["**/*"],
   "exclude": ["node_modules", "**/*.test.ts"]
