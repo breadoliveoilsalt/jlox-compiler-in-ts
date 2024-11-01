@@ -56,17 +56,28 @@ async function startRepl() {
     // console.log('runrepl: globalScope set', globalScope)
     let updatedGlobalScope: Environment;
 
+    // UPTO:
+    // I think the only way I'm going to get this to work is to
+    // wrap it all in function that returns { result, error, environment } and just
+    // console.logs whatever. If there is an error, the caller just has the original
+    // environment and calls things again
     try {
       // const args = {
       //   readLine,
       //   environment: globalScope,
       // } as { readLine: ReadLine; environment: Environment };
-      const { result, environment } = await compile(readLine as ReadLine, globalScope);
+      const { result, environment } = await compile(
+        readLine as ReadLine,
+        globalScope,
+      );
       console.log('runrepl: environment after compile', environment);
       updatedGlobalScope = environment;
-      console.log('runrepl: updatedGlobalScope after compile', updatedGlobalScope);
-      await runRepl(updatedGlobalScope);
+      console.log(
+        'runrepl: updatedGlobalScope after compile',
+        updatedGlobalScope,
+      );
       console.log(result);
+      // await runRepl(updatedGlobalScope);
     } catch (e: unknown) {
       if (e instanceof CompilerError) {
         const { name, message, lineNumber } = e;
@@ -77,6 +88,7 @@ async function startRepl() {
         throw e;
       }
     }
+    await runRepl(updatedGlobalScope);
 
     // console.log('updatedGlobalScope outside', updatedGlobalScope);
   }
