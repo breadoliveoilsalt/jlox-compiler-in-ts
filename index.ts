@@ -33,9 +33,13 @@ type CompileForReplResult = Promise<
 >;
 
 async function compileForRepl(readLine: ReadLine, environment: Environment): CompileForReplResult {
-  // const { result, environment: updatedEnv } = await compile(readLine, environment);
   try {
-    return await compile(readLine, environment);
+
+  const { result, environment: updatedEnv } = await compile(readLine, environment);
+  console.log('in compileforRepl', {result, updatedEnv})
+  return { result, environment: updatedEnv}
+  // try {
+  //   return await compile(readLine, environment);
   } catch (e) {
     if (e instanceof CompilerError) {
       const { name, message, lineNumber } = e;
@@ -59,8 +63,8 @@ async function startRepl() {
   });
 
   // TODO: get rid of the any below
-  async function runRepl(rl:any, environment?: Environment) {
-    // console.log('runrepl: env at start of runRepl', env)
+  async function runRepl(rl:any, environment: Environment) {
+    console.log('runrepl: env at start of runRepl', environment)
     const line = await rl.question('> ');
 
     if (line === 'exit') {
@@ -75,20 +79,21 @@ async function startRepl() {
       return Promise.resolve(lines.shift());
     }
 
-    const globalScope: Environment = environment ?? { outterScope: null };
-
     const {
       result,
       environment: resultingEnv,
       error,
-    } = await compileForRepl(readLine as ReadLine, globalScope);
+    } = await compileForRepl(readLine as ReadLine, environment);
+
+    console.log('in runRepl: compile done:', { result, resultingEnv, error})
 
     console.log(result ?? error)
 
-    await runRepl(rl, resultingEnv)
+    await runRepl(rl, resultingEnv ? resultingEnv : environment)
   }
 
-  await runRepl(rl)
+  // Pass global scope to runRepl on first call
+  await runRepl(rl, {outterScope: null})
 }
 
 /*

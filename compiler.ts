@@ -20,6 +20,8 @@ export async function compile(readLine: ReadLine, environment?: Environment) : P
     tokens,
     environment: globalScope,
   });
+
+  console.log('in true compile: envAfterParse', envAfterParse)
   const result = statements.reduce((_, statement) => {
     return statement.evaluate();
   }, undefined);
