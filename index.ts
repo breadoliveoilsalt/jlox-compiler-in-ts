@@ -2,98 +2,120 @@ import * as fs from 'node:fs';
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { compile } from './compiler';
+import { type Environment } from './parser';
 import { CompilerError } from './errors';
+import { systemPrint } from './systemPrint';
 
 async function fileLineReader({ filePath }: { filePath: string }) {
   const file = fs.readFileSync(filePath, 'utf8');
-  const data = file.split('\n')
+  const data = file.split('\n');
 
   return {
     readLine: () => {
-      if (data.length === 0) return Promise.resolve(false)
-      return Promise.resolve(data.shift())
-    }
-  }
+      if (data.length === 0) return Promise.resolve(false);
+      return Promise.resolve(data.shift());
+    },
+  };
 }
 
 export type ReadLine = () => Promise<string | false>;
 
 async function evaluateFile({ filePath }: { filePath: string }) {
-  console.log(`\n----- Evaluating file ${filePath} -----\n`);
+  systemPrint(`\n----- Evaluating file ${filePath} -----\n`);
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
-  // const result = await compile(readLine)
-  await compile(readLine)
+  await compile(readLine);
+}
 
-  // if (result) console.log(result)
+type CompileForReplResult = Promise<
+  | { result: any; environment: Environment; error?: never }
+  | { result?: never; environment?: never; error: string }
+>;
+
+async function compileForRepl(
+  readLine: ReadLine,
+  environment: Environment,
+): CompileForReplResult {
+  try {
+    return await compile(readLine, environment);
+  } catch (e) {
+    if (e instanceof CompilerError) {
+      const { name, message, lineNumber } = e;
+      return { error: `${name}: Line ${lineNumber}: ${message}` };
+    } else {
+      if (e instanceof Error) {
+        return { error: `Error unrecognized by jlox\n ${e.message}` };
+      }
+    }
+    return { error: 'Error unrecognized b jlox \n' };
+  }
+}
+
+function log({
+  error,
+  result,
+}: {
+  error: string | undefined;
+  result: string | undefined;
+}) {
+  if (error) {
+    systemPrint(error);
+    return;
+  }
+  if (result) {
+    systemPrint(result);
+    return;
+  }
+  systemPrint('nil');
 }
 
 async function startRepl() {
-  console.log('\n----- Starting jlox repl -----')
-  console.log('----- Type \"exit\" to end -----\n')
+  systemPrint('\n----- Starting jlox repl -----');
+  systemPrint('----- Type "exit" to end -----\n');
   const rl = readline.createInterface({ input, output });
 
   rl.on('close', () => {
-    process.exit()
+    process.exit();
   });
 
-  async function runRepl() {
+  async function runRepl(rl: readline.Interface, environment: Environment) {
     const line = await rl.question('> ');
 
     if (line === 'exit') {
-      console.log('\n----- Goodbye! -----\n')
+      systemPrint('\n----- Goodbye! -----\n');
       rl.close();
     }
 
-    const lines = [line, false]
+    const lines = [line, false];
 
     async function readLine() {
-      return lines.shift();
+      if (lines.length === 0) return Promise.resolve(false);
+      return Promise.resolve(lines.shift());
     }
 
-    const result = await compile(readLine as ReadLine)
-    console.log(result)
-    await runRepl()
+    const {
+      result,
+      environment: resultingEnv,
+      error,
+    } = await compileForRepl(readLine as ReadLine, environment);
+
+    log({ error, result });
+
+    await runRepl(rl, resultingEnv ? resultingEnv : environment);
   }
 
-  try {
-    await runRepl()
-  } catch (e: unknown) {
-    if (e instanceof CompilerError) {
-      const { name, message, lineNumber } = e;
-      console.log(`${name}: Line ${lineNumber}: ${message}`)
-      // await runRepl()
-      // console.trace(e)
-    } else {
-      rl.close()
-      console.log('Error unrecognized by jlox\n')
-      throw e
-    }
-  } finally {
-    await runRepl()
-  }
-
+  // Pass global scope to runRepl on first call
+  await runRepl(rl, { outterScope: null });
 }
 
 async function main() {
-  // try {
-    const filePath = process.argv[2]
-    if (filePath) {
-      await evaluateFile({ filePath })
-    } else {
-      await startRepl()
-    }
-  // } catch (e: unknown) {
-    // if (e instanceof CompilerError) {
-    //   const { name, message, lineNumber } = e;
-    //   console.log(`${name}: Line ${lineNumber}: ${message}`)
-    //   console.trace(e)
-    // } else {
-    //   console.log('Error unrecognized by jlox\n')
-    //   throw e
-    // }
-  // }
+  const filePath = process.argv[2];
+  if (filePath) {
+    await evaluateFile({ filePath });
+  } else {
+    await startRepl();
+  }
 }
 
 main();

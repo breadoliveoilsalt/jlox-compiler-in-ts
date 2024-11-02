@@ -35,16 +35,10 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
-- [ ] Fix Repl
-  - [ ] it can handle one error and repeats the loop,
-        but it forcefully exits after a second error
-  - [ ] it needs a global env for variables to work
-  - [ ] print evaluation of expressions to console even if `print`
-        not used
-- [ ] Refactor tests, breaking integration tests into different files for
-  expressions, variables, etc.
 - [ ] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/):
   Control Flow
+- [ ] Refactor tests, breaking integration tests into different files for
+  expressions, variables, etc.
 
 ## Done
 - [X] Chapters 1-7 of [Crafting Interpreters](https://craftinginterpreters.com/):
@@ -61,44 +55,12 @@ relevant sections below.
   - [X] Add global env and ability to read multiple lines
   - [X] Add scoped envs
   - [X] Add block statements
-
-## Notes on fixing repl [WIP]
-- Refactor top level error boundary and `startRepl` so that, say, a jlox syntax
-  error does not cause the repl to freeze; the error is reported and the prompt
-  re-appears.
-    - Note: this does not work: We see a problem we saw earlier, where once the
-      repl starts up again, letters that the user types are repeated.
-
-```js
-function handleError(e: unknown) {
-  if (e instanceof CompilerError) {
-    const { name, message, lineNumber } = e;
-    console.log(`${name}: Line ${lineNumber}: ${message}`)
-  } else {
-    console.log('Error unrecognized by jlox\n')
-    throw e
-  }
-}
-
-async function main() {
-  const filePath = process.argv[2]
-  if (filePath) {
-    try {
-      await evaluateFile({ filePath })
-    } catch (e) {
-      handleError(e)
-    }
-  } else {
-    try {
-      await startRepl()
-    } catch (e) {
-      handleError(e)
-      startRepl()
-    }
-  }
-}
-
-```
+- [X] Fix Repl
+  - [X] it can handle one error and repeats the loop,
+        but it forcefully exits after a second error
+  - [X] it needs a global env for variables to work
+  - [X] print evaluation of expressions to console even if `print`
+        not used
 
 ## Open issues / Questions
 
@@ -125,15 +87,23 @@ async function main() {
 
 #### Reading lines repeatedly for a repl with node
 
-- On adding a repl:
+- Learning: On adding a repl:
   - A `while` loop does not work for reading line over and over in node. With
     such an approach, node exhibited an odd behavior, repeating each character
     typed, increasing once per loop.
+  - Instead, we need this recursive style function seen in the `runRepl` function.
+    - See also:
+      - https://stackoverflow.com/a/24182269
+      - https://stackoverflow.com/a/24466103
 
-- Instead, we need this recursive style function seen in the `runRepl` function. 
-  - See also:
-    - https://stackoverflow.com/a/24182269
-    - https://stackoverflow.com/a/24466103
+- Learning: At some point, I broke my repl - it would crash after two jlox
+  syntax errors, rather than handling them gracefully. The problem was I had a
+  `try` block surrounding the entire procedure of creating the interface,
+  closing the interface, etc.
+  - The solution was I needed a more focused scope for the try -- surrounding
+    only the call to `compile` and the `console.log` of the result. Once the
+    error was caught and handled, then recursively call the function that in
+    turn calls `question` on the `readline` instance.
 
 #### Style: Object Parameters
 
@@ -250,8 +220,36 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
       jump to a rule somewhere in the middle of the grammar.
     - On a similar theme of not going strictly in one direction, note that
       `buildStatement` jumps *over* `buildExpressionStatement`, going straight to
-      `buildExpression`, if the condition for an expression token is met. 
+      `buildExpression`, if the condition for an expression token is met.
 
-#### Recursion can be cool
+#### Extra appreciation of recursion
 - I'm proud of realizing that `parse` can be a recursive function and
   implementing it that way.
+
+#### Problems with classic deep clone with JSON.stringify & JSON.parse
+
+- To allow variables to be declared but not initialized, I save them to my env
+  object with a value of `undefined`. My `update` method had a `deepClone`
+  method to copy the environment to keep things immutable/functional. It used
+  `JSON.parse(JSON.stringify(obj))` to accomplish this simply. I learned through
+  debugging that this is problematic and will not work here, because
+  `JSON.stringify` strips out keys with values of `undefined`! So my declared
+  but initialized variables were getting removed when another variable was
+  declared and `update` was called again.
+
+```js
+> const obj = { outterScope: null, fish: undefined }
+undefined
+> JSON.stringify(obj)
+'{"outterScope":null}'
+```
+
+#### It seems the less you wrap in a try/catch block, the better
+
+- I was having all kinds of problems running the repl, particularly displaying
+  errors in a meaningful way and keeping the repl loop going without
+  crashing when there were errors. There were several problems I encountered,
+  but by far the biggest cause was casting too big a net in the `try` of a
+  `try/catch` block. The `try` originally had the logic for parsing the tokens,
+  printing the result to the repl, re-running the repl loop, etc.
+  - Generally speaking, the solution was to wrap just the parsing call in a `try/catch` block that would return an object either the result of parsing or a meaningful error in string form. See `compileForRepl`. Then, the function receiving the result of the user's input could decide what to do with the result or the stringified error. This is a great pattern.

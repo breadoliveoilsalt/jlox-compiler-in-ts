@@ -8,16 +8,22 @@
   "target": "es2022",
   "scripts": {
     "compile": "(tsc || true) && npm run execute",
-    "execute": "tsx index.ts",
     "compile:src": "npm run compile -- ./src.jlox",
-    "test": "vitest"
+    "execute": "tsx index.ts",
+    "repl": "npm run execute",
+    "test": "vitest",
+    "typecheck": "tsc"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.1.0",
+    "@types/ramda": "^0.30.2",
     "tsx": "^4.19.1",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
+  },
+  "dependencies": {
+    "ramda": "^0.30.1"
   }
 }
