@@ -27,6 +27,28 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   await compile({ readLine });
 }
 
+type CompileForReplResult = Promise<
+  | { result: any; environment: Environment; error?: never }
+  | { result?: never; environment?: never; error: string }
+>;
+
+async function compileForRepl(readLine: ReadLine, environment: Environment): CompileForReplResult {
+  // const { result, environment: updatedEnv } = await compile(readLine, environment);
+  try {
+    return await compile(readLine, environment);
+  } catch (e) {
+    if (e instanceof CompilerError) {
+      const { name, message, lineNumber } = e;
+      return { error: `${name}: Line ${lineNumber}: ${message}` };
+    } else {
+      if (e instanceof Error) {
+        return { error: `Error unrecognized by jlox\n ${e.message}` };
+      }
+    }
+    return { error: 'Error unrecognized b jlox \n'}
+  }
+}
+
 async function startRepl() {
   console.log('\n----- Starting jlox repl -----');
   console.log('----- Type "exit" to end -----\n');
@@ -36,7 +58,8 @@ async function startRepl() {
     process.exit();
   });
 
-  async function runRepl(environment?: Environment) {
+  // TODO: get rid of the any below
+  async function runRepl(rl:any, environment?: Environment) {
     // console.log('runrepl: env at start of runRepl', env)
     const line = await rl.question('> ');
 
@@ -53,9 +76,25 @@ async function startRepl() {
     }
 
     const globalScope: Environment = environment ?? { outterScope: null };
+
+    const {
+      result,
+      environment: resultingEnv,
+      error,
+    } = await compileForRepl(readLine as ReadLine, globalScope);
+
+    console.log(result ?? error)
+
+    await runRepl(rl, resultingEnv)
+  }
+
+  await runRepl(rl)
+}
+
+/*
     // console.log('runrepl: globalScope set', globalScope)
     let updatedGlobalScope: Environment;
-
+ 
     // UPTO:
     // I think the only way I'm going to get this to work is to
     // wrap it all in function that returns { result, error, environment } and just
@@ -89,12 +128,13 @@ async function startRepl() {
       }
     }
     await runRepl(updatedGlobalScope);
-
+ 
     // console.log('updatedGlobalScope outside', updatedGlobalScope);
   }
-
+ 
   await runRepl();
 }
+*/
 
 async function main() {
   const filePath = process.argv[2];

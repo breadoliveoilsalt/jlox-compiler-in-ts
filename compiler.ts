@@ -6,7 +6,7 @@ import { type ReadLine } from './index';
 // parsedResult and env, and pass in env
 // optionally for repl
 // export async function compile({readLine, env}: {readLine: ReadLine, env?: Environment} ) {
-export async function compile(readLine: ReadLine, environment?: Environment) {
+export async function compile(readLine: ReadLine, environment?: Environment) : Promise<{ result: any; environment: Environment}> {
   const { tokens } = await scan(readLine);
   const globalScope: Environment = environment ?? { outterScope: null };
   console.log('compile: global scope set', globalScope);
