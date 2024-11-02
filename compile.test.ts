@@ -5,7 +5,9 @@ import { compile } from './compiler';
 async function testCompiler({ line, expected }) {
   const readLine = buildReadLine([line]);
 
-  expect(await compile(readLine)).toEqual(expected);
+  const { result } = await compile(readLine);
+
+  expect(result).toEqual(expected);
 }
 
 describe('boolean expressions', () => {
@@ -237,7 +239,9 @@ describe('global variables', () => {
 
     const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual(15);
+    const { result } = await compile(readLine);
+
+    expect(result).toEqual(15);
   });
 
   test('initialized global variable can be evaluated with other expressions', () => {
@@ -249,7 +253,9 @@ describe('global variables', () => {
 
     const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual(29);
+    const { result } = await compile(readLine);
+
+    expect(result).toEqual(29);
   });
 
   test('assigning a variable a value without initialization throws an error', async () => {
@@ -296,7 +302,9 @@ describe('global variables', () => {
 
     const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual('nil');
+    const { result } = await compile(readLine);
+
+    expect(result).toEqual('nil');
   });
 
   test('a declared but uninitialized variable can be assigned a value', async () => {
@@ -304,7 +312,9 @@ describe('global variables', () => {
 
     const readLine = buildReadLine(lines);
 
-    expect(await compile(readLine)).toEqual(6);
+    const { result } = await compile(readLine);
+
+    expect(result).toEqual(6);
   });
 
   test.each([[['var thing;', 'thing + 16;']], [['var thing;', '2 - thing; ']]])(
