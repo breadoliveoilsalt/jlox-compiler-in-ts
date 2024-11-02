@@ -35,16 +35,10 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
-- [ ] Fix Repl
-  - [X] it can handle one error and repeats the loop,
-        but it forcefully exits after a second error
-  - [X] it needs a global env for variables to work
-  - [X] print evaluation of expressions to console even if `print`
-        not used
-- [ ] Refactor tests, breaking integration tests into different files for
-  expressions, variables, etc.
 - [ ] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/):
   Control Flow
+- [ ] Refactor tests, breaking integration tests into different files for
+  expressions, variables, etc.
 
 ## Done
 - [X] Chapters 1-7 of [Crafting Interpreters](https://craftinginterpreters.com/):
@@ -61,6 +55,12 @@ relevant sections below.
   - [X] Add global env and ability to read multiple lines
   - [X] Add scoped envs
   - [X] Add block statements
+- [X] Fix Repl
+  - [X] it can handle one error and repeats the loop,
+        but it forcefully exits after a second error
+  - [X] it needs a global env for variables to work
+  - [X] print evaluation of expressions to console even if `print`
+        not used
 
 ## Open issues / Questions
 
