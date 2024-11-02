@@ -810,7 +810,6 @@ function buildVar({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  console.log('buildVar: env start', environment)
   const { assertTokenSequence } = sequencer();
 
   const token = tokens[currentTokenHead];
@@ -830,7 +829,6 @@ function buildVar({
     })
   ) {
     const updatedEnv = update(environment, varName, undefined);
-    console.log('buildVar: updatedEnv', updatedEnv)
 
     const node = {
       token: tokens[currentTokenHead + 1],
@@ -908,7 +906,6 @@ function buildDeclaration({
   currentTokenHead = 0,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  console.log('buildDeclaration start', environment)
   const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.VAR)) {
@@ -929,9 +926,7 @@ export function parse({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
-  console.log('parse: env at start of parse', environment)
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
-  console.log('parse: env if hit EOF', environment)
     return ({
       statements,
       environment,
@@ -948,7 +943,6 @@ export function parse({
     environment,
   });
 
-  console.log('parse: envAfterDeclarationEval', envAfterDeclarationEval)
   const updatedStatements = [...statements, node];
 
   return parse({

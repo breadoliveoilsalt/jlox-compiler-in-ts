@@ -87,9 +87,7 @@ export function envHelpers() {
   }
 
   function update(env: Environment, key: string, value: any) {
-    console.log('update: env before update', env);
     const envCopy = deepClone(env);
-    console.log('update: env after update', envCopy);
 
     envCopy[key] = value;
     return envCopy;
