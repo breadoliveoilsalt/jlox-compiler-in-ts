@@ -8,9 +8,11 @@
   "target": "es2022",
   "scripts": {
     "compile": "(tsc || true) && npm run execute",
-    "execute": "tsx index.ts",
     "compile:src": "npm run compile -- ./src.jlox",
-    "test": "vitest"
+    "execute": "tsx index.ts",
+    "repl": "npm run execute",
+    "test": "vitest",
+    "typecheck": "tsc"
   },
   "author": "",
   "license": "ISC",

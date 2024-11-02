@@ -33,7 +33,10 @@ type CompileForReplResult = Promise<
   | { result?: never; environment?: never; error: string }
 >;
 
-async function compileForRepl(readLine: ReadLine, environment: Environment): CompileForReplResult {
+async function compileForRepl(
+  readLine: ReadLine,
+  environment: Environment,
+): CompileForReplResult {
   try {
     return await compile(readLine, environment);
   } catch (e) {
@@ -45,8 +48,26 @@ async function compileForRepl(readLine: ReadLine, environment: Environment): Com
         return { error: `Error unrecognized by jlox\n ${e.message}` };
       }
     }
-    return { error: 'Error unrecognized b jlox \n'}
+    return { error: 'Error unrecognized b jlox \n' };
   }
+}
+
+function log({
+  error,
+  result,
+}: {
+  error: string | undefined;
+  result: string | undefined;
+}) {
+  if (error) {
+    systemPrint(error);
+    return;
+  }
+  if (result) {
+    systemPrint(result);
+    return;
+  }
+  systemPrint('nil');
 }
 
 async function startRepl() {
@@ -58,8 +79,7 @@ async function startRepl() {
     process.exit();
   });
 
-  // TODO: get rid of the any below
-  async function runRepl(rl:any, environment: Environment) {
+  async function runRepl(rl: readline.Interface, environment: Environment) {
     const line = await rl.question('> ');
 
     if (line === 'exit') {
@@ -80,19 +100,13 @@ async function startRepl() {
       error,
     } = await compileForRepl(readLine as ReadLine, environment);
 
-    // Displays evaluation after repl input evaluation; do not delete
-    if (error) systemPrint(error)
-    if (result) {
-      systemPrint(result)
-    } else {
-      systemPrint("nil")
-    }
+    log({ error, result });
 
-    await runRepl(rl, resultingEnv ? resultingEnv : environment)
+    await runRepl(rl, resultingEnv ? resultingEnv : environment);
   }
 
   // Pass global scope to runRepl on first call
-  await runRepl(rl, {outterScope: null})
+  await runRepl(rl, { outterScope: null });
 }
 
 async function main() {
