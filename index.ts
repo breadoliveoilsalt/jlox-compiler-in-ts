@@ -82,7 +82,11 @@ async function startRepl() {
 
     // Displays evaluation after repl input evaluation; do not delete
     if (error) systemPrint(error)
-    if (result) systemPrint(result)
+    if (result) {
+      systemPrint(result)
+    } else {
+      systemPrint("nil")
+    }
 
     await runRepl(rl, resultingEnv ? resultingEnv : environment)
   }

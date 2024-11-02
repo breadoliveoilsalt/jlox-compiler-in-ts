@@ -38,8 +38,8 @@ relevant sections below.
 - [ ] Fix Repl
   - [X] it can handle one error and repeats the loop,
         but it forcefully exits after a second error
-  - [ ] it needs a global env for variables to work
-  - [ ] print evaluation of expressions to console even if `print`
+  - [X] it needs a global env for variables to work
+  - [X] print evaluation of expressions to console even if `print`
         not used
 - [ ] Refactor tests, breaking integration tests into different files for
   expressions, variables, etc.
@@ -61,44 +61,6 @@ relevant sections below.
   - [X] Add global env and ability to read multiple lines
   - [X] Add scoped envs
   - [X] Add block statements
-
-## Notes on fixing repl [WIP]
-- Refactor top level error boundary and `startRepl` so that, say, a jlox syntax
-  error does not cause the repl to freeze; the error is reported and the prompt
-  re-appears.
-    - Note: this does not work: We see a problem we saw earlier, where once the
-      repl starts up again, letters that the user types are repeated.
-
-```js
-function handleError(e: unknown) {
-  if (e instanceof CompilerError) {
-    const { name, message, lineNumber } = e;
-    console.log(`${name}: Line ${lineNumber}: ${message}`)
-  } else {
-    console.log('Error unrecognized by jlox\n')
-    throw e
-  }
-}
-
-async function main() {
-  const filePath = process.argv[2]
-  if (filePath) {
-    try {
-      await evaluateFile({ filePath })
-    } catch (e) {
-      handleError(e)
-    }
-  } else {
-    try {
-      await startRepl()
-    } catch (e) {
-      handleError(e)
-      startRepl()
-    }
-  }
-}
-
-```
 
 ## Open issues / Questions
 
@@ -281,3 +243,13 @@ undefined
 > JSON.stringify(obj)
 '{"outterScope":null}'
 ```
+
+#### It seems the less you wrap in a try/catch block, the better
+
+- I was having all kinds of problems running the repl, particularly displaying
+  errors in a meaningful way and keeping the repl loop going without
+  crashing when there were errors. There were several problems I encountered,
+  but by far the biggest cause was casting too big a net in the `try` of a
+  `try/catch` block. The `try` originally had the logic for parsing the tokens,
+  printing the result to the repl, re-running the repl loop, etc.
+  - Generally speaking, the solution was to wrap just the parsing call in a `try/catch` block that would return an object either the result of parsing or a meaningful error in string form. See `compileForRepl`. Then, the function receiving the result of the user's input could decide what to do with the result or the stringified error. This is a great pattern.
