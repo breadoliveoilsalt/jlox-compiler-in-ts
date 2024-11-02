@@ -25,6 +25,7 @@ async function evaluateFile({ filePath }: { filePath: string }) {
   const reader = await fileLineReader({ filePath });
   const readLine = reader!.readLine as ReadLine;
 
+  // UPTO: Fix TS errors and tests
   await compile({ readLine });
 }
 
