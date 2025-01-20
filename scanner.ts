@@ -76,6 +76,7 @@ const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 const matchVar = (buffer: string) => buffer.match(/^var\b/)
 const matchIf = (buffer: string) => buffer.match(/^if\b/)
 const matchElse = (buffer: string) => buffer.match(/^else\b/)
+const matchString = (buffer: string) => buffer.match(/^\".*\"/)
 const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/)
 
 
@@ -221,6 +222,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.ELSE,
     test: matchElse,
     consumeFrom: buildConsumer(matchElse),
+  },
+  {
+    name: TOKEN_NAMES.STRING,
+    test: matchString,
+    consumeFrom: buildConsumer(matchString),
   },
   // NOTE: Again, ordering of this list matters.
   // `matchIdentifier` must come as one of the last so as

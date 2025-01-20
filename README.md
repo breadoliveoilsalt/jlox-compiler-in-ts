@@ -70,6 +70,10 @@ relevant sections below.
   - Consider adding cursor position of each lexeme in scanner, for better error
     reporting.
 
+## Wish list
+
+- Multi-line string support
+
 ## Learnings (and how certain issues were resolved)
 
 #### Reading lines of a file with node

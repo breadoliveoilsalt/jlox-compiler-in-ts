@@ -1,5 +1,7 @@
-if (56 == 12) {
- print 5;
-} else {
-  print 10;
+if (false) {
+  print "hey";
+}
+
+if (true) {
+  print "now";
 }

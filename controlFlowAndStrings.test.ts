@@ -3,7 +3,7 @@ import { buildReadLine } from './testHelpers';
 import { compile } from './compiler';
 import * as outputModule from './systemPrint';
 
-describe('control flow', () => {
+describe('control flow and strings', () => {
 
   afterEach(() => {
     vi.resetAllMocks();
@@ -17,7 +17,7 @@ describe('control flow', () => {
 
       const lines = [
         'if (12 == 12) {',
-        'print 5;',
+        'print "if block";',
         ' } else {',
         ' print  10;',
         '}',
@@ -26,7 +26,7 @@ describe('control flow', () => {
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[5]]);
+      expect(printSpy.mock.calls).toEqual([["\"if block\""]]);
     });
 
     test('when the if condition is false, the else statement is evaluated instead of the else statement', async () => {
@@ -38,14 +38,14 @@ describe('control flow', () => {
         'if (56 == 12) {',
         'print 5;',
         ' } else {',
-        ' print  10;',
+        ' print "else block";',
         '}',
       ];
 
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[10]]);
+      expect(printSpy.mock.calls).toEqual([["\"else block\""]]);
     });
 
     test('when the if condition is true and there is no else statement, the if statement is evaluated', async () => {
@@ -55,14 +55,14 @@ describe('control flow', () => {
 
       const lines = [
         'if (12 == 12) {',
-        'print 5;',
+        'print "if block";',
         ' }',
       ];
 
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[5]]);
+      expect(printSpy.mock.calls).toEqual([["\"if block\""]]);
     });
 
 
@@ -75,13 +75,13 @@ describe('control flow', () => {
         'if (true == false) {',
         'print 5;',
         ' }',
-        'print 7;',
+        'print "if block skipped";',
       ];
 
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[7]]);
+      expect(printSpy.mock.calls).toEqual([["\"if block skipped\""]]);
     });
 
   });

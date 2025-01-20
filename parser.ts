@@ -152,6 +152,28 @@ function buildNumber({
   };
 }
 
+function buildString({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const token = tokens[currentTokenHead];
+
+  const node = {
+    token,
+    evaluate() {
+      return token.text;
+    },
+  };
+
+  return {
+    node,
+    currentTokenHead: currentTokenHead + 1,
+    environment,
+  };
+}
+
+
 function buildIdentifier({
   tokens,
   currentTokenHead,
@@ -194,6 +216,7 @@ function buildPrimary({
     [TOKEN_NAMES.FALSE]: buildFalse,
     [TOKEN_NAMES.LEFT_PAREN]: buildParenthetical,
     [TOKEN_NAMES.NUMBER]: buildNumber,
+    [TOKEN_NAMES.STRING]: buildString,
     [TOKEN_NAMES.IDENTIFIER]: buildIdentifier,
   };
 
