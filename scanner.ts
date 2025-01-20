@@ -26,6 +26,7 @@ export const TOKEN_NAMES = {
   NUMBER: 'number',
   AND: 'and',
   CLASS: 'class',
+  IF: 'if',
   ELSE: 'else',
   FALSE: 'false',
   FUN: 'fun',
@@ -74,6 +75,8 @@ const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
 const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 const matchVar = (buffer: string) => buffer.match(/^var\b/)
 const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/)
+const matchIf = (buffer: string) => buffer.match(/^if\b/)
+
 
 function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
   return (buffer: string) => {
@@ -215,6 +218,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.IDENTIFIER,
     test: matchIdentifier,
     consumeFrom: buildConsumer(matchIdentifier),
+  },
+  {
+    name: TOKEN_NAMES.IF,
+    test: matchIf,
+    consumeFrom: buildConsumer(matchIf),
   },
 ];
 

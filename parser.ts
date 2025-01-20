@@ -715,6 +715,8 @@ function buildBlock({
   });
 }
 
+// TODO: Double check I have the order of the grammar
+// correct. Confer p. 193.
 function buildStatement({
   tokens,
   currentTokenHead,
@@ -794,6 +796,8 @@ function buildStatement({
       lineNumber: token.lineNumber,
     });
   }
+
+  // UPTO: Add if statement
 
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
 }
