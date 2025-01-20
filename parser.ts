@@ -695,6 +695,8 @@ function buildBlock({
       statements,
     };
 
+  // TODO: Sometimes the code says `ExprEval`, and sometimes
+  // it says `ExpressionEval`. Be consistent.
   const {
     node,
     currentTokenHead: tokenHeadAfterExprEval,
@@ -715,6 +717,8 @@ function buildBlock({
   });
 }
 
+// TODO: Double check I have the order of the grammar
+// correct. Confer p. 193.
 function buildStatement({
   tokens,
   currentTokenHead,
@@ -795,6 +799,91 @@ function buildStatement({
     });
   }
 
+  if (matches(token, TOKEN_NAMES.IF)) {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "if"',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const {
+      node: ifConditionNode,
+      currentTokenHead: tokenHeadAfterIfConditionBuilt,
+      environment: envAfterIfConditionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterIfConditionBuilt], TOKEN_NAMES.RIGHT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing ")" after "if" condition',
+        lineNumber: tokens[tokenHeadAfterIfConditionBuilt].lineNumber,
+      });
+    }
+
+    // TODO: All stuff like tokenHeadAfterIfBranchEval should be
+    // tokenHeadAfterIfBranchBuilt
+    const {
+      node: ifBranchNode,
+      currentTokenHead: tokenHeadAfterIfBranchBuilt,
+      environment: envAfterIfBranchBuilt,
+    } = buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterIfConditionBuilt + 1,
+      environment: envAfterIfConditionBuilt,
+    });
+
+    if (matches(tokens[tokenHeadAfterIfBranchBuilt], TOKEN_NAMES.ELSE)) {
+      const {
+        node: elseBranchNode,
+        currentTokenHead: tokenHeadAfterElseBranchBuilt,
+        environment: envAfterElseBranchBuilt,
+      } = buildStatement({
+        tokens,
+        currentTokenHead: tokenHeadAfterIfBranchBuilt + 1,
+        environment: envAfterIfBranchBuilt,
+      });
+
+      const node = {
+        token: tokens[tokenHeadAfterElseBranchBuilt],
+        evaluate() {
+          if (ifConditionNode.evaluate()) {
+            return ifBranchNode.evaluate();
+          } else {
+            return elseBranchNode.evaluate();
+          }
+        },
+      };
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterElseBranchBuilt,
+        environment: envAfterElseBranchBuilt,
+      };
+    }
+
+    const node = {
+      token: tokens[tokenHeadAfterIfBranchBuilt],
+      evaluate() {
+        if (ifConditionNode.evaluate()) {
+          return ifBranchNode.evaluate();
+        }
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterIfBranchBuilt,
+      environment: envAfterIfBranchBuilt,
+    };
+  }
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
 }
 
@@ -926,10 +1015,10 @@ export function parse({
   environment: Environment;
 }) {
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
-    return ({
+    return {
       statements,
       environment,
-    })
+    };
   }
 
   const {

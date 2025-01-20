@@ -1,9 +1,5 @@
-var thing = 10;
-{
-  var thing = 12;
-  {
-    print thing + 3;
-  }
-  print thing / 4;
+if (56 == 12) {
+ print 5;
+} else {
+  print 10;
 }
-print thing * 30;

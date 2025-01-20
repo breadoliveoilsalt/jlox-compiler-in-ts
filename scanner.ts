@@ -26,6 +26,7 @@ export const TOKEN_NAMES = {
   NUMBER: 'number',
   AND: 'and',
   CLASS: 'class',
+  IF: 'if',
   ELSE: 'else',
   FALSE: 'false',
   FUN: 'fun',
@@ -73,7 +74,10 @@ const matchFalse = (buffer: string) => buffer.match(/^false\b/)
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
 const matchPrint = (buffer: string) => buffer.match(/^print\b/)
 const matchVar = (buffer: string) => buffer.match(/^var\b/)
+const matchIf = (buffer: string) => buffer.match(/^if\b/)
+const matchElse = (buffer: string) => buffer.match(/^else\b/)
 const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/)
+
 
 function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
   return (buffer: string) => {
@@ -207,6 +211,16 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.VAR,
     test: matchVar,
     consumeFrom: buildConsumer(matchVar),
+  },
+  {
+    name: TOKEN_NAMES.IF,
+    test: matchIf,
+    consumeFrom: buildConsumer(matchIf),
+  },
+  {
+    name: TOKEN_NAMES.ELSE,
+    test: matchElse,
+    consumeFrom: buildConsumer(matchElse),
   },
   // NOTE: Again, ordering of this list matters.
   // `matchIdentifier` must come as one of the last so as
