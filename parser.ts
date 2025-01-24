@@ -581,39 +581,90 @@ function buildEquality({
   };
 }
 
-function buildAssignment({
+function buildRecursiveOr({
+  tokens,
+  currentTokenHead,
+  environment,
+  nodeHead
+}: NodeBuilderParams & {nodeHead: AstTree}): NodeBuilderResult {
+  if (!matches(tokens[currentTokenHead], TOKEN_NAMES.OR)) {
+    return {
+      node: nodeHead,
+      currentTokenHead,
+      environment
+    }
+  }
+
+  // UPTO HERE: Figuring out how to build a recursiveOR function
+
+}
+function buildOr({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
+
   const {
-    node: nodeFromEqualityEval,
-    currentTokenHead: tokenHeadAfterEqualityEval,
-    environment: envAfterEqualityEval,
+    node: left,
+    currentTokenHead: tokenHeadAfterEqualityEvalLeft,
+    environment: envAfterEqualityEvalLeft,
   } = buildEquality({
     tokens,
     currentTokenHead,
     environment,
   });
 
-  if (matches(tokens[tokenHeadAfterEqualityEval], TOKEN_NAMES.EQUAL)) {
+  let currentToken = tokens[tokenHeadAfterEqualityEvalLeft]
+
+  // UPTO ALSO: Fix this once recursive function ok
+  while (matches(currentToken, TOKEN_NAMES.OR)) {
+  const {
+    node: right,
+    currentTokenHead: tokenHeadAfterEqualityEvalRight,
+    environment: envAfterEqualityEvalRight,
+  } = buildEquality({
+    tokens,
+    currentTokenHead: tokenHeadAfterEqualityEvalLeft + 1,
+    environment: envAfterEqualityEvalLeft,
+  })
+  }
+
+}
+
+
+function buildAssignment({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: nodeFromOrBuild,
+    currentTokenHead: tokenHeadAfterOrBuild,
+    environment: envAfterOrBuild,
+  } = buildOr({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+  if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
     const {
       node: nodeFromRecursiveAssignmentEval,
       currentTokenHead: tokenHeadAfterAssignmentEval,
       environment: envAfterAssignmentEval,
     } = buildAssignment({
       tokens,
-      currentTokenHead: tokenHeadAfterEqualityEval + 1,
-      environment: envAfterEqualityEval,
+      currentTokenHead: tokenHeadAfterOrBuild + 1,
+      environment: envAfterOrBuild,
     });
 
-    const key = nodeFromEqualityEval.token.text;
+    const key = nodeFromOrBuild.token.text;
     const value = nodeFromRecursiveAssignmentEval.evaluate();
     const updatedEnv = update(envAfterAssignmentEval, key, value);
 
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
-    if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
+    if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
         evaluate() {
@@ -636,9 +687,9 @@ function buildAssignment({
   }
 
   return {
-    node: nodeFromEqualityEval,
-    currentTokenHead: tokenHeadAfterEqualityEval,
-    environment: envAfterEqualityEval,
+    node: nodeFromOrBuild,
+    currentTokenHead: tokenHeadAfterOrBuild,
+    environment: envAfterOrBuild,
   };
 }
 
