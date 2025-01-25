@@ -173,7 +173,6 @@ function buildString({
   };
 }
 
-
 function buildIdentifier({
   tokens,
   currentTokenHead,
@@ -581,31 +580,13 @@ function buildEquality({
   };
 }
 
-function buildRecursiveOr({
-  tokens,
-  currentTokenHead,
-  environment,
-  nodeHead
-}: NodeBuilderParams & {nodeHead: AstTree}): NodeBuilderResult {
-  if (!matches(tokens[currentTokenHead], TOKEN_NAMES.OR)) {
-    return {
-      node: nodeHead,
-      currentTokenHead,
-      environment
-    }
-  }
-
-  // UPTO HERE: Figuring out how to build a recursiveOR function
-
-}
 function buildOr({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-
   const {
-    node: left,
+    node: leftNode,
     currentTokenHead: tokenHeadAfterEqualityEvalLeft,
     environment: envAfterEqualityEvalLeft,
   } = buildEquality({
@@ -614,23 +595,41 @@ function buildOr({
     environment,
   });
 
-  let currentToken = tokens[tokenHeadAfterEqualityEvalLeft]
+  let currentToken = tokens[tokenHeadAfterEqualityEvalLeft];
 
-  // UPTO ALSO: Fix this once recursive function ok
-  while (matches(currentToken, TOKEN_NAMES.OR)) {
-  const {
-    node: right,
-    currentTokenHead: tokenHeadAfterEqualityEvalRight,
-    environment: envAfterEqualityEvalRight,
-  } = buildEquality({
-    tokens,
-    currentTokenHead: tokenHeadAfterEqualityEvalLeft + 1,
-    environment: envAfterEqualityEvalLeft,
-  })
+  if (matches(currentToken, TOKEN_NAMES.OR)) {
+    const {
+      node: rightNode,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    } = buildOr({
+      tokens,
+      currentTokenHead: tokenHeadAfterEqualityEvalLeft + 1,
+      environment: envAfterEqualityEvalLeft,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterEqualityEvalLeft],
+      evaluate() {
+        const left = leftNode.evaluate();
+        if (!!left) return left;
+        return rightNode.evaluate();
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    }
   }
 
+    return {
+      node: leftNode,
+      currentTokenHead: tokenHeadAfterEqualityEvalLeft,
+      environment: envAfterEqualityEvalLeft,
+    }
 }
-
 
 function buildAssignment({
   tokens,
