@@ -621,14 +621,14 @@ function buildOr({
       node,
       currentTokenHead: tokenHeadAfterEqualityEvalRight,
       environment: envAfterEqualityEvalRight,
-    }
+    };
   }
 
-    return {
-      node: leftNode,
-      currentTokenHead: tokenHeadAfterEqualityEvalLeft,
-      environment: envAfterEqualityEvalLeft,
-    }
+  return {
+    node: leftNode,
+    currentTokenHead: tokenHeadAfterEqualityEvalLeft,
+    environment: envAfterEqualityEvalLeft,
+  };
 }
 
 function buildAssignment({
