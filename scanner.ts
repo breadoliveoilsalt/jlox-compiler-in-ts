@@ -52,46 +52,49 @@ type TokenType = {
   consumeFrom: (buffer: string) => string;
 };
 
-const matchLeftParen = (buffer: string) => buffer.match(/^\(/)
-const matchRightParen = (buffer: string) => buffer.match(/^\)/)
-const matchLeftBrace = (buffer: string) => buffer.match(/^\{/)
-const matchRightBrace = (buffer: string) => buffer.match(/^\}/)
-const matchMinus = (buffer: string) => buffer.match(/^-/)
-const matchPlus = (buffer: string) => buffer.match(/^\+/)
+const matchLeftParen = (buffer: string) => buffer.match(/^\(/);
+const matchRightParen = (buffer: string) => buffer.match(/^\)/);
+const matchLeftBrace = (buffer: string) => buffer.match(/^\{/);
+const matchRightBrace = (buffer: string) => buffer.match(/^\}/);
+const matchMinus = (buffer: string) => buffer.match(/^-/);
+const matchPlus = (buffer: string) => buffer.match(/^\+/);
 const matchSemicolon = (buffer: string) => buffer.match(/^;/);
-const matchSlash = (buffer: string) => buffer.match(/^\//)
-const matchStar = (buffer: string) => buffer.match(/^\*/)
-const matchBangEqual = (buffer: string) => buffer.match(/^!=/)
-const matchBang = (buffer: string) => buffer.match(/^\!/)
-const matchGreaterEqual = (buffer: string) => buffer.match(/^>=/)
-const matchGreater = (buffer: string) => buffer.match(/^>/)
-const matchLessEqual = (buffer: string) => buffer.match(/^<=/)
-const matchLess = (buffer: string) => buffer.match(/^</)
-const matchEqualEqual = (buffer: string) => buffer.match(/^==/)
-const matchEqual = (buffer: string) => buffer.match(/^=/)
-const matchTrue = (buffer: string) => buffer.match(/^true\b/)
-const matchFalse = (buffer: string) => buffer.match(/^false\b/)
-const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/)
-const matchPrint = (buffer: string) => buffer.match(/^print\b/)
-const matchVar = (buffer: string) => buffer.match(/^var\b/)
-const matchIf = (buffer: string) => buffer.match(/^if\b/)
-const matchElse = (buffer: string) => buffer.match(/^else\b/)
-const matchString = (buffer: string) => buffer.match(/^\".*\"/)
-const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/)
+const matchSlash = (buffer: string) => buffer.match(/^\//);
+const matchStar = (buffer: string) => buffer.match(/^\*/);
+const matchBangEqual = (buffer: string) => buffer.match(/^!=/);
+const matchBang = (buffer: string) => buffer.match(/^\!/);
+const matchGreaterEqual = (buffer: string) => buffer.match(/^>=/);
+const matchGreater = (buffer: string) => buffer.match(/^>/);
+const matchLessEqual = (buffer: string) => buffer.match(/^<=/);
+const matchLess = (buffer: string) => buffer.match(/^</);
+const matchEqualEqual = (buffer: string) => buffer.match(/^==/);
+const matchEqual = (buffer: string) => buffer.match(/^=/);
+const matchTrue = (buffer: string) => buffer.match(/^true\b/);
+const matchFalse = (buffer: string) => buffer.match(/^false\b/);
+const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/);
+const matchPrint = (buffer: string) => buffer.match(/^print\b/);
+const matchVar = (buffer: string) => buffer.match(/^var\b/);
+const matchIf = (buffer: string) => buffer.match(/^if\b/);
+const matchElse = (buffer: string) => buffer.match(/^else\b/);
+const matchAnd = (buffer: string) => buffer.match(/^and\b/);
+const matchOr = (buffer: string) => buffer.match(/^or\b/);
+const matchString = (buffer: string) => buffer.match(/^\".*\"/);
+const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/);
 
-
-function buildConsumer(matcher: (buffer: string) => RegExpMatchArray | null): (buffer: string) => string {
+function buildConsumer(
+  matcher: (buffer: string) => RegExpMatchArray | null,
+): (buffer: string) => string {
   return (buffer: string) => {
     if (typeof buffer === 'string') {
       // TS assertion ok here because we've already called
       // the matcher to test that there is a match.
-      return matcher(buffer)![0]
+      return matcher(buffer)![0];
     }
     throw new GrammarError({
       name: 'GrammarError',
       message: `Error string not passed to token consumer. This was passed instead: ${buffer}`,
-    })
-  }
+    });
+  };
 }
 
 // TODO: Refactor all consumeFroms below to use buildConsumer
@@ -224,6 +227,16 @@ const tokenTypes: TokenType[] = [
     consumeFrom: buildConsumer(matchElse),
   },
   {
+    name: TOKEN_NAMES.AND,
+    test: matchAnd,
+    consumeFrom: buildConsumer(matchAnd),
+  },
+  {
+    name: TOKEN_NAMES.OR,
+    test: matchOr,
+    consumeFrom: buildConsumer(matchOr),
+  },
+  {
     name: TOKEN_NAMES.STRING,
     test: matchString,
     consumeFrom: buildConsumer(matchString),
@@ -246,13 +259,17 @@ export type Token = {
 
 export type Tokens = Token[];
 
-function assertTokenType(tokenType: unknown, currentLine: string, lineNumber: number): asserts tokenType is TokenType {
+function assertTokenType(
+  tokenType: unknown,
+  currentLine: string,
+  lineNumber: number,
+): asserts tokenType is TokenType {
   if (!tokenType) {
     throw new CompilerError({
       name: 'TokenError',
       message: `Unrecognized token: "${currentLine}"`,
       lineNumber,
-    })
+    });
   }
 }
 
@@ -282,7 +299,7 @@ export async function scan(readLine: ReadLine) {
     buffer = await readLine();
   }
 
-  tokens.push({ name: TOKEN_NAMES.EOF, text: '', lineNumber })
+  tokens.push({ name: TOKEN_NAMES.EOF, text: '', lineNumber });
 
   return { tokens };
 }

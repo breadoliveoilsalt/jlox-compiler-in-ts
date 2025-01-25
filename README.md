@@ -73,6 +73,8 @@ relevant sections below.
 ## Wish list
 
 - Multi-line string support
+- Multi-line support for repl
+- "Panic Mode" and full syntax error reporting in one go
 
 ## Learnings (and how certain issues were resolved)
 

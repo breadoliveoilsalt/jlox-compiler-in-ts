@@ -173,7 +173,6 @@ function buildString({
   };
 }
 
-
 function buildIdentifier({
   tokens,
   currentTokenHead,
@@ -581,39 +580,141 @@ function buildEquality({
   };
 }
 
-function buildAssignment({
+function buildAnd({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const {
-    node: nodeFromEqualityEval,
-    currentTokenHead: tokenHeadAfterEqualityEval,
-    environment: envAfterEqualityEval,
+    node: leftNode,
+    currentTokenHead: tokenHeadAfterEqualityBuiltLeft,
+    environment: envAfterEqualityBuiltRight,
   } = buildEquality({
     tokens,
     currentTokenHead,
     environment,
   });
 
-  if (matches(tokens[tokenHeadAfterEqualityEval], TOKEN_NAMES.EQUAL)) {
+  let currentToken = tokens[tokenHeadAfterEqualityBuiltLeft];
+
+  if (matches(currentToken, TOKEN_NAMES.AND)) {
+    const {
+      node: rightNode,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    } = buildAnd({
+      tokens,
+      currentTokenHead: tokenHeadAfterEqualityBuiltLeft + 1,
+      environment: envAfterEqualityBuiltRight,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterEqualityBuiltLeft],
+      evaluate() {
+        const left = leftNode.evaluate();
+        if (!left) return left;
+        return rightNode.evaluate();
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    };
+  }
+
+  return {
+    node: leftNode,
+    currentTokenHead: tokenHeadAfterEqualityBuiltLeft,
+    environment: envAfterEqualityBuiltRight,
+  };
+}
+
+function buildOr({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: leftNode,
+    currentTokenHead: tokenHeadAfterAndBuilt,
+    environment: envAfterAndBuilt,
+  } = buildAnd({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+  let currentToken = tokens[tokenHeadAfterAndBuilt];
+
+  if (matches(currentToken, TOKEN_NAMES.OR)) {
+    const {
+      node: rightNode,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    } = buildOr({
+      tokens,
+      currentTokenHead: tokenHeadAfterAndBuilt + 1,
+      environment: envAfterAndBuilt,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterAndBuilt],
+      evaluate() {
+        const left = leftNode.evaluate();
+        if (!!left) return left;
+        return rightNode.evaluate();
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      environment: envAfterEqualityEvalRight,
+    };
+  }
+
+  return {
+    node: leftNode,
+    currentTokenHead: tokenHeadAfterAndBuilt,
+    environment: envAfterAndBuilt,
+  };
+}
+
+function buildAssignment({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: nodeFromOrBuild,
+    currentTokenHead: tokenHeadAfterOrBuild,
+    environment: envAfterOrBuild,
+  } = buildOr({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+  if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
     const {
       node: nodeFromRecursiveAssignmentEval,
       currentTokenHead: tokenHeadAfterAssignmentEval,
       environment: envAfterAssignmentEval,
     } = buildAssignment({
       tokens,
-      currentTokenHead: tokenHeadAfterEqualityEval + 1,
-      environment: envAfterEqualityEval,
+      currentTokenHead: tokenHeadAfterOrBuild + 1,
+      environment: envAfterOrBuild,
     });
 
-    const key = nodeFromEqualityEval.token.text;
+    const key = nodeFromOrBuild.token.text;
     const value = nodeFromRecursiveAssignmentEval.evaluate();
     const updatedEnv = update(envAfterAssignmentEval, key, value);
 
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
-    if (nodeFromEqualityEval.token.name === TOKEN_NAMES.IDENTIFIER) {
+    if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
         evaluate() {
@@ -636,9 +737,9 @@ function buildAssignment({
   }
 
   return {
-    node: nodeFromEqualityEval,
-    currentTokenHead: tokenHeadAfterEqualityEval,
-    environment: envAfterEqualityEval,
+    node: nodeFromOrBuild,
+    currentTokenHead: tokenHeadAfterOrBuild,
+    environment: envAfterOrBuild,
   };
 }
 

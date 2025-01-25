@@ -63,11 +63,11 @@ function log({
     systemPrint(error);
     return;
   }
-  if (result) {
-    systemPrint(result);
+  if (result === undefined || result === null) {
+    systemPrint('nil');
     return;
   }
-  systemPrint('nil');
+  systemPrint(result);
 }
 
 async function startRepl() {
