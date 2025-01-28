@@ -1,7 +1,10 @@
-if (false) {
-  print "hey";
-}
+var num = 1;
+num = 11;
 
 if (true) {
-  print "now";
+  print "inside if";
+  num = 10;
 }
+
+print num;
+

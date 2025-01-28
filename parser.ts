@@ -698,6 +698,8 @@ function buildAssignment({
   });
 
   if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
+    // UPTO HERE: trying to figure out why scoping is not working in assignment
+    console.log('trying to assign')
     const {
       node: nodeFromRecursiveAssignmentEval,
       currentTokenHead: tokenHeadAfterAssignmentEval,
@@ -1008,6 +1010,62 @@ function buildStatement({
       environment: envAfterIfBranchBuilt,
     };
   }
+
+  if (matches(token, TOKEN_NAMES.WHILE)) {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "while"',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const {
+      node: whileConditionNode,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
+      environment: envAfterWhileConditionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterWhileConditionBuilt], TOKEN_NAMES.RIGHT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing ")" after "while" condition',
+        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
+      });
+    }
+
+    const {
+      node: whileBodyNode,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    } = buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
+      environment: envAfterWhileConditionBuilt,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterWhileBodyBuilt],
+      evaluate() {
+        while (whileConditionNode.evaluate()) {
+          whileBodyNode.evaluate();
+        }
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    };
+  }
+
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
 }
 
@@ -1138,6 +1196,7 @@ export function parse({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
+  console.log({tokens})
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
     return {
       statements,

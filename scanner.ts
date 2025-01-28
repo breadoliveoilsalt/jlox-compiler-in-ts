@@ -78,6 +78,7 @@ const matchIf = (buffer: string) => buffer.match(/^if\b/);
 const matchElse = (buffer: string) => buffer.match(/^else\b/);
 const matchAnd = (buffer: string) => buffer.match(/^and\b/);
 const matchOr = (buffer: string) => buffer.match(/^or\b/);
+const matchWhile = (buffer: string) => buffer.match(/^while\b/);
 const matchString = (buffer: string) => buffer.match(/^\".*\"/);
 const matchIdentifier = (buffer: string) => buffer.match(/^[a-zA-Z1-9_]+\b/);
 
@@ -235,6 +236,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.OR,
     test: matchOr,
     consumeFrom: buildConsumer(matchOr),
+  },
+  {
+    name: TOKEN_NAMES.WHILE,
+    test: matchWhile,
+    consumeFrom: buildConsumer(matchWhile),
   },
   {
     name: TOKEN_NAMES.STRING,
