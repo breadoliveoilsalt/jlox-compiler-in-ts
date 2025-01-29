@@ -3,7 +3,7 @@ num = 11;
 
 if (true) {
   print "inside if";
-  num = 10;
+  num = 5;
 }
 
 print num;

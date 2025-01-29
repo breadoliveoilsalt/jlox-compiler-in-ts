@@ -36,7 +36,7 @@ type AstTree = {
   evaluate: () => any;
 };
 
-const { update, get, has } = envHelpers();
+const { set, update, get, has } = envHelpers();
 
 function buildTrue({
   tokens,
@@ -714,6 +714,7 @@ function buildAssignment({
     const value = nodeFromRecursiveAssignmentEval.evaluate();
     const updatedEnv = update(envAfterAssignmentEval, key, value);
 
+    console.log({key, value, envAfterAssignmentEval, updatedEnv})
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
@@ -1098,7 +1099,7 @@ function buildVar({
       ],
     })
   ) {
-    const updatedEnv = update(environment, varName, undefined);
+    const updatedEnv = set(environment, varName, undefined);
 
     const node = {
       token: tokens[currentTokenHead + 1],
@@ -1136,7 +1137,7 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      const updatedEnv = update(
+      const updatedEnv = set(
         envAfterExpressionEval,
         varName,
         expressionNode.evaluate(),

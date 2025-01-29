@@ -86,11 +86,26 @@ export function envHelpers() {
     return clone(env);
   }
 
-  function update(env: Environment, key: string, value: any) {
+  function set(env: Environment, key: string, value: any) {
     const envCopy = deepClone(env);
 
     envCopy[key] = value;
     return envCopy;
+  }
+
+  function find(env: Environment, key: string) {
+    if (Object.hasOwn(env, key)) return { envScopeLevel: env };
+    if (env.outterScope) return find(env.outterScope, key);
+    return { envScopeLevel: undefined };
+  }
+
+  function update(env: Environment, key: string, value: any) {
+    const envCopy = deepClone(env);
+    const { envScopeLevel } = find(envCopy, key);
+    if (envScopeLevel) {
+      envScopeLevel[key] = value;
+      return envCopy;
+    }
   }
 
   function get(env: Environment, key: string): any {
@@ -104,6 +119,7 @@ export function envHelpers() {
   }
 
   return {
+    set,
     update,
     get,
     has,
