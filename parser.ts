@@ -712,12 +712,18 @@ function buildAssignment({
     const value = nodeFromRecursiveAssignmentEval.evaluate();
     const { updatedEnv, error } = update(envAfterAssignmentEval, key, value);
 
-    // UPTO: test this works now that I added error value
-    // remove console logs
     if (error) {
       throw new CompilerError({
         name: 'JloxSyntaxError',
         message: error,
+        lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
+      });
+    }
+
+    if (!updatedEnv) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Something went wrong trying to update the environment (you should never see this error unless the source code has been modified to cause an error; throwing this error is for type protection)',
         lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
       });
     }
@@ -1207,7 +1213,7 @@ export function parse({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
-  console.log({ tokens });
+  // console.log({ tokens });
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
     return {
       statements,

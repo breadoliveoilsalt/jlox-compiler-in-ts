@@ -113,7 +113,7 @@ export function envHelpers() {
       return { updatedEnv: envCopy };
     }
     return {
-      error: `Attempt to assign variable ${key} without initialization`,
+      error: `Attempt to assign variable ${key} not found in environment`,
     };
   }
 
