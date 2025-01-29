@@ -698,8 +698,6 @@ function buildAssignment({
   });
 
   if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
-    // UPTO HERE: trying to figure out why scoping is not working in assignment
-    console.log('trying to assign')
     const {
       node: nodeFromRecursiveAssignmentEval,
       currentTokenHead: tokenHeadAfterAssignmentEval,
@@ -712,9 +710,18 @@ function buildAssignment({
 
     const key = nodeFromOrBuild.token.text;
     const value = nodeFromRecursiveAssignmentEval.evaluate();
-    const updatedEnv = update(envAfterAssignmentEval, key, value);
+    const { updatedEnv, error } = update(envAfterAssignmentEval, key, value);
 
-    console.log({key, value, envAfterAssignmentEval, updatedEnv})
+    // UPTO: test this works now that I added error value
+    // remove console logs
+    if (error) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: error,
+        lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
+      });
+    }
+
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
@@ -1032,7 +1039,10 @@ function buildStatement({
     });
 
     if (
-      !matches(tokens[tokenHeadAfterWhileConditionBuilt], TOKEN_NAMES.RIGHT_PAREN)
+      !matches(
+        tokens[tokenHeadAfterWhileConditionBuilt],
+        TOKEN_NAMES.RIGHT_PAREN,
+      )
     ) {
       throw new CompilerError({
         name: 'JloxSynatxError',
@@ -1197,7 +1207,7 @@ export function parse({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
-  console.log({tokens})
+  console.log({ tokens });
   if (tokens[currentTokenHead].name === TOKEN_NAMES.EOF) {
     return {
       statements,

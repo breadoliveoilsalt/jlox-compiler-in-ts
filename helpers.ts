@@ -99,13 +99,22 @@ export function envHelpers() {
     return { envScopeLevel: undefined };
   }
 
-  function update(env: Environment, key: string, value: any) {
+  function update(
+    env: Environment,
+    key: string,
+    value: any,
+  ):
+    | { updatedEnv: Environment; error?: never }
+    | { updatedEnv?: never; error: string } {
     const envCopy = deepClone(env);
     const { envScopeLevel } = find(envCopy, key);
     if (envScopeLevel) {
       envScopeLevel[key] = value;
-      return envCopy;
+      return { updatedEnv: envCopy };
     }
+    return {
+      error: `Attempt to assign variable ${key} without initialization`,
+    };
   }
 
   function get(env: Environment, key: string): any {
