@@ -1079,6 +1079,8 @@ function buildStatement({
           // AND this will involve fixing the buildAssignment node so that
           //  the assignment happens when node.evaluate() is called. This
           //  will then mutate the global state
+          //
+          //  This will make a good lesson learned for the readme
           whileBodyNode.evaluate();
         }
       },
