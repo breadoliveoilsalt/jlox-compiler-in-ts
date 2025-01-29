@@ -1,21 +1,11 @@
-var num = 1;
-num = 11;
+var num = 9;
 
+print "start";
+
+while (num < 10) {
+  num = 10;
+}
+
+print "num at end";
 print num;
-
-if (3 == 5) {
-  print "first";
-  num = 5;
-  print "second";
-}
-
-if (true) {
-  print "inside true";
-}
-
-if (false) {
-  print "inside false";
-}
-
-print num;
-
+print "end";

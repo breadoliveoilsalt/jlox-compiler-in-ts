@@ -64,6 +64,21 @@ relevant sections below.
 
 ## Open issues / Questions
 
+- Fix bug where assignment of variable inside if statement happens even
+  if the condition is falsey and other things in block do not run
+- Fix while loops. For example, this runs infinitely.
+
+```
+var num = 0;
+
+while (num < 10) {
+  print num;
+  num = num + 1;
+}
+
+print "end";
+
+```
 - To consider:
   - Can I hide knowledge of data structure from parser, etc., with an intermediate
     layer of helper methods?
@@ -72,6 +87,7 @@ relevant sections below.
 
 ## Wish list
 
+- Add comments
 - Multi-line string support
 - Multi-line support for repl
 - "Panic Mode" and full syntax error reporting in one go

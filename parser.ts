@@ -1071,6 +1071,14 @@ function buildStatement({
       token: tokens[tokenHeadAfterWhileBodyBuilt],
       evaluate() {
         while (whileConditionNode.evaluate()) {
+          // UPTO/TODO: This may never evaluate because there is a new environment
+          // created when we enter the block or when there's an assignment,
+          // so the while condition evaluation will never see the updated
+          // env.
+          // I think I have to switch to a global mutated state.
+          // AND this will involve fixing the buildAssignment node so that
+          //  the assignment happens when node.evaluate() is called. This
+          //  will then mutate the global state
           whileBodyNode.evaluate();
         }
       },
