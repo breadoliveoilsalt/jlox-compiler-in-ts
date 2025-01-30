@@ -708,25 +708,25 @@ function buildAssignment({
       environment: envAfterOrBuild,
     });
 
-    const key = nodeFromOrBuild.token.text;
-    const value = nodeFromRecursiveAssignmentEval.evaluate();
-    const { updatedEnv, error } = update(envAfterAssignmentEval, key, value);
+    // const key = nodeFromOrBuild.token.text;
+    // const value = nodeFromRecursiveAssignmentEval.evaluate();
+    // const { updatedEnv, error } = update(envAfterAssignmentEval, key, value);
 
-    if (error) {
-      throw new CompilerError({
-        name: 'JloxSyntaxError',
-        message: error,
-        lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
-      });
-    }
+    // if (error) {
+    //   throw new CompilerError({
+    //     name: 'JloxSyntaxError',
+    //     message: error,
+    //     lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
+    //   });
+    // }
 
-    if (!updatedEnv) {
-      throw new CompilerError({
-        name: 'JloxSyntaxError',
-        message: 'Something went wrong trying to update the environment (you should never see this error unless the source code has been modified to cause an error; throwing this error is for type protection)',
-        lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
-      });
-    }
+    // if (!updatedEnv) {
+    //   throw new CompilerError({
+    //     name: 'JloxSyntaxError',
+    //     message: 'Something went wrong trying to update the environment (you should never see this error unless the source code has been modified to cause an error; throwing this error is for type protection)',
+    //     lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
+    //   });
+    // }
 
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
@@ -734,6 +734,9 @@ function buildAssignment({
       const node = {
         token: assignmentToken,
         evaluate() {
+          const key = nodeFromOrBuild.token.text;
+          const value = nodeFromRecursiveAssignmentEval.evaluate();
+          update(envAfterAssignmentEval, key, value);
           return null;
         },
       };
@@ -741,7 +744,7 @@ function buildAssignment({
       return {
         node,
         currentTokenHead: tokenHeadAfterAssignmentEval,
-        environment: updatedEnv,
+        environment: envAfterAssignmentEval,
       };
     }
 

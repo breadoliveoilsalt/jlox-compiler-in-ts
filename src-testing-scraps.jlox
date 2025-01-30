@@ -40,6 +40,7 @@ print "end";
 ////
 
 // This does NOT work just when switching the env;
+// NOW it works that I put evaluation of assignment into evaluate()
 var num = 0;
 
 print "start";
