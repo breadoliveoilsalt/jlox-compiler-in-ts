@@ -1,11 +1,11 @@
-var num = 9;
+var num = 0;
 
 print "start";
 
 while (num < 10) {
-  num = 10;
+  print num;
+  num = num + 1;
 }
 
-print "num at end";
-print num;
 print "end";
+print num;

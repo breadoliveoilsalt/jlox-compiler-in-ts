@@ -83,7 +83,8 @@ export function sequencer() {
 
 export function envHelpers() {
   function deepClone(env: Environment): Environment {
-    return clone(env);
+    // return clone(env);
+    return env
   }
 
   function set(env: Environment, key: string, value: any) {

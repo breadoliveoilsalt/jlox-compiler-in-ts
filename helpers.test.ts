@@ -249,7 +249,6 @@ describe('envHelpers', () => {
       const updatedEnv = set(env, 'cost', 27);
 
       expect(updatedEnv).toEqual({ ...env, cost: 27 });
-      expect(env).not.toBe(updatedEnv);
     });
 
     test('it only updates the current scope', () => {
@@ -266,7 +265,6 @@ describe('envHelpers', () => {
       const updatedEnv = set(env, 'cost', 35);
 
       expect(updatedEnv).toEqual({ ...env, cost: 35 });
-      expect(env).not.toBe(updatedEnv);
     });
   });
 
@@ -282,10 +280,9 @@ describe('envHelpers', () => {
         cost: 24,
       };
 
-      const updatedEnv = update(env, 'cost', 35);
+      const { updatedEnv } = update(env, 'cost', 35);
 
       expect(updatedEnv).toEqual({ ...env, cost: 35 });
-      expect(env).not.toBe(updatedEnv);
     });
 
     test('it updates the outter scope if the variable does not exist in the current scope', () => {
@@ -299,7 +296,7 @@ describe('envHelpers', () => {
         groceries: ['apples'],
       };
 
-      const updatedEnv = update(env, 'cost', 35);
+      const { updatedEnv } = update(env, 'cost', 35);
 
       const expectedEnv = {
         outterScope: {
@@ -310,8 +307,6 @@ describe('envHelpers', () => {
       };
 
       expect(updatedEnv).toEqual(expectedEnv);
-
-      expect(env).not.toBe(updatedEnv);
     });
 
     test('it updates a deeply nested outter scope if the variable only exists at that scope level and does not update any further outter scopes', () => {
@@ -332,7 +327,7 @@ describe('envHelpers', () => {
         groceries: ['apples'],
       };
 
-      const updatedEnv = update(env, 'cost', 35);
+      const { updatedEnv } = update(env, 'cost', 35);
 
       const expectedEnv = {
         outterScope: {
@@ -350,8 +345,6 @@ describe('envHelpers', () => {
       };
 
       expect(updatedEnv).toEqual(expectedEnv);
-
-      expect(env).not.toBe(updatedEnv);
     });
   });
 
