@@ -1,11 +1,7 @@
 var num = 0;
 
-print "start";
-
-while (num < 10) {
-  print num;
-  num = num + 1;
+if (true) {
+  num = 15;
 }
 
-print "end";
 print num;

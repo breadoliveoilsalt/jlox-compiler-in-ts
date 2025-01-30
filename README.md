@@ -64,21 +64,6 @@ relevant sections below.
 
 ## Open issues / Questions
 
-- Fix bug where assignment of variable inside if statement happens even
-  if the condition is falsey and other things in block do not run
-- Fix while loops. For example, this runs infinitely.
-
-```
-var num = 0;
-
-while (num < 10) {
-  print num;
-  num = num + 1;
-}
-
-print "end";
-
-```
 - To consider:
   - Can I hide knowledge of data structure from parser, etc., with an intermediate
     layer of helper methods?
@@ -275,3 +260,38 @@ undefined
   `try/catch` block. The `try` originally had the logic for parsing the tokens,
   printing the result to the repl, re-running the repl loop, etc.
   - Generally speaking, the solution was to wrap just the parsing call in a `try/catch` block that would return an object either the result of parsing or a meaningful error in string form. See `compileForRepl`. Then, the function receiving the result of the user's input could decide what to do with the result or the stringified error. This is a great pattern.
+
+#### For tracking variables, I tried having a non-global environment. That all fell apart when implementing while loops
+
+I tried making this as functional-programmy as possible. Toward this goal, I
+passed the environment around from function to function as the AST was built,
+and I deep cloned it prior to making any change. The rubber hit the road,
+however, when trying to implement `while` loops.
+
+Consider this:
+
+```
+var num = 0;
+
+while (num < 10) {
+  print num;
+  num = num + 1;
+}
+```
+
+With my original implementation, this would loop forever, usually printing `1`
+forever. That's because the variable assignment inside the `while` loop (`num =
+num + 1`) would deep clone the original environment *prior* to incrementing
+`num`. When the expression condition checked num (`num < 10`), its reference to
+the environment containing `num`'s state was the original environment -- a completely different reference.
+
+I pivoted and am no longer deep cloning the environment object. Although (at the
+moment) the environment is still being passed from function to function, it
+effectively acts as a global environment, one that is constantly being mutated.
+
+An alternative, which would involve some serious refactoring, would be to have a
+global environment object that is NOT passed around, existing in the outer
+scope of all the builder functions building the AST and accessible by those
+builders. Every time the environment is updated, it is cloned beforehand, but
+the global environment is assigned this new clone. Thus, all the builders will
+still have the latest values. This would be similar to a reducer pattern.

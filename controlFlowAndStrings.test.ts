@@ -77,6 +77,44 @@ describe('control flow and strings', () => {
       await compile(readLine);
       expect(printSpy.mock.calls).toEqual([['"if block skipped"']]);
     });
+
+    test('variable assignments inside a falsey if statement are not assigned', async () => {
+      const printSpy = vi
+        .spyOn(outputModule, 'systemPrint')
+        .mockReturnValue(undefined);
+
+      const lines = [
+        'var num = 0;',
+        'if (false) {',
+          'num = 15;',
+        ' }',
+        ' print num;',
+      ];
+
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+      expect(printSpy.mock.calls).toEqual([[ 0 ]]);
+    });
+
+    test('variable assignments inside a truthy if statement are assigned', async () => {
+      const printSpy = vi
+        .spyOn(outputModule, 'systemPrint')
+        .mockReturnValue(undefined);
+
+      const lines = [
+        'var num = 0;',
+        'if (true) {',
+          'num = 15;',
+        ' }',
+        ' print num;',
+      ];
+
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+      expect(printSpy.mock.calls).toEqual([[ 15 ]]);
+    });
   });
 });
 
