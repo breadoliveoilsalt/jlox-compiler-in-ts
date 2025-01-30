@@ -176,6 +176,30 @@ describe("logical operator 'and'", () => {
   );
 });
 
+describe('while loops', () => {
+  test("while loops work", async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      'var num = 0;',
+      'while (num < 4) {',
+      ' print num;',
+      'num = num + 1;',
+      '}',
+      'print "exit while loop";',
+      'print num;'
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+
+    expect(printSpy.mock.calls).toEqual([[+0], [1], [2], [3], ["\"exit while loop\""], [4]]);
+  })
+})
+
 describe('controlFlow integration', () => {
   test.each([
     {
