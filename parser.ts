@@ -708,26 +708,6 @@ function buildAssignment({
       environment: envAfterOrBuild,
     });
 
-    // const key = nodeFromOrBuild.token.text;
-    // const value = nodeFromRecursiveAssignmentEval.evaluate();
-    // const { updatedEnv, error } = update(envAfterAssignmentEval, key, value);
-
-    // if (error) {
-    //   throw new CompilerError({
-    //     name: 'JloxSyntaxError',
-    //     message: error,
-    //     lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
-    //   });
-    // }
-
-    // if (!updatedEnv) {
-    //   throw new CompilerError({
-    //     name: 'JloxSyntaxError',
-    //     message: 'Something went wrong trying to update the environment (you should never see this error unless the source code has been modified to cause an error; throwing this error is for type protection)',
-    //     lineNumber: tokens[tokenHeadAfterOrBuild].lineNumber,
-    //   });
-    // }
-
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {

@@ -1,4 +1,3 @@
-import { clone } from 'ramda';
 import {
   type Token,
   type Tokens,
@@ -82,16 +81,10 @@ export function sequencer() {
 }
 
 export function envHelpers() {
-  function deepClone(env: Environment): Environment {
-    // return clone(env);
-    return env
-  }
 
   function set(env: Environment, key: string, value: any) {
-    const envCopy = deepClone(env);
-
-    envCopy[key] = value;
-    return envCopy;
+    env[key] = value;
+    return env;
   }
 
   function find(env: Environment, key: string) {
@@ -107,11 +100,10 @@ export function envHelpers() {
   ):
     | { updatedEnv: Environment; error?: never }
     | { updatedEnv?: never; error: string } {
-    const envCopy = deepClone(env);
-    const { envScopeLevel } = find(envCopy, key);
+    const { envScopeLevel } = find(env, key);
     if (envScopeLevel) {
       envScopeLevel[key] = value;
-      return { updatedEnv: envCopy };
+      return { updatedEnv: env };
     }
     return {
       error: `Attempt to assign variable ${key} not found in environment`,
