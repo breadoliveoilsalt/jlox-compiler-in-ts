@@ -1,4 +1,3 @@
-import { clone } from 'ramda';
 import {
   type Token,
   type Tokens,
@@ -82,15 +81,33 @@ export function sequencer() {
 }
 
 export function envHelpers() {
-  function deepClone(env: Environment): Environment {
-    return clone(env);
+
+  function set(env: Environment, key: string, value: any) {
+    env[key] = value;
+    return env;
   }
 
-  function update(env: Environment, key: string, value: any) {
-    const envCopy = deepClone(env);
+  function find(env: Environment, key: string) {
+    if (Object.hasOwn(env, key)) return { envScopeLevel: env };
+    if (env.outterScope) return find(env.outterScope, key);
+    return { envScopeLevel: undefined };
+  }
 
-    envCopy[key] = value;
-    return envCopy;
+  function update(
+    env: Environment,
+    key: string,
+    value: any,
+  ):
+    | { updatedEnv: Environment; error?: never }
+    | { updatedEnv?: never; error: string } {
+    const { envScopeLevel } = find(env, key);
+    if (envScopeLevel) {
+      envScopeLevel[key] = value;
+      return { updatedEnv: env };
+    }
+    return {
+      error: `Attempt to assign variable ${key} not found in environment`,
+    };
   }
 
   function get(env: Environment, key: string): any {
@@ -104,6 +121,7 @@ export function envHelpers() {
   }
 
   return {
+    set,
     update,
     get,
     has,

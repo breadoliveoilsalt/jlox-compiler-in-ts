@@ -1,0 +1,54 @@
+
+// This owrks after I stop cloning env
+var num = 1;
+num = 11;
+
+print num;
+
+if (3 == 5) {
+  print "first";
+  num = 5;
+  print "second";
+}
+
+if (true) {
+  print "inside true";
+}
+
+if (false) {
+  print "inside false";
+}
+
+print num;
+
+/////
+
+This works after I stop cloning ENV
+
+var num = 9;
+
+print "start";
+
+while (num < 10) {
+  num = 10;
+}
+
+print "num at end";
+print num;
+print "end";
+
+////
+
+// This does NOT work just when switching the env;
+// NOW it works that I put evaluation of assignment into evaluate()
+var num = 0;
+
+print "start";
+
+while (num < 10) {
+  print num;
+  num = num + 1;
+}
+
+print "end";
+print num;

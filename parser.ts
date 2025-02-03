@@ -36,7 +36,7 @@ type AstTree = {
   evaluate: () => any;
 };
 
-const { update, get, has } = envHelpers();
+const { set, update, get, has } = envHelpers();
 
 function buildTrue({
   tokens,
@@ -708,16 +708,15 @@ function buildAssignment({
       environment: envAfterOrBuild,
     });
 
-    const key = nodeFromOrBuild.token.text;
-    const value = nodeFromRecursiveAssignmentEval.evaluate();
-    const updatedEnv = update(envAfterAssignmentEval, key, value);
-
     const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
 
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
         evaluate() {
+          const key = nodeFromOrBuild.token.text;
+          const value = nodeFromRecursiveAssignmentEval.evaluate();
+          update(envAfterAssignmentEval, key, value);
           return null;
         },
       };
@@ -725,7 +724,7 @@ function buildAssignment({
       return {
         node,
         currentTokenHead: tokenHeadAfterAssignmentEval,
-        environment: updatedEnv,
+        environment: envAfterAssignmentEval,
       };
     }
 
@@ -1008,6 +1007,65 @@ function buildStatement({
       environment: envAfterIfBranchBuilt,
     };
   }
+
+  if (matches(token, TOKEN_NAMES.WHILE)) {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "while"',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const {
+      node: whileConditionNode,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
+      environment: envAfterWhileConditionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+
+    if (
+      !matches(
+        tokens[tokenHeadAfterWhileConditionBuilt],
+        TOKEN_NAMES.RIGHT_PAREN,
+      )
+    ) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing ")" after "while" condition',
+        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
+      });
+    }
+
+    const {
+      node: whileBodyNode,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    } = buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
+      environment: envAfterWhileConditionBuilt,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterWhileBodyBuilt],
+      evaluate() {
+        while (whileConditionNode.evaluate()) {
+          whileBodyNode.evaluate();
+        }
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    };
+  }
+
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
 }
 
@@ -1040,7 +1098,7 @@ function buildVar({
       ],
     })
   ) {
-    const updatedEnv = update(environment, varName, undefined);
+    const updatedEnv = set(environment, varName, undefined);
 
     const node = {
       token: tokens[currentTokenHead + 1],
@@ -1078,7 +1136,7 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      const updatedEnv = update(
+      const updatedEnv = set(
         envAfterExpressionEval,
         varName,
         expressionNode.evaluate(),

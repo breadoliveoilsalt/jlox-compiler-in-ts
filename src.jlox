@@ -1,7 +1,7 @@
-if (false) {
-  print "hey";
-}
+var num = 0;
 
 if (true) {
-  print "now";
+  num = 15;
 }
+
+print num;
