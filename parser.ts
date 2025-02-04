@@ -840,8 +840,23 @@ function buildBlock({
   });
 }
 
-// TODO: Double check I have the order of the grammar
-// correct. Confer p. 193.
+// UPTO HERE
+function bulidForStatement({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "for"',
+        lineNumber: tokens[currentTokenHead].lineNumber,
+      });
+    }
+
+
+}
+
 function buildStatement({
   tokens,
   currentTokenHead,
@@ -881,6 +896,64 @@ function buildStatement({
       node,
       currentTokenHead: tokenHeadAfterBlockEval,
       environment: envAfterBlockEval,
+    };
+  }
+
+  if (matches(token, TOKEN_NAMES.WHILE)) {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "while"',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const {
+      node: whileConditionNode,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
+      environment: envAfterWhileConditionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+
+    if (
+      !matches(
+        tokens[tokenHeadAfterWhileConditionBuilt],
+        TOKEN_NAMES.RIGHT_PAREN,
+      )
+    ) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing ")" after "while" condition',
+        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
+      });
+    }
+
+    const {
+      node: whileBodyNode,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    } = buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
+      environment: envAfterWhileConditionBuilt,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterWhileBodyBuilt],
+      evaluate() {
+        while (whileConditionNode.evaluate()) {
+          whileBodyNode.evaluate();
+        }
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
     };
   }
 
@@ -1008,62 +1081,9 @@ function buildStatement({
     };
   }
 
-  if (matches(token, TOKEN_NAMES.WHILE)) {
-    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
-      throw new CompilerError({
-        name: 'JloxSynatxError',
-        message: 'Missing "(" after "while"',
-        lineNumber: token.lineNumber,
-      });
-    }
 
-    const {
-      node: whileConditionNode,
-      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
-      environment: envAfterWhileConditionBuilt,
-    } = buildExpression({
-      tokens,
-      currentTokenHead: currentTokenHead + 2,
-      environment,
-    });
-
-    if (
-      !matches(
-        tokens[tokenHeadAfterWhileConditionBuilt],
-        TOKEN_NAMES.RIGHT_PAREN,
-      )
-    ) {
-      throw new CompilerError({
-        name: 'JloxSynatxError',
-        message: 'Missing ")" after "while" condition',
-        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
-      });
-    }
-
-    const {
-      node: whileBodyNode,
-      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
-      environment: envAfterWhileBodyBuilt,
-    } = buildStatement({
-      tokens,
-      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
-      environment: envAfterWhileConditionBuilt,
-    });
-
-    const node = {
-      token: tokens[tokenHeadAfterWhileBodyBuilt],
-      evaluate() {
-        while (whileConditionNode.evaluate()) {
-          whileBodyNode.evaluate();
-        }
-      },
-    };
-
-    return {
-      node,
-      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
-      environment: envAfterWhileBodyBuilt,
-    };
+  if (matches(token, TOKEN_NAMES.FOR)) {
+    return buildForStatement({tokens, currentTokenHead, environment})
   }
 
   return buildExpressionStatement({ tokens, currentTokenHead, environment });

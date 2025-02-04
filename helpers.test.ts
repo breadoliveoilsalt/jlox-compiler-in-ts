@@ -237,7 +237,7 @@ describe('sequencer', () => {
 
 describe('envHelpers', () => {
   describe('set', () => {
-    test('it returns a new environment with the updated key and value', () => {
+    test('it returns the environment with the updated key and value', () => {
       const { set } = envHelpers();
 
       const env = {
