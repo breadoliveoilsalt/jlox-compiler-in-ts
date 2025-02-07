@@ -841,20 +841,88 @@ function buildBlock({
 }
 
 // UPTO HERE
-function bulidForStatement({
+function buildForStatement({
   tokens,
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
-      throw new CompilerError({
-        name: 'JloxSynatxError',
-        message: 'Missing "(" after "for"',
-        lineNumber: tokens[currentTokenHead].lineNumber,
-      });
-    }
+  if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing "(" after "for"',
+      lineNumber: tokens[currentTokenHead].lineNumber,
+    });
+  }
+
+  let initializer;
+  let condition;
+  let increment;
+
+  if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.SEMICOLON)) {
+    initializer = null;
+  } else if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.VAR)) {
+    // const {
+    //   node: initializerNode,
+    //   currentTokenHead,
+    //   environment,
+    // } = buildVar({
+    //   tokens,
+    //   currentTokenHead: currentTokenHead + 2,
+    //   environment,
+    // });
+    initializer = buildVar({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+  } else {
+    initializer = buildExpressionStatement({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+  }
+
+  const tokenHeadAfterInitializer = initializer
+    ? initializer.currentTokenHead
+    : currentTokenHead;
+  const environmentAfterInitializer = initializer
+    ? initializer.environment
+    : environment;
+
+  if (!matches(tokens[tokenHeadAfterInitializer], TOKEN_NAMES.SEMICOLON)) {
+    condition = buildExpression({
+      tokens,
+      currentTokenHead: tokenHeadAfterInitializer,
+      environment: environmentAfterInitializer,
+    });
+  }
+
+  const tokenHeadAfterCondition = condition
+    ? condition.currentTokenHead
+    : tokenHeadAfterInitializer;
+  const environmentAfterCondition = condition
+    ? condition.environment
+    : environmentAfterInitializer;
+
+  if (!matches(tokens[tokenHeadAfterCondition + 1], TOKEN_NAMES.SEMICOLON)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing ";" after loop condition',
+      lineNumber: tokens[tokenHeadAfterCondition].lineNumber,
+    });
+  }
+
+  if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.RIGHT_PAREN)) {
+    increment = buildExpression({
+      tokens,
+      currentTokenHead: tokenHeadAfterCondition,
+      environment: environmentAfterCondition,
+    });
+  }
 
 
+  // UPTO HERE - have to throw error if no right paren
 }
 
 function buildStatement({
@@ -1081,9 +1149,8 @@ function buildStatement({
     };
   }
 
-
   if (matches(token, TOKEN_NAMES.FOR)) {
-    return buildForStatement({tokens, currentTokenHead, environment})
+    return buildForStatement({ tokens, currentTokenHead, environment });
   }
 
   return buildExpressionStatement({ tokens, currentTokenHead, environment });
