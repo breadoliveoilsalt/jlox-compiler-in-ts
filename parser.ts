@@ -840,7 +840,6 @@ function buildBlock({
   });
 }
 
-// UPTO HERE
 function buildForStatement({
   tokens,
   currentTokenHead,
@@ -901,6 +900,7 @@ function buildForStatement({
   const tokenHeadAfterCondition = condition
     ? condition.currentTokenHead
     : tokenHeadAfterInitializer;
+
   const environmentAfterCondition = condition
     ? condition.environment
     : environmentAfterInitializer;
@@ -921,8 +921,29 @@ function buildForStatement({
     });
   }
 
+  const tokenHeadAfterIncrement = increment
+    ? increment.currentTokenHead
+    : tokenHeadAfterInitializer;
 
-  // UPTO HERE - have to throw error if no right paren
+  const environmentAfterIncrement = increment
+    ? increment.environment
+    : environmentAfterInitializer;
+
+  if (!matches(tokens[tokenHeadAfterIncrement + 1], TOKEN_NAMES.RIGHT_PAREN)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing ")" after for clause',
+      lineNumber: tokens[tokenHeadAfterCondition].lineNumber,
+    });
+  }
+
+  const body = buildStatement({
+    tokens,
+    currentTokenHead: tokenHeadAfterIncrement,
+    environment: environmentAfterIncrement,
+  });
+
+  // UPTO HERE - Syntactic sugar or no?
 }
 
 function buildStatement({
