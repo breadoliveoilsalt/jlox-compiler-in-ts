@@ -4,7 +4,7 @@ import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
 export type Environment = {
-  outterScope: null | Environment;
+  outerScope: null | Environment;
   [key: string]: any;
 };
 
@@ -595,7 +595,7 @@ function buildAnd({
     environment,
   });
 
-  let currentToken = tokens[tokenHeadAfterEqualityBuiltLeft];
+  const currentToken = tokens[tokenHeadAfterEqualityBuiltLeft];
 
   if (matches(currentToken, TOKEN_NAMES.AND)) {
     const {
@@ -646,7 +646,7 @@ function buildOr({
     environment,
   });
 
-  let currentToken = tokens[tokenHeadAfterAndBuilt];
+  const currentToken = tokens[tokenHeadAfterAndBuilt];
 
   if (matches(currentToken, TOKEN_NAMES.OR)) {
     const {
@@ -812,9 +812,9 @@ function buildBlock({
         currentTokenName === TOKEN_NAMES.EOF
           ? currentTokenHead
           : currentTokenHead + 1,
-      // NOTE: It's important to reset env to the outter
+      // NOTE: It's important to reset env to the outer
       // scope once block evaluation is complete
-      environment: environment.outterScope,
+      environment: environment.outerScope,
       statements,
     };
 
@@ -954,7 +954,7 @@ function buildStatement({
   const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
-    const newScope = { outterScope: environment };
+    const newScope = { outerScope: environment };
 
     const {
       currentTokenHead: tokenHeadAfterBlockEval,

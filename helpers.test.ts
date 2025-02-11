@@ -241,7 +241,7 @@ describe('envHelpers', () => {
       const { set } = envHelpers();
 
       const env = {
-        outterScope: null,
+        outerScope: null,
         groceries: ['apples', 'oranges'],
         cost: 24,
       };
@@ -255,8 +255,8 @@ describe('envHelpers', () => {
       const { set } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           cost: 15,
         },
         cost: 24,
@@ -273,8 +273,8 @@ describe('envHelpers', () => {
       const { update } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           cost: 15,
         },
         cost: 24,
@@ -285,12 +285,12 @@ describe('envHelpers', () => {
       expect(updatedEnv).toEqual({ ...env, cost: 35 });
     });
 
-    test('it updates the outter scope if the variable does not exist in the current scope', () => {
+    test('it updates the outer scope if the variable does not exist in the current scope', () => {
       const { update } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           cost: 15,
         },
         groceries: ['apples'],
@@ -299,8 +299,8 @@ describe('envHelpers', () => {
       const { updatedEnv } = update(env, 'cost', 35);
 
       const expectedEnv = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           cost: 35,
         },
         groceries: ['apples'],
@@ -309,16 +309,16 @@ describe('envHelpers', () => {
       expect(updatedEnv).toEqual(expectedEnv);
     });
 
-    test('it updates a deeply nested outter scope if the variable only exists at that scope level and does not update any further outter scopes', () => {
+    test('it updates a deeply nested outer scope if the variable only exists at that scope level and does not update any further outer scopes', () => {
       const { update } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: {
+        outerScope: {
+          outerScope: {
             cost: 15,
-            outterScope: {
-              outterScope: {
-                outterScope: null,
+            outerScope: {
+              outerScope: {
+                outerScope: null,
                 cost: 25,
               },
             },
@@ -330,12 +330,12 @@ describe('envHelpers', () => {
       const { updatedEnv } = update(env, 'cost', 35);
 
       const expectedEnv = {
-        outterScope: {
-          outterScope: {
+        outerScope: {
+          outerScope: {
             cost: 35,
-            outterScope: {
-              outterScope: {
-                outterScope: null,
+            outerScope: {
+              outerScope: {
+                outerScope: null,
                 cost: 25,
               },
             },
@@ -353,7 +353,7 @@ describe('envHelpers', () => {
       const { get } = envHelpers();
 
       const env = {
-        outterScope: null,
+        outerScope: null,
         groceries: ['apples', 'oranges'],
         cost: 24,
       };
@@ -367,8 +367,8 @@ describe('envHelpers', () => {
       const { get } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           groceries: ['apples', 'oranges'],
           cost: 24,
         },
@@ -384,9 +384,9 @@ describe('envHelpers', () => {
       const { get } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: {
-            outterScope: null,
+        outerScope: {
+          outerScope: {
+            outerScope: null,
             groceries: ['apples', 'oranges'],
             cost: 24,
           },
@@ -403,8 +403,8 @@ describe('envHelpers', () => {
       const { get } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: null,
+        outerScope: {
+          outerScope: null,
           groceries: ['apples', 'oranges'],
           cost: 24,
         },
@@ -423,7 +423,7 @@ describe('envHelpers', () => {
       const { has } = envHelpers();
 
       const env = {
-        outterScope: null,
+        outerScope: null,
         groceries: ['apples', 'oranges'],
         cost: 24,
       };
@@ -435,7 +435,7 @@ describe('envHelpers', () => {
       const { has } = envHelpers();
 
       const env = {
-        outterScope: null,
+        outerScope: null,
         groceries: ['apples', 'oranges'],
         cost: 24,
       };
@@ -447,9 +447,9 @@ describe('envHelpers', () => {
       const { has } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: {
-            outterScope: null,
+        outerScope: {
+          outerScope: {
+            outerScope: null,
             groceries: ['apples', 'oranges'],
             cost: 24,
           },
@@ -464,9 +464,9 @@ describe('envHelpers', () => {
       const { has } = envHelpers();
 
       const env = {
-        outterScope: {
-          outterScope: {
-            outterScope: null,
+        outerScope: {
+          outerScope: {
+            outerScope: null,
             groceries: ['apples', 'oranges'],
             cost: 24,
           },

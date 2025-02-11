@@ -245,10 +245,10 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   declared and `update` was called again.
 
 ```js
-> const obj = { outterScope: null, fish: undefined }
+> const obj = { outerScope: null, fish: undefined }
 undefined
 > JSON.stringify(obj)
-'{"outterScope":null}'
+'{"outerScope":null}'
 ```
 
 #### It seems the less you wrap in a try/catch block, the better
