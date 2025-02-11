@@ -854,21 +854,12 @@ function buildForStatement({
   }
 
   let initializer;
-  let condition;
+  let condition: NodeBuilderResult | undefined;
   let increment;
 
   if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.SEMICOLON)) {
     initializer = null;
   } else if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.VAR)) {
-    // const {
-    //   node: initializerNode,
-    //   currentTokenHead,
-    //   environment,
-    // } = buildVar({
-    //   tokens,
-    //   currentTokenHead: currentTokenHead + 2,
-    //   environment,
-    // });
     initializer = buildVar({
       tokens,
       currentTokenHead: currentTokenHead + 2,
@@ -885,7 +876,7 @@ function buildForStatement({
   const tokenHeadAfterInitializer = initializer
     ? initializer.currentTokenHead
     : currentTokenHead;
-  const environmentAfterInitializer = initializer
+  const envAfterInitializer = initializer
     ? initializer.environment
     : environment;
 
@@ -893,7 +884,7 @@ function buildForStatement({
     condition = buildExpression({
       tokens,
       currentTokenHead: tokenHeadAfterInitializer,
-      environment: environmentAfterInitializer,
+      environment: envAfterInitializer,
     });
   }
 
@@ -901,9 +892,9 @@ function buildForStatement({
     ? condition.currentTokenHead
     : tokenHeadAfterInitializer;
 
-  const environmentAfterCondition = condition
+  const envAfterCondition = condition
     ? condition.environment
-    : environmentAfterInitializer;
+    : envAfterInitializer;
 
   if (!matches(tokens[tokenHeadAfterCondition + 1], TOKEN_NAMES.SEMICOLON)) {
     throw new CompilerError({
@@ -917,7 +908,7 @@ function buildForStatement({
     increment = buildExpression({
       tokens,
       currentTokenHead: tokenHeadAfterCondition,
-      environment: environmentAfterCondition,
+      environment: envAfterCondition,
     });
   }
 
@@ -925,9 +916,9 @@ function buildForStatement({
     ? increment.currentTokenHead
     : tokenHeadAfterInitializer;
 
-  const environmentAfterIncrement = increment
+  const envAfterIncrement = increment
     ? increment.environment
-    : environmentAfterInitializer;
+    : envAfterInitializer;
 
   if (!matches(tokens[tokenHeadAfterIncrement + 1], TOKEN_NAMES.RIGHT_PAREN)) {
     throw new CompilerError({
@@ -937,13 +928,36 @@ function buildForStatement({
     });
   }
 
-  const body = buildStatement({
+  const {
+    node: body,
+    currentTokenHead: tokenHeadAfterStatementBuild,
+    environment: envAfterStatementBuild,
+  } = buildStatement({
     tokens,
     currentTokenHead: tokenHeadAfterIncrement,
-    environment: environmentAfterIncrement,
+    environment: envAfterIncrement,
   });
 
-  // UPTO HERE - Syntactic sugar or no?
+  // NOTE: Taking a "syntactic sugar" approach to
+  // building the AST node, rather than replicating
+  // a `for` loop in JavaScript.
+  const statements = increment ? [body, increment.node] : [body];
+
+  const node = {
+    token: tokens[tokenHeadAfterIncrement],
+    evaluate() {
+      // Force true if no condition specified
+      while (condition ? condition.node.evaluate() : true) {
+        statements.forEach((statement) => statement.evaluate());
+      }
+    },
+  };
+
+  return {
+    node,
+    currentTokenHead: tokenHeadAfterStatementBuild,
+    environment: envAfterStatementBuild,
+  }
 }
 
 function buildStatement({
