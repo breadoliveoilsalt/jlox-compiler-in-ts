@@ -896,7 +896,11 @@ function buildForStatement({
     ? condition.environment
     : envAfterInitializer;
 
-  if (!matches(tokens[tokenHeadAfterCondition + 1], TOKEN_NAMES.SEMICOLON)) {
+  console.log('just after condition')
+  console.log({tokens, tokenHeadAfterCondition})
+
+  // UPTO HERE - working through error when trying to compile
+  if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.SEMICOLON)) {
     throw new CompilerError({
       name: 'JloxSynatxError',
       message: 'Missing ";" after loop condition',
