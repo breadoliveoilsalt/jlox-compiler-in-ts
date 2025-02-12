@@ -238,6 +238,7 @@ function buildPrimary({
     };
   }
 
+  // console.log({tokens, currentTokenHead})
   throw new CompilerError({
     name: 'JloxSyntaxError',
     message: `Unrecognized primary lexeme: "${currentToken.text}"`,
@@ -896,9 +897,8 @@ function buildForStatement({
     ? condition.environment
     : envAfterInitializer;
 
-  console.log('just after condition')
-  console.log({tokens, tokenHeadAfterCondition})
 
+    // console.info({condition, func: condition.node.evaluate.toString(), eval: condition.node.evaluate()})
   // UPTO HERE - working through error when trying to compile
   if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.SEMICOLON)) {
     throw new CompilerError({
@@ -911,7 +911,7 @@ function buildForStatement({
   if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.RIGHT_PAREN)) {
     increment = buildExpression({
       tokens,
-      currentTokenHead: tokenHeadAfterCondition,
+      currentTokenHead: tokenHeadAfterCondition + 1,
       environment: envAfterCondition,
     });
   }
@@ -924,7 +924,7 @@ function buildForStatement({
     ? increment.environment
     : envAfterInitializer;
 
-  if (!matches(tokens[tokenHeadAfterIncrement + 1], TOKEN_NAMES.RIGHT_PAREN)) {
+  if (!matches(tokens[tokenHeadAfterIncrement], TOKEN_NAMES.RIGHT_PAREN)) {
     throw new CompilerError({
       name: 'JloxSynatxError',
       message: 'Missing ")" after for clause',
@@ -938,7 +938,7 @@ function buildForStatement({
     environment: envAfterStatementBuild,
   } = buildStatement({
     tokens,
-    currentTokenHead: tokenHeadAfterIncrement,
+    currentTokenHead: tokenHeadAfterIncrement + 1,
     environment: envAfterIncrement,
   });
 
