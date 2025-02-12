@@ -4,7 +4,7 @@ import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
 export type Environment = {
-  outterScope: null | Environment;
+  outerScope: null | Environment;
   [key: string]: any;
 };
 
@@ -595,7 +595,7 @@ function buildAnd({
     environment,
   });
 
-  let currentToken = tokens[tokenHeadAfterEqualityBuiltLeft];
+  const currentToken = tokens[tokenHeadAfterEqualityBuiltLeft];
 
   if (matches(currentToken, TOKEN_NAMES.AND)) {
     const {
@@ -646,7 +646,7 @@ function buildOr({
     environment,
   });
 
-  let currentToken = tokens[tokenHeadAfterAndBuilt];
+  const currentToken = tokens[tokenHeadAfterAndBuilt];
 
   if (matches(currentToken, TOKEN_NAMES.OR)) {
     const {
@@ -812,9 +812,9 @@ function buildBlock({
         currentTokenName === TOKEN_NAMES.EOF
           ? currentTokenHead
           : currentTokenHead + 1,
-      // NOTE: It's important to reset env to the outter
+      // NOTE: It's important to reset env to the outer
       // scope once block evaluation is complete
-      environment: environment.outterScope,
+      environment: environment.outerScope,
       statements,
     };
 
@@ -840,8 +840,125 @@ function buildBlock({
   });
 }
 
-// TODO: Double check I have the order of the grammar
-// correct. Confer p. 193.
+function buildForStatement({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing "(" after "for"',
+      lineNumber: tokens[currentTokenHead].lineNumber,
+    });
+  }
+
+  let initializer;
+  let condition: NodeBuilderResult | undefined;
+  let increment;
+
+  if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.SEMICOLON)) {
+    initializer = null;
+  } else if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.VAR)) {
+    initializer = buildVar({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+  } else {
+    initializer = buildExpressionStatement({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+  }
+  const tokenHeadAfterInitializer = initializer
+    ? initializer.currentTokenHead
+    : currentTokenHead + 3;
+  const envAfterInitializer = initializer
+    ? initializer.environment
+    : environment;
+
+  if (!matches(tokens[tokenHeadAfterInitializer], TOKEN_NAMES.SEMICOLON)) {
+    condition = buildExpression({
+      tokens,
+      currentTokenHead: tokenHeadAfterInitializer,
+      environment: envAfterInitializer,
+    });
+  }
+
+  const tokenHeadAfterCondition = condition
+    ? condition.currentTokenHead
+    : tokenHeadAfterInitializer;
+
+  const envAfterCondition = condition
+    ? condition.environment
+    : envAfterInitializer;
+
+  if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.SEMICOLON)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing ";" after loop condition',
+      lineNumber: tokens[tokenHeadAfterCondition].lineNumber,
+    });
+  }
+
+  if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.RIGHT_PAREN)) {
+    increment = buildExpression({
+      tokens,
+      currentTokenHead: tokenHeadAfterCondition + 1,
+      environment: envAfterCondition,
+    });
+  }
+
+  const tokenHeadAfterIncrement = increment
+    ? increment.currentTokenHead
+    : tokenHeadAfterInitializer;
+
+  const envAfterIncrement = increment
+    ? increment.environment
+    : envAfterInitializer;
+
+  if (!matches(tokens[tokenHeadAfterIncrement], TOKEN_NAMES.RIGHT_PAREN)) {
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing ")" after for clause',
+      lineNumber: tokens[tokenHeadAfterCondition].lineNumber,
+    });
+  }
+
+  const {
+    node: body,
+    currentTokenHead: tokenHeadAfterStatementBuild,
+    environment: envAfterStatementBuild,
+  } = buildStatement({
+    tokens,
+    currentTokenHead: tokenHeadAfterIncrement + 1,
+    environment: envAfterIncrement,
+  });
+
+  // NOTE: Taking a "syntactic sugar" approach to
+  // building the AST node, rather than replicating
+  // a `for` loop in JavaScript.
+  const statements = increment ? [body, increment.node] : [body];
+
+  const node = {
+    token: tokens[tokenHeadAfterIncrement],
+    evaluate() {
+      // Force true if no condition specified
+      while (condition ? condition.node.evaluate() : true) {
+        statements.forEach((statement) => statement.evaluate());
+      }
+    },
+  };
+
+  return {
+    node,
+    currentTokenHead: tokenHeadAfterStatementBuild,
+    environment: envAfterStatementBuild,
+  }
+}
+
 function buildStatement({
   tokens,
   currentTokenHead,
@@ -850,7 +967,7 @@ function buildStatement({
   const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
-    const newScope = { outterScope: environment };
+    const newScope = { outerScope: environment };
 
     const {
       currentTokenHead: tokenHeadAfterBlockEval,
@@ -881,6 +998,64 @@ function buildStatement({
       node,
       currentTokenHead: tokenHeadAfterBlockEval,
       environment: envAfterBlockEval,
+    };
+  }
+
+  if (matches(token, TOKEN_NAMES.WHILE)) {
+    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing "(" after "while"',
+        lineNumber: token.lineNumber,
+      });
+    }
+
+    const {
+      node: whileConditionNode,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
+      environment: envAfterWhileConditionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 2,
+      environment,
+    });
+
+    if (
+      !matches(
+        tokens[tokenHeadAfterWhileConditionBuilt],
+        TOKEN_NAMES.RIGHT_PAREN,
+      )
+    ) {
+      throw new CompilerError({
+        name: 'JloxSynatxError',
+        message: 'Missing ")" after "while" condition',
+        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
+      });
+    }
+
+    const {
+      node: whileBodyNode,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
+    } = buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
+      environment: envAfterWhileConditionBuilt,
+    });
+
+    const node = {
+      token: tokens[tokenHeadAfterWhileBodyBuilt],
+      evaluate() {
+        while (whileConditionNode.evaluate()) {
+          whileBodyNode.evaluate();
+        }
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
+      environment: envAfterWhileBodyBuilt,
     };
   }
 
@@ -1008,62 +1183,8 @@ function buildStatement({
     };
   }
 
-  if (matches(token, TOKEN_NAMES.WHILE)) {
-    if (!matches(tokens[currentTokenHead + 1], TOKEN_NAMES.LEFT_PAREN)) {
-      throw new CompilerError({
-        name: 'JloxSynatxError',
-        message: 'Missing "(" after "while"',
-        lineNumber: token.lineNumber,
-      });
-    }
-
-    const {
-      node: whileConditionNode,
-      currentTokenHead: tokenHeadAfterWhileConditionBuilt,
-      environment: envAfterWhileConditionBuilt,
-    } = buildExpression({
-      tokens,
-      currentTokenHead: currentTokenHead + 2,
-      environment,
-    });
-
-    if (
-      !matches(
-        tokens[tokenHeadAfterWhileConditionBuilt],
-        TOKEN_NAMES.RIGHT_PAREN,
-      )
-    ) {
-      throw new CompilerError({
-        name: 'JloxSynatxError',
-        message: 'Missing ")" after "while" condition',
-        lineNumber: tokens[tokenHeadAfterWhileConditionBuilt].lineNumber,
-      });
-    }
-
-    const {
-      node: whileBodyNode,
-      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
-      environment: envAfterWhileBodyBuilt,
-    } = buildStatement({
-      tokens,
-      currentTokenHead: tokenHeadAfterWhileConditionBuilt + 1,
-      environment: envAfterWhileConditionBuilt,
-    });
-
-    const node = {
-      token: tokens[tokenHeadAfterWhileBodyBuilt],
-      evaluate() {
-        while (whileConditionNode.evaluate()) {
-          whileBodyNode.evaluate();
-        }
-      },
-    };
-
-    return {
-      node,
-      currentTokenHead: tokenHeadAfterWhileBodyBuilt,
-      environment: envAfterWhileBodyBuilt,
-    };
+  if (matches(token, TOKEN_NAMES.FOR)) {
+    return buildForStatement({ tokens, currentTokenHead, environment });
   }
 
   return buildExpressionStatement({ tokens, currentTokenHead, environment });

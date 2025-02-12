@@ -76,6 +76,7 @@ const matchPrint = (buffer: string) => buffer.match(/^print\b/);
 const matchVar = (buffer: string) => buffer.match(/^var\b/);
 const matchIf = (buffer: string) => buffer.match(/^if\b/);
 const matchElse = (buffer: string) => buffer.match(/^else\b/);
+const matchFor = (buffer: string) => buffer.match(/^for\b/);
 const matchAnd = (buffer: string) => buffer.match(/^and\b/);
 const matchOr = (buffer: string) => buffer.match(/^or\b/);
 const matchWhile = (buffer: string) => buffer.match(/^while\b/);
@@ -226,6 +227,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.ELSE,
     test: matchElse,
     consumeFrom: buildConsumer(matchElse),
+  },
+  {
+    name: TOKEN_NAMES.FOR,
+    test: matchFor,
+    consumeFrom: buildConsumer(matchFor),
   },
   {
     name: TOKEN_NAMES.AND,

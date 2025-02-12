@@ -4,7 +4,7 @@ import { type ReadLine } from './index';
 
 export async function compile(readLine: ReadLine) {
   const { tokens } = await scan(readLine);
-  const globalScope = { outterScope: null };
+  const globalScope = { outerScope: null };
   const { statements } = parse({ tokens, environment: globalScope });
   return statements.reduce((_, statement) => {
     return statement.evaluate();

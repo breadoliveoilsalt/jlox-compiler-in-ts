@@ -106,7 +106,7 @@ async function startRepl() {
   }
 
   // Pass global scope to runRepl on first call
-  await runRepl(rl, { outterScope: null });
+  await runRepl(rl, { outerScope: null });
 }
 
 async function main() {

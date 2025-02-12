@@ -86,7 +86,7 @@ describe('control flow and strings', () => {
       const lines = [
         'var num = 0;',
         'if (false) {',
-          'num = 15;',
+        'num = 15;',
         ' }',
         ' print num;',
       ];
@@ -94,7 +94,7 @@ describe('control flow and strings', () => {
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[ 0 ]]);
+      expect(printSpy.mock.calls).toEqual([[0]]);
     });
 
     test('variable assignments inside a truthy if statement are assigned', async () => {
@@ -105,7 +105,7 @@ describe('control flow and strings', () => {
       const lines = [
         'var num = 0;',
         'if (true) {',
-          'num = 15;',
+        'num = 15;',
         ' }',
         ' print num;',
       ];
@@ -113,7 +113,7 @@ describe('control flow and strings', () => {
       const readLine = buildReadLine(lines);
 
       await compile(readLine);
-      expect(printSpy.mock.calls).toEqual([[ 15 ]]);
+      expect(printSpy.mock.calls).toEqual([[15]]);
     });
   });
 });
@@ -215,7 +215,7 @@ describe("logical operator 'and'", () => {
 });
 
 describe('while loops', () => {
-  test("while loops work", async () => {
+  test('while loops work', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
@@ -227,16 +227,74 @@ describe('while loops', () => {
       'num = num + 1;',
       '}',
       'print "exit while loop";',
-      'print num;'
+      'print num;',
     ];
 
     const readLine = buildReadLine(lines);
 
     await compile(readLine);
 
-    expect(printSpy.mock.calls).toEqual([[+0], [1], [2], [3], ["\"exit while loop\""], [4]]);
-  })
-})
+    expect(printSpy.mock.calls).toEqual([
+      [+0],
+      [1],
+      [2],
+      [3],
+      ['"exit while loop"'],
+      [4],
+    ]);
+  });
+});
+
+describe('for loops', () => {
+  test('classic "for loops" work', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      'for (var i = 0; i < 6; i = i + 1) {',
+      '  print i;',
+      '}'
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+
+    expect(printSpy.mock.calls).toEqual([
+      [0],
+      [1],
+      [2],
+      [3],
+      [4],
+      [5],
+    ]);
+  });
+
+  test('an initializer is not required in the "for loops" parenthesis', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      'var i = 0;',
+      'for (; i < 4; i = i + 1) {',
+      '  print i;',
+      '}'
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+
+    expect(printSpy.mock.calls).toEqual([
+      [0],
+      [1],
+      [2],
+      [3],
+    ]);
+  });
+});
 
 describe('controlFlow integration', () => {
   test.each([
@@ -256,12 +314,14 @@ describe('controlFlow integration', () => {
       line: '11 or (false or false);',
       expectedResult: 11,
     },
-  ])('logical "and" and logical "or" integrate', async ({ line, expectedResult }) => {
-    const readLine = buildReadLine([line]);
+  ])(
+    'logical "and" and logical "or" integrate',
+    async ({ line, expectedResult }) => {
+      const readLine = buildReadLine([line]);
 
-    const { result } = await compile(readLine);
+      const { result } = await compile(readLine);
 
-    expect(result).toEqual(expectedResult);
-  });
+      expect(result).toEqual(expectedResult);
+    },
+  );
 });
-

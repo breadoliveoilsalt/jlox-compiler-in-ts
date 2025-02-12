@@ -1,7 +1,5 @@
-var num = 0;
+var i = 0;
 
-if (true) {
-  num = 15;
+for (; ; i = i + 1) {
+  print i;
 }
-
-print num;

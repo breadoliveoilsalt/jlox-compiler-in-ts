@@ -89,7 +89,7 @@ export function envHelpers() {
 
   function find(env: Environment, key: string) {
     if (Object.hasOwn(env, key)) return { envScopeLevel: env };
-    if (env.outterScope) return find(env.outterScope, key);
+    if (env.outerScope) return find(env.outerScope, key);
     return { envScopeLevel: undefined };
   }
 
@@ -111,13 +111,13 @@ export function envHelpers() {
   }
 
   function get(env: Environment, key: string): any {
-    if (!env.outterScope) return env[key];
-    return env[key] ?? get(env.outterScope, key);
+    if (!env.outerScope) return env[key];
+    return env[key] ?? get(env.outerScope, key);
   }
 
   function has(env: Environment, key: string): boolean {
-    if (!env.outterScope) return Object.hasOwn(env, key);
-    return Object.hasOwn(env, key) || has(env.outterScope, key);
+    if (!env.outerScope) return Object.hasOwn(env, key);
+    return Object.hasOwn(env, key) || has(env.outerScope, key);
   }
 
   return {
