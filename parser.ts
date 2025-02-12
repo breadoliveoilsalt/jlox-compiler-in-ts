@@ -872,10 +872,9 @@ function buildForStatement({
       environment,
     });
   }
-
   const tokenHeadAfterInitializer = initializer
     ? initializer.currentTokenHead
-    : currentTokenHead;
+    : currentTokenHead + 3;
   const envAfterInitializer = initializer
     ? initializer.environment
     : environment;

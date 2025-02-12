@@ -246,7 +246,7 @@ describe('while loops', () => {
 });
 
 describe('for loops', () => {
-  test('for loops work', async () => {
+  test('classic "for loops" work', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
@@ -268,6 +268,30 @@ describe('for loops', () => {
       [3],
       [4],
       [5],
+    ]);
+  });
+
+  test('an initializer is not required in the "for loops" parenthesis', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      'var i = 0;',
+      'for (; i < 4; i = i + 1) {',
+      '  print i;',
+      '}'
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+
+    expect(printSpy.mock.calls).toEqual([
+      [0],
+      [1],
+      [2],
+      [3],
     ]);
   });
 });
