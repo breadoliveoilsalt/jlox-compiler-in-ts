@@ -238,7 +238,6 @@ function buildPrimary({
     };
   }
 
-  // console.log({tokens, currentTokenHead})
   throw new CompilerError({
     name: 'JloxSyntaxError',
     message: `Unrecognized primary lexeme: "${currentToken.text}"`,
@@ -897,9 +896,6 @@ function buildForStatement({
     ? condition.environment
     : envAfterInitializer;
 
-
-    // console.info({condition, func: condition.node.evaluate.toString(), eval: condition.node.evaluate()})
-  // UPTO HERE - working through error when trying to compile
   if (!matches(tokens[tokenHeadAfterCondition], TOKEN_NAMES.SEMICOLON)) {
     throw new CompilerError({
       name: 'JloxSynatxError',
