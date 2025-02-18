@@ -1,5 +1,5 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
-import { CompilerError } from './errors';
+import { CompilerError, RuntimeError } from './errors';
 import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
@@ -245,6 +245,130 @@ function buildPrimary({
   });
 }
 
+type ArgumentsResult = {
+  argumentNodes: Array<AstTree>;
+  currentTokenHead: number;
+  environment: Environment;
+};
+
+function buildArguments({
+  tokens,
+  currentTokenHead,
+  environment,
+  argumentNodes,
+}: NodeBuilderParams & {
+  argumentNodes: ArgumentsResult['argumentNodes'];
+}): ArgumentsResult {
+  if (matches(tokens[currentTokenHead], TOKEN_NAMES.RIGHT_PAREN)) {
+    return {
+      argumentNodes,
+      currentTokenHead,
+      environment,
+    };
+  }
+
+  const argumentHead = matches(tokens[currentTokenHead], TOKEN_NAMES.COMMA)
+    ? currentTokenHead + 1
+    : currentTokenHead;
+
+  // TODO: I like this naming convention here: intent (Argument) + builder (Expression)
+  const {
+    node: argumentExpressionNode,
+    currentTokenHead: tokenHeadAfterArgumentExpressionBuilt,
+    environment: envAfterArgumentExpressionBuilt,
+  } = buildExpression({
+    tokens,
+    currentTokenHead: argumentHead,
+    environment,
+  });
+
+  return buildArguments({
+    tokens,
+    currentTokenHead: tokenHeadAfterArgumentExpressionBuilt,
+    environment: envAfterArgumentExpressionBuilt,
+    argumentNodes: [...argumentNodes, argumentExpressionNode],
+  });
+}
+
+function buildCall({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: primaryNode,
+    currentTokenHead: tokenHeadAfterPrimaryBuilt,
+    environment: envAfterPrimaryBuilt,
+  } = buildPrimary({
+    tokens,
+    currentTokenHead: currentTokenHead,
+    environment,
+  });
+
+  // TODO: check this can handle multiple back to back calls ()()()
+
+  if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.RIGHT_PAREN)) {
+    // I wonder if here is a place to put the check whether the node above
+    // is a function
+    const {
+      argumentNodes,
+      currentTokenHead: tokenHeadAfterArgumentsBuilt,
+      environment: envAfterArgumentsBuilt,
+    } = buildArguments({
+      tokens,
+      currentTokenHead: tokenHeadAfterPrimaryBuilt,
+      environment: envAfterPrimaryBuilt,
+      argumentNodes: [],
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterArgumentsBuilt], TOKEN_NAMES.RIGHT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect ) after function call',
+        lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+      });
+    }
+
+    // NOTE: If you wanted to limit the number of allowed arguments, here is where
+    // you add check, say, that argumentNodes.length < 255
+
+    const node = {
+      token: tokens[tokenHeadAfterArgumentsBuilt],
+      argumentNodes,
+      calleeNode: primaryNode,
+      evaluate() {
+        const callee = primaryNode.evaluate();
+        if (typeof callee !== 'function') {
+          throw new RuntimeError({
+            name: 'RuntimeError',
+            message:
+              'There is an attempt to call something that is not a function',
+            lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+          });
+        }
+        const evaluatedArguments = this.argumentNodes.map((argument) =>
+          argument.evaluate(),
+        );
+        return callee.apply(this, evaluatedArguments);
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterArgumentsBuilt,
+      environment: envAfterArgumentsBuilt,
+    }
+  }
+
+  return {
+    node: primaryNode,
+    currentTokenHead: tokenHeadAfterPrimaryBuilt,
+    environment: envAfterPrimaryBuilt,
+  };
+}
+
 function buildUnary({
   tokens,
   currentTokenHead,
@@ -283,7 +407,7 @@ function buildUnary({
     };
   }
 
-  return buildPrimary({ tokens, currentTokenHead, environment });
+  return buildCall({ tokens, currentTokenHead, environment });
 }
 
 function buildFactor({
@@ -956,7 +1080,7 @@ function buildForStatement({
     node,
     currentTokenHead: tokenHeadAfterStatementBuild,
     environment: envAfterStatementBuild,
-  }
+  };
 }
 
 function buildStatement({
