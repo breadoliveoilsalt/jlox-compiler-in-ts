@@ -181,6 +181,7 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
+  // TODO: Check this is correct. Will this cause problems building functions?
   if (!has(environment, identifierName)) {
     throw new CompilerError({
       name: 'JloxSyntaxError',
@@ -307,7 +308,7 @@ function buildCall({
 
   // TODO: check this can handle multiple back to back calls ()()()
 
-  if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.RIGHT_PAREN)) {
+  if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
     // I wonder if here is a place to put the check whether the node above
     // is a function
     const {
@@ -316,7 +317,7 @@ function buildCall({
       environment: envAfterArgumentsBuilt,
     } = buildArguments({
       tokens,
-      currentTokenHead: tokenHeadAfterPrimaryBuilt,
+      currentTokenHead: tokenHeadAfterPrimaryBuilt + 1,
       environment: envAfterPrimaryBuilt,
       argumentNodes: [],
     });
@@ -351,6 +352,17 @@ function buildCall({
         const evaluatedArguments = this.argumentNodes.map((argument) =>
           argument.evaluate(),
         );
+
+        // Check number of arguments against function's arity
+        if (evaluatedArguments.length !== callee.length) {
+          throw new RuntimeError({
+            name: 'RuntimeError',
+            message:
+              'Arguments passed to function do not match function\'s arity',
+            lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+          });
+
+        }
         return callee.apply(this, evaluatedArguments);
       },
     };
@@ -1416,12 +1428,146 @@ function buildVar({
   });
 }
 
+
+type ParametersResult = {
+  parameterNodes: Array<AstTree>;
+  currentTokenHead: number;
+  environment: Environment;
+};
+
+function buildParameters({
+  tokens,
+  currentTokenHead,
+  environment,
+  parameterNodes,
+}: NodeBuilderParams & {
+  parameterNodes: ParametersResult['parameterNodes'];
+}): ParametersResult {
+  if (matches(tokens[currentTokenHead], TOKEN_NAMES.RIGHT_PAREN)) {
+    return {
+      parameterNodes,
+      currentTokenHead,
+      environment,
+    };
+  }
+
+  const parametersHead = matches(tokens[currentTokenHead], TOKEN_NAMES.COMMA)
+    ? currentTokenHead + 1
+    : currentTokenHead;
+
+  const {
+    node: parameterIdentifierNode,
+    currentTokenHead: tokenHeadAfterParameterIdentifierBuilt,
+    environment: envAfterParameterIdentifierBuilt,
+  } = buildIdentifier({
+    tokens,
+    currentTokenHead: parametersHead,
+    environment,
+  });
+
+  return buildParameters({
+    tokens,
+    currentTokenHead: tokenHeadAfterParameterIdentifierBuilt,
+    environment: envAfterParameterIdentifierBuilt,
+    parameterNodes: [...parameterNodes, parameterIdentifierNode],
+  });
+}
+
+function buildFunction({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+
+  const {
+    node: identifierNode,
+    currentTokenHead: tokenHeadAfterIdentifierBuilt,
+    environment: envAfterIdentifierBuilt,
+  } = buildIdentifier({
+    tokens,
+    currentTokenHead,
+    environment,
+  });
+
+    if (
+      !matches(tokens[tokenHeadAfterIdentifierBuilt], TOKEN_NAMES.LEFT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect ( after declaring a function name',
+        lineNumber: tokens[tokenHeadAfterIdentifierBuilt].lineNumber,
+      });
+    }
+
+    const {
+      parameterNodes,
+      currentTokenHead: tokenHeadAfterParametersBuilt,
+      environment: envAfterParametersBuilt,
+    } = buildParameters({
+      tokens,
+      currentTokenHead: tokenHeadAfterIdentifierBuilt + 1,
+      environment: envAfterIdentifierBuilt,
+      parameterNodes: [],
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterParametersBuilt], TOKEN_NAMES.RIGHT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect ) after declaring parameters in a function',
+        lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+      });
+    }
+
+    // NOTE: Here is anothe place where you can throw an error if you
+    // wanted to limit the number of allowed parameters. You can check,
+    // say, that parameterNodes.length < 255
+
+    if (
+      !matches(tokens[tokenHeadAfterParametersBuilt + 1 ], TOKEN_NAMES.LEFT_BRACE)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect { before a function body',
+        lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+      });
+    }
+
+    const {
+      currentTokenHead: tokenHeadAfterBlockBuilt,
+      environment: envAfterBlockBuilt,
+      statements,
+    } = buildBlock({
+      tokens,
+      currentTokenHead: tokenHeadAfterParametersBuilt + 2,
+      environment: envAfterParametersBuilt,
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterBlockBuilt], TOKEN_NAMES.RIGHT_BRACE)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect } after a function body',
+        lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+      });
+    }
+    // UPTO HERE - need to figure out the environment -- where does it go?
+    // How does the block have access to the stuff declared as parameters
+
+}
+
 function buildDeclaration({
   tokens,
   currentTokenHead = 0,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+
+  if (matches(token, TOKEN_NAMES.FUN)) {
+    return buildFunction({ tokens, currentTokenHead, environment });
+  }
 
   if (matches(token, TOKEN_NAMES.VAR)) {
     return buildVar({ tokens, currentTokenHead, environment });

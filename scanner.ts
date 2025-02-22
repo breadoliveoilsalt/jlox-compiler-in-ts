@@ -71,6 +71,7 @@ const matchEqualEqual = (buffer: string) => buffer.match(/^==/);
 const matchEqual = (buffer: string) => buffer.match(/^=/);
 const matchTrue = (buffer: string) => buffer.match(/^true\b/);
 const matchFalse = (buffer: string) => buffer.match(/^false\b/);
+const matchFun = (buffer: string) => buffer.match(/^fun\b/);
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/);
 const matchPrint = (buffer: string) => buffer.match(/^print\b/);
 const matchVar = (buffer: string) => buffer.match(/^var\b/);
@@ -200,6 +201,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.FALSE,
     test: matchFalse,
     consumeFrom: (buffer: string): string => matchFalse(buffer)![0],
+  },
+  {
+    name: TOKEN_NAMES.FUN,
+    test: matchFun,
+    consumeFrom: (buffer: string): string => matchFun(buffer)![0],
   },
   // NOTE: I'm removing word boundary from numbers and
   // comparisons and operators, so 343>343 is valid.
