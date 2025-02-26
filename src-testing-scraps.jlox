@@ -1,3 +1,25 @@
+250226 Testing functions
+
+Works:
+
+
+var name = "Timmy";
+
+fun sayHi() {
+   print name;
+}
+
+sayHi();
+
+Not work: semicolon issue;
+function add5(num) {
+  return num + 5;
+}
+
+var result = add5(6);
+
+print result;
+
 
 // This owrks after I stop cloning env
 var num = 1;
@@ -52,3 +74,4 @@ while (num < 10) {
 
 print "end";
 print num;
+

@@ -1,7 +1,7 @@
-var name = "Timmy";
-
-fun sayHi() {
-   print name;
+fun num() {
+  return 5;
 }
 
-sayHi();
+var result = num();
+
+print result;
