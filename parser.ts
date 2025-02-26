@@ -181,15 +181,6 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
-  // TODO: Check this is correct. Will this cause problems building functions?
-  if (!has(environment, identifierName)) {
-    throw new CompilerError({
-      name: 'JloxSyntaxError',
-      message: `Undefined variable (identifier): "${token.text}"`,
-      lineNumber: token.lineNumber,
-    });
-  }
-
   const node = {
     token,
     evaluate() {
@@ -370,9 +361,17 @@ function buildCall({
       },
     };
 
+    // TODO: When you have a recursive function like buildArguments or 
+    // buildBlock, be consistent about whether it consumes the last brace
+    // or token. The tradeoff is: all the other functions consume the last
+    // token when evaluating, so there's consistence vs the call has to 
+    // then check that currentTokenHead-1 is the correct paren or brace,
+    // rather than EOF. Here, buildArgs does NOT consume the right paren,
+    // so we have the check here for currentTokenHead (above), but have to 
+    // plus one below
     return {
       node,
-      currentTokenHead: tokenHeadAfterArgumentsBuilt,
+      currentTokenHead: tokenHeadAfterArgumentsBuilt + 1,
       environment: envAfterArgumentsBuilt,
     };
   }
@@ -902,6 +901,8 @@ function buildExpressionStatement({
     environment: envAfterExpressionEval,
   } = buildExpression({ tokens, currentTokenHead, environment });
 
+  console.dir({location: "buildExpression", tokens, tokenHeadAfterExpressionEval }, {depth:null})
+
   if (
     matches(
       peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
@@ -921,6 +922,7 @@ function buildExpressionStatement({
       environment: envAfterExpressionEval,
     };
   }
+
 
   throw new CompilerError({
     name: 'JloxSynatxError',
@@ -1491,7 +1493,7 @@ function buildFunction({
     environment: envAfterIdentifierBuilt,
   } = buildIdentifier({
     tokens,
-    currentTokenHead,
+    currentTokenHead: currentTokenHead + 1,
     environment,
   });
 
@@ -1552,7 +1554,7 @@ function buildFunction({
 
   if (
     !matches(
-      tokens[tokenHeadAfterBlockStatementsBuilt],
+      tokens[tokenHeadAfterBlockStatementsBuilt - 1],
       TOKEN_NAMES.RIGHT_BRACE,
     )
   ) {

@@ -3,3 +3,5 @@ var name = "Timmy";
 fun sayHi() {
    print name;
 }
+
+sayHi();
