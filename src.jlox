@@ -1,7 +1,5 @@
-fun num() {
-  return 5;
+fun add(a, b) {
+  print a + b;
 }
 
-var result = num();
-
-print result;
+add(3, 5);

@@ -1574,7 +1574,9 @@ function buildFunction({
     arity() {
       return parameterNodes.length;
     },
+    // TODO: can I move away from any here??
     call(args: any) {
+      console.dir({args})
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i].evaluate();
