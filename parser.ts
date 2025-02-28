@@ -1579,7 +1579,7 @@ function buildFunction({
       console.dir({args})
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
-        const argumentValue = args[i].evaluate();
+        const argumentValue = args[i];
         set(environment, paramKey, argumentValue);
       });
       statements.forEach((statement) => statement.evaluate());
