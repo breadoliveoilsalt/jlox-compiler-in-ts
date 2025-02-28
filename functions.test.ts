@@ -46,4 +46,7 @@ describe('function declarations and calls', () => {
     await compile(readLine);
     expect(printSpy.mock.calls).toEqual([[17]]);
   });
+
+
+  // UPTO: Add return statements; then write tests for return statements; write tests for something that returns a function and then is immediately invoked
 });
