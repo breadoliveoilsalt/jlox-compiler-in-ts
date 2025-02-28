@@ -36,7 +36,7 @@ type AstTree = {
   evaluate: () => any;
 };
 
-const { set, update, get, has } = envHelpers();
+const { set, update, get } = envHelpers();
 
 function buildTrue({
   tokens,
@@ -334,7 +334,10 @@ function buildCall({
         const callee = primaryNode.evaluate();
         // TODO: Put some kind of typecheck here to verify that callee is a valid
         // functionObject
-        if (!Object.hasOwn(callee, "call") || typeof callee.call !== "function") {
+        if (
+          !Object.hasOwn(callee, 'call') ||
+          typeof callee.call !== 'function'
+        ) {
           throw new RuntimeError({
             name: 'RuntimeError',
             message:
@@ -357,17 +360,17 @@ function buildCall({
           });
         }
 
-        return callee.call(evaluatedArguments)
+        return callee.call(evaluatedArguments);
       },
     };
 
-    // TODO: When you have a recursive function like buildArguments or 
+    // TODO: When you have a recursive function like buildArguments or
     // buildBlock, be consistent about whether it consumes the last brace
     // or token. The tradeoff is: all the other functions consume the last
-    // token when evaluating, so there's consistence vs the call has to 
+    // token when evaluating, so there's consistence vs the call has to
     // then check that currentTokenHead-1 is the correct paren or brace,
     // rather than EOF. Here, buildArgs does NOT consume the right paren,
-    // so we have the check here for currentTokenHead (above), but have to 
+    // so we have the check here for currentTokenHead (above), but have to
     // plus one below
     return {
       node,
@@ -901,8 +904,6 @@ function buildExpressionStatement({
     environment: envAfterExpressionEval,
   } = buildExpression({ tokens, currentTokenHead, environment });
 
-  console.dir({location: "buildExpression", tokens, tokenHeadAfterExpressionEval }, {depth:null})
-
   if (
     matches(
       peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
@@ -922,7 +923,6 @@ function buildExpressionStatement({
       environment: envAfterExpressionEval,
     };
   }
-
 
   throw new CompilerError({
     name: 'JloxSynatxError',
@@ -1575,8 +1575,7 @@ function buildFunction({
       return parameterNodes.length;
     },
     // TODO: can I move away from any here??
-    call(args: any) {
-      console.dir({args})
+    call(args: any[]) {
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i];

@@ -3,3 +3,15 @@ fun add(a, b) {
 }
 
 add(3, 5);
+
+fun printFive() {
+  print 5;
+}
+
+printFive();
+
+fun addFive(num) {
+  print 5 + num;
+}
+
+addFive(3);
