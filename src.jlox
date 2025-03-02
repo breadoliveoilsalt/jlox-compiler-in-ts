@@ -1,17 +1,8 @@
 fun add(a, b) {
-  print a + b;
+  return a + b;
 }
 
-add(3, 5);
+var result = add(3, 5);
 
-fun printFive() {
-  print 5;
-}
+print result;
 
-printFive();
-
-fun addFive(num) {
-  print 5 + num;
-}
-
-addFive(3);

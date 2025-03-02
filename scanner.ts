@@ -75,6 +75,7 @@ const matchFalse = (buffer: string) => buffer.match(/^false\b/);
 const matchFun = (buffer: string) => buffer.match(/^fun\b/);
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/);
 const matchPrint = (buffer: string) => buffer.match(/^print\b/);
+const matchReturn = (buffer: string) => buffer.match(/^return\b/);
 const matchVar = (buffer: string) => buffer.match(/^var\b/);
 const matchIf = (buffer: string) => buffer.match(/^if\b/);
 const matchElse = (buffer: string) => buffer.match(/^else\b/);
@@ -224,6 +225,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.PRINT,
     test: matchPrint,
     consumeFrom: buildConsumer(matchPrint),
+  },
+  {
+    name: TOKEN_NAMES.RETURN,
+    test: matchReturn,
+    consumeFrom: buildConsumer(matchReturn),
   },
   {
     name: TOKEN_NAMES.VAR,

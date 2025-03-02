@@ -299,6 +299,11 @@ function buildCall({
 
   // TODO: check this can handle multiple back to back calls ()()()
 
+  // tokens.forEach((t,i) => {
+  //   console.dir(i)
+  //   console.dir(t)
+  // })
+  console.dir({currentTokenHead, environment})
   if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
     // I wonder if here is a place to put the check whether the node above
     // is a function
@@ -334,6 +339,7 @@ function buildCall({
         const callee = primaryNode.evaluate();
         // TODO: Put some kind of typecheck here to verify that callee is a valid
         // functionObject
+        console.dir({callee})
         if (
           !Object.hasOwn(callee, 'call') ||
           typeof callee.call !== 'function'
@@ -1205,6 +1211,56 @@ function buildStatement({
     };
   }
 
+  if (matches(token, TOKEN_NAMES.RETURN)) {
+    const nextToken = tokens[currentTokenHead + 1];
+    if (matches(nextToken, TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token: tokens[currentTokenHead + 2],
+        evaluate() {
+          throw null;
+        },
+      };
+      return {
+        node,
+        currentTokenHead: currentTokenHead + 2,
+        environment: environment,
+      };
+    }
+
+    const {
+      node: expression,
+      currentTokenHead: tokenHeadAfterExpressionBuilt,
+      environment: envAfterExpressionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+      environment,
+    });
+
+    // UPTO HERE: basically trying to figure out why in source file
+    // the function add is not available to the environment
+    if (matches(tokens[tokenHeadAfterExpressionBuilt], TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token: tokens[tokenHeadAfterExpressionBuilt],
+        evaluate() {
+          throw expression.evaluate();
+        },
+      };
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
+        environment: envAfterExpressionBuilt,
+      };
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing semicolon ";" after return statement',
+      lineNumber: token.lineNumber,
+    });
+  }
+
   if (matches(token, TOKEN_NAMES.PRINT)) {
     const {
       node: expression,
@@ -1581,7 +1637,11 @@ function buildFunction({
         const argumentValue = args[i];
         set(environment, paramKey, argumentValue);
       });
-      statements.forEach((statement) => statement.evaluate());
+      try {
+        statements.forEach((statement) => statement.evaluate());
+      } catch (returnValue) {
+        return returnValue;
+      }
     },
   };
 
