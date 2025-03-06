@@ -212,3 +212,19 @@ fun whoopie(num) {
 }
 
 whoopie(5);
+
+This also works now! these may be decent test cases
+
+fun whoopie(num) {
+  if (num == 0) {
+    return "whoopie!";
+  }
+  return 6;
+}
+
+var result = whoopie(0);
+
+print result;
+
+var result1 = whoopie(7);
+print result1;

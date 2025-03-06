@@ -1,8 +1,13 @@
 fun whoopie(num) {
-  print num;
-  print num - 1;
-  var newNum = num - 1;
-  print newNum;
+  if (num == 0) {
+    return "whoopie!";
+  }
+  return 6;
 }
 
-whoopie(5);
+var result = whoopie(0);
+
+print result;
+
+var result1 = whoopie(7);
+print result1;
