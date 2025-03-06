@@ -235,7 +235,7 @@ describe('while loops', () => {
     await compile(readLine);
 
     expect(printSpy.mock.calls).toEqual([
-      [+0],
+      [0],
       [1],
       [2],
       [3],

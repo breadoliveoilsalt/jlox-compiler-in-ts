@@ -75,3 +75,72 @@ while (num < 10) {
 print "end";
 print num;
 
+-----
+250305 Testing returns
+
+
+NOT WORK:
+
+fun add(a, b) {
+  return a + b;
+}
+
+var result = add(3, 5);
+
+print result;
+
+WORKS:
+
+var fish = "salmon";
+print fish;
+
+THIS ALSO WORKS:
+
+fun work() {
+  var fish = "salmon";
+  print fish;
+}
+
+work();
+
+THIS WORKS!
+
+fun add(a, b) {
+  return a + b;
+}
+
+print add(3, 5);
+
+SO WHY DOES THIS NOT WORK?
+
+Now this works...
+
+fun add(a, b) {
+  return a + b;
+}
+
+print add(7, 8);
+
+var result = add(3, 5);
+
+print result;
+
+I had to move the setting of the function identifier in the env 
+outide the evaluate() call. To add this to lessons learned.
+Note: this is similar to what had to happen other times the 
+`set` function was called: the setting never happened inside an
+evaluate call. It happened outside.
+
+
+-----
+
+this does not work
+
+fun add(a, b) {
+  print a + b;
+  return fun divide(a, b) {
+    return a / b;
+  };
+}
+
+print add(10, 5)();

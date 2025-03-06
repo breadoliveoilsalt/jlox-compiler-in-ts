@@ -303,7 +303,6 @@ function buildCall({
   //   console.dir(i)
   //   console.dir(t)
   // })
-  console.dir({currentTokenHead, environment})
   if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
     // I wonder if here is a place to put the check whether the node above
     // is a function
@@ -330,6 +329,11 @@ function buildCall({
 
     // NOTE: If you wanted to limit the number of allowed arguments, here is where
     // you add check, say, that argumentNodes.length < 255
+    console.log('in build call, examining primaryNode');
+    console.dir(primaryNode, { depth: null });
+    console.log(primaryNode.evaluate.toString());
+    console.log('env');
+    console.dir(envAfterArgumentsBuilt, { depth: null });
 
     const node = {
       token: tokens[tokenHeadAfterArgumentsBuilt],
@@ -339,11 +343,8 @@ function buildCall({
         const callee = primaryNode.evaluate();
         // TODO: Put some kind of typecheck here to verify that callee is a valid
         // functionObject
-        console.dir({callee})
-        if (
-          !Object.hasOwn(callee, 'call') ||
-          typeof callee.call !== 'function'
-        ) {
+        console.log('inside evaluate of buildCall', { callee });
+        if (!Object.hasOwn(callee, 'call')) {
           throw new RuntimeError({
             name: 'RuntimeError',
             message:
@@ -843,6 +844,9 @@ function buildAssignment({
     currentTokenHead,
     environment,
   });
+
+  console.log('made it to equal');
+  console.log({ envAfterOrBuild });
 
   if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
     const {
@@ -1645,16 +1649,19 @@ function buildFunction({
     },
   };
 
+  if (envAfterBlockStatementsBuilt !== null) {
+    set(
+      envAfterBlockStatementsBuilt,
+      identifierNode.token.text,
+      functionObject,
+    );
+  }
+
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
     evaluate() {
-      if (envAfterBlockStatementsBuilt !== null) {
-        set(
-          envAfterBlockStatementsBuilt,
-          identifierNode.token.text,
-          functionObject,
-        );
-      }
+      // TODO: check this is technically correct
+      return null;
     },
   };
 
