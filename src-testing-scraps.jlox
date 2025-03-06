@@ -157,3 +157,34 @@ fun whoopie(num) {
 var result = whoopie(0);
 
 print result;
+
+
+DOES NOT WORK -- why??
+
+
+fun whoopie(num) {
+  if (num == 0) {
+    print "whoopie!";
+  }
+  print num;
+  print num - 1;
+  var newNum = num - 1;
+  print newNum;
+}
+
+// UPTO here, trying to figure out
+// why this fails. I need a step-through
+// debugger
+whoopie(10);
+
+
+BUT this works
+
+fun whoopie(num) {
+  if (num == 0) {
+    print "whoopie!";
+  }
+  print num - 1;
+}
+
+whoopie(10);

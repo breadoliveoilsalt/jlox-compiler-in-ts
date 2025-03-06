@@ -287,6 +287,7 @@ function buildCall({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
+  console.log("in build call")
   const {
     node: primaryNode,
     currentTokenHead: tokenHeadAfterPrimaryBuilt,
@@ -330,6 +331,7 @@ function buildCall({
     // NOTE: If you wanted to limit the number of allowed arguments, here is where
     // you add check, say, that argumentNodes.length < 255
 
+    console.dir({primaryNode}, {depth: null})
     const node = {
       token: tokens[tokenHeadAfterArgumentsBuilt],
       argumentNodes,
@@ -1257,6 +1259,8 @@ function buildStatement({
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
+    console.log("In print evaluation")
+    console.dir({environment}, {depth: null})
     const {
       node: expression,
       currentTokenHead: tokenHeadAfterExpressionEval,
