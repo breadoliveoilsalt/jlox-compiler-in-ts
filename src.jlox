@@ -1,4 +1,8 @@
-var fish = 5;
-print fish - 1;
-var newFish = fish - 3;
-print newFish;
+fun whoopie(num) {
+  print num;
+  print num - 1;
+  var newNum = num - 1;
+  print newNum;
+}
+
+whoopie(5);

@@ -197,3 +197,18 @@ fun whoopie(num) {
 }
 
 whoopie(5);
+
+------
+
+This works after I move all set/update/get to inside
+evaluate calls
+
+THAT FIXES THE PROBLEM ABOVE TOO! This one:
+fun whoopie(num) {
+  print num;
+  print num - 1;
+  var newNum = num - 1;
+  print newNum;
+}
+
+whoopie(5);
