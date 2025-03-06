@@ -13,6 +13,8 @@ print add(2, 3);
 
 UPTO:
 - Clean up parser file
+  - remove stuff I commented out
+  - remove console logs
 - Do tests based on what I've learned in my scrap file!
 - Double check test vs his examples
 - do a test example of returning early
