@@ -1,13 +1,18 @@
-fun whoopie(num) {
-  if (num == 0) {
-    return "whoopie!";
+fun add(a, b) {
+  if (a + b > 100) {
+    print "overload!";
+    return;
   }
-  return 6;
+  print a + b;
+  var newFirst = a + a;
+  var newSecond = b + b;
+  add(newFirst, newSecond);
 }
 
-var result = whoopie(0);
+print add(2, 3);
 
-print result;
-
-var result1 = whoopie(7);
-print result1;
+UPTO:
+- Clean up parser file
+- Do tests based on what I've learned in my scrap file!
+- Double check test vs his examples
+- do a test example of returning early

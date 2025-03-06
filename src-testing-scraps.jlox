@@ -228,3 +228,36 @@ print result;
 
 var result1 = whoopie(7);
 print result1;
+
+This does not work, but I don't expect it to
+
+fun whoopie(num) {
+  if (num == 0) {
+    return "whoopie!";
+  }
+  return 6;
+}
+
+var result = whoopie(0);
+
+print result;
+
+var result1 = whoopie(7);
+print result1;
+
+------
+
+This works! Recursion!
+
+fun add(a, b) {
+  if (a + b > 100) {
+    print "overload!";
+    return;
+  }
+  print a + b;
+  var newFirst = a + a;
+  var newSecond = b + b;
+  add(newFirst, newSecond);
+}
+
+print add(2, 3);
