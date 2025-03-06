@@ -144,3 +144,16 @@ fun add(a, b) {
 }
 
 print add(10, 5)();
+
+
+This works
+
+fun whoopie(num) {
+  if (num == 0) {
+    return "whoopie!";
+  }
+}
+
+var result = whoopie(0);
+
+print result;

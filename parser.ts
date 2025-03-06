@@ -329,11 +329,6 @@ function buildCall({
 
     // NOTE: If you wanted to limit the number of allowed arguments, here is where
     // you add check, say, that argumentNodes.length < 255
-    console.log('in build call, examining primaryNode');
-    console.dir(primaryNode, { depth: null });
-    console.log(primaryNode.evaluate.toString());
-    console.log('env');
-    console.dir(envAfterArgumentsBuilt, { depth: null });
 
     const node = {
       token: tokens[tokenHeadAfterArgumentsBuilt],
@@ -343,7 +338,6 @@ function buildCall({
         const callee = primaryNode.evaluate();
         // TODO: Put some kind of typecheck here to verify that callee is a valid
         // functionObject
-        console.log('inside evaluate of buildCall', { callee });
         if (!Object.hasOwn(callee, 'call')) {
           throw new RuntimeError({
             name: 'RuntimeError',
@@ -844,9 +838,6 @@ function buildAssignment({
     currentTokenHead,
     environment,
   });
-
-  console.log('made it to equal');
-  console.log({ envAfterOrBuild });
 
   if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
     const {
