@@ -1,7 +1,4 @@
 fun whoopie(num) {
-  if (num == 0) {
-    print "whoopie!";
-  }
   print num;
   print num - 1;
   var newNum = num - 1;

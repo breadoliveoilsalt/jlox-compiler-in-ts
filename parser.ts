@@ -945,6 +945,9 @@ function buildBlock({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
+  console.log("in build block")
+
+  console.dir({environment}, {depth: null})
   // NOTE:
   // - buildBlock assumes left brace has been consumed
   // - but buildBlock consumes the right brance before it returns
