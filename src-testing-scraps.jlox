@@ -125,9 +125,9 @@ var result = add(3, 5);
 
 print result;
 
-I had to move the setting of the function identifier in the env 
+I had to move the setting of the function identifier in the env
 outide the evaluate() call. To add this to lessons learned.
-Note: this is similar to what had to happen other times the 
+Note: this is similar to what had to happen other times the
 `set` function was called: the setting never happened inside an
 evaluate call. It happened outside.
 
@@ -188,3 +188,12 @@ fun whoopie(num) {
 }
 
 whoopie(10);
+
+fun whoopie(num) {
+  print num;
+  print num - 1;
+  var newNum = num - 1;
+  print newNum;
+}
+
+whoopie(5);

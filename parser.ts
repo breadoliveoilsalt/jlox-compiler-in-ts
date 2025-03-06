@@ -287,7 +287,7 @@ function buildCall({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  console.log("in build call")
+  console.log('in build call');
   const {
     node: primaryNode,
     currentTokenHead: tokenHeadAfterPrimaryBuilt,
@@ -331,7 +331,7 @@ function buildCall({
     // NOTE: If you wanted to limit the number of allowed arguments, here is where
     // you add check, say, that argumentNodes.length < 255
 
-    console.dir({primaryNode}, {depth: null})
+    console.dir({ primaryNode }, { depth: null });
     const node = {
       token: tokens[tokenHeadAfterArgumentsBuilt],
       argumentNodes,
@@ -945,9 +945,9 @@ function buildBlock({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
-  console.log("in build block")
+  console.log('in build block');
 
-  console.dir({environment}, {depth: null})
+  console.dir({ environment }, { depth: null });
   // NOTE:
   // - buildBlock assumes left brace has been consumed
   // - but buildBlock consumes the right brance before it returns
@@ -1262,8 +1262,8 @@ function buildStatement({
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
-    console.log("In print evaluation")
-    console.dir({environment}, {depth: null})
+    console.log('In print evaluation');
+    console.dir({ environment }, { depth: null });
     const {
       node: expression,
       currentTokenHead: tokenHeadAfterExpressionEval,
@@ -1423,11 +1423,12 @@ function buildVar({
       ],
     })
   ) {
-    const updatedEnv = set(environment, varName, undefined);
+    // const updatedEnv = set(environment, varName, undefined);
 
     const node = {
       token: tokens[currentTokenHead + 1],
       evaluate() {
+        set(environment, varName, undefined);
         return null;
       },
     };
@@ -1435,7 +1436,8 @@ function buildVar({
     return {
       node,
       currentTokenHead: currentTokenHead + 3,
-      environment: updatedEnv,
+      // environment: updatedEnv,
+      environment: environment,
     };
   }
 
@@ -1461,15 +1463,16 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      const updatedEnv = set(
-        envAfterExpressionEval,
-        varName,
-        expressionNode.evaluate(),
-      );
+      // const updatedEnv = set(
+      //   envAfterExpressionEval,
+      //   varName,
+      //   expressionNode.evaluate(),
+      // );
 
       const node = {
         token: identifier,
         evaluate() {
+          set(envAfterExpressionEval, varName, expressionNode.evaluate());
           return null;
         },
       };
@@ -1477,7 +1480,8 @@ function buildVar({
       return {
         node,
         currentTokenHead: tokenHeadAfterExpressionEval + 1,
-        environment: updatedEnv,
+        // environment: updatedEnv,
+        environment: envAfterExpressionEval,
       };
     }
 
@@ -1647,17 +1651,24 @@ function buildFunction({
     },
   };
 
-  if (envAfterBlockStatementsBuilt !== null) {
-    set(
-      envAfterBlockStatementsBuilt,
-      identifierNode.token.text,
-      functionObject,
-    );
-  }
+  // if (envAfterBlockStatementsBuilt !== null) {
+  //   set(
+  //     envAfterBlockStatementsBuilt,
+  //     identifierNode.token.text,
+  //     functionObject,
+  //   );
+  // }
 
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
     evaluate() {
+      if (envAfterBlockStatementsBuilt !== null) {
+        set(
+          envAfterBlockStatementsBuilt,
+          identifierNode.token.text,
+          functionObject,
+        );
+      }
       // TODO: check this is technically correct
       return null;
     },
