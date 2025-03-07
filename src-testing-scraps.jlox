@@ -261,3 +261,75 @@ fun add(a, b) {
 }
 
 print add(2, 3);
+
+ADD TEST BASED ON THIS
+fun add(a, b) {
+  if (a + b > 100) {
+    print "overload!";
+    return;
+  }
+  print a + b;
+  var newFirst = a + a;
+  var newSecond = b + b;
+  add(newFirst, newSecond);
+}
+
+print add(2, 3);
+
+-----
+
+fun returnFive() {
+  return 5;
+}
+
+var result1 = returnFive();
+
+var result2 = result1 + 7;
+
+print result2;
+
+
+-----
+works!
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i  = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();
+
+    console.dir({ primaryNode }, { depth: null });
+  // tokens.forEach((t,i) => {
+  //   console.dir(i)
+  //   console.dir(t)
+  // })
+
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+// THIS is not working for some reason
+for (var i = 0; i < 20; i = i + 1) {
+  print i;
+}
+
+// something seems wrong with my conditions;
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
+
+  return fib(n - 2) + fib(n - 1);
+}
+
+print fib(20);

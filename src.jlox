@@ -1,20 +1,10 @@
-fun add(a, b) {
-  if (a + b > 100) {
-    print "overload!";
-    return;
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
   }
-  print a + b;
-  var newFirst = a + a;
-  var newSecond = b + b;
-  add(newFirst, newSecond);
+
+  return fib(n - 2) + fib(n - 1);
 }
 
-print add(2, 3);
-
-UPTO:
-- Clean up parser file
-  - remove stuff I commented out
-  - remove console logs
-- Do tests based on what I've learned in my scrap file!
-- Double check test vs his examples
-- do a test example of returning early
+print fib(20);

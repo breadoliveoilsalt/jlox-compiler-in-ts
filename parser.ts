@@ -3,6 +3,14 @@ import { CompilerError, RuntimeError } from './errors';
 import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
+// UPTO:
+// - Clean up parser file
+//   - remove stuff I commented out
+//   - remove console logs
+// - Do tests based on what I've learned in my scrap file!
+// - Double check test vs his examples
+// - do a test example of returning early
+
 export type Environment = {
   outerScope: null | Environment;
   [key: string]: any;
@@ -287,7 +295,6 @@ function buildCall({
   currentTokenHead,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
-  console.log('in build call');
   const {
     node: primaryNode,
     currentTokenHead: tokenHeadAfterPrimaryBuilt,
@@ -299,11 +306,6 @@ function buildCall({
   });
 
   // TODO: check this can handle multiple back to back calls ()()()
-
-  // tokens.forEach((t,i) => {
-  //   console.dir(i)
-  //   console.dir(t)
-  // })
   if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
     // I wonder if here is a place to put the check whether the node above
     // is a function
@@ -331,7 +333,6 @@ function buildCall({
     // NOTE: If you wanted to limit the number of allowed arguments, here is where
     // you add check, say, that argumentNodes.length < 255
 
-    console.dir({ primaryNode }, { depth: null });
     const node = {
       token: tokens[tokenHeadAfterArgumentsBuilt],
       argumentNodes,
@@ -945,14 +946,15 @@ function buildBlock({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
-  console.log('in build block');
-
-  console.dir({ environment }, { depth: null });
   // NOTE:
   // - buildBlock assumes left brace has been consumed
-  // - but buildBlock consumes the right brance before it returns
+  // - but buildBlock consumes the right brace before it returns
   // - buildBlock assumes new "outer" env has been passed to it
-  // - but buildBlock consumes/resets this outer env before it returns
+  //    - This way the parent that calls buildBlock can keep
+  //      a reference to that environment. See how `buildFunction`
+  //      uses `blockEnv`, for example.
+  // - buildBlock consumes/resets this outer env before it returns,
+  //   so the returned env is the parent's env, however.
   const currentTokenName = tokens[currentTokenHead].name;
 
   if (
@@ -1262,8 +1264,6 @@ function buildStatement({
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
-    console.log('In print evaluation');
-    console.dir({ environment }, { depth: null });
     const {
       node: expression,
       currentTokenHead: tokenHeadAfterExpressionEval,
