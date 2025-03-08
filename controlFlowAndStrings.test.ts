@@ -8,6 +8,7 @@ describe('control flow and strings', () => {
     vi.resetAllMocks();
   });
 
+  // TODO/UPTO: Add test where var is outside the block. Make sure block can access var
   describe('if/else blocks', () => {
     test('when the if condition is true, the if statement is evaluated instead of the else statement', async () => {
       const printSpy = vi

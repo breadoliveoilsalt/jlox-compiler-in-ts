@@ -1014,6 +1014,7 @@ function buildForStatement({
   if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.SEMICOLON)) {
     initializer = null;
   } else if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.VAR)) {
+    console.log("in build var")
     initializer = buildVar({
       tokens,
       currentTokenHead: currentTokenHead + 2,
@@ -1033,6 +1034,9 @@ function buildForStatement({
   const envAfterInitializer = initializer
     ? initializer.environment
     : environment;
+
+  console.dir({initializer, envAfterInitializer}, {depth:null})
+
 
   if (!matches(tokens[tokenHeadAfterInitializer], TOKEN_NAMES.SEMICOLON)) {
     condition = buildExpression({
@@ -1082,7 +1086,9 @@ function buildForStatement({
     });
   }
 
-  // UPTO WHY DIDNT I do a build body here??
+  // console.dir({envAfterIncrement, tokens, tokenHeadAfterIncrement }, {depth:null})
+  // UPTO WHY DIDNT I do a build body here?? It's b/c statement includes buildBlock
+  // Part of the problem is before this - the increment is not in the env
   const {
     node: body,
     currentTokenHead: tokenHeadAfterStatementBuild,
@@ -1102,6 +1108,7 @@ function buildForStatement({
     token: tokens[tokenHeadAfterIncrement],
     evaluate() {
       // Force true if no condition specified
+      initializer && initializer.node.evaluate();
       while (condition ? condition.node.evaluate() : true) {
         statements.forEach((statement) => statement.evaluate());
       }
@@ -1241,8 +1248,6 @@ function buildStatement({
       environment,
     });
 
-    // UPTO HERE: basically trying to figure out why in source file
-    // the function add is not available to the environment
     if (matches(tokens[tokenHeadAfterExpressionBuilt], TOKEN_NAMES.SEMICOLON)) {
       const node = {
         token: tokens[tokenHeadAfterExpressionBuilt],
@@ -1454,6 +1459,7 @@ function buildVar({
       ],
     })
   ) {
+    console.log("in about to assign within buildVar")
     const {
       node: expressionNode,
       currentTokenHead: tokenHeadAfterExpressionEval,
