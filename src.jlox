@@ -1,10 +1,21 @@
-fun fib(n) {
-  print n;
-  if (n <= 1) {
-    return n;
-  }
+var n = 5;
 
-  return fib(n - 2) + fib(n - 1);
+if (n > 4) {
+  print "greater!";
 }
 
-print fib(20);
+if (n == 4) {
+  print "equal!";
+}
+
+if (n < 4) {
+  print "less than!";
+}
+
+if (n <= 4) {
+  print "less than or equal!";
+}
+
+if (n >= 4) {
+  print "greater than or equal!";
+}
