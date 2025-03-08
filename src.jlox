@@ -1,21 +1,32 @@
-var n = 5;
+var n = 3;
 
-if (n > 4) {
-  print "greater!";
+fun analyze() {
+  var result;
+
+  if (n > 4) {
+    print "greater!";
+  }
+
+  if (n == 4) {
+    print "equal!";
+  }
+
+  if (n < 4) {
+    print "less than!";
+    result = "good!";
+  }
+
+  if (n <= 4) {
+    print "less than or equal!";
+  }
+
+  if (n >= 4) {
+    print "greater than or equal!";
+  }
+
+  return result;
 }
 
-if (n == 4) {
-  print "equal!";
-}
+var result = analyze();
 
-if (n < 4) {
-  print "less than!";
-}
-
-if (n <= 4) {
-  print "less than or equal!";
-}
-
-if (n >= 4) {
-  print "greater than or equal!";
-}
+print result;

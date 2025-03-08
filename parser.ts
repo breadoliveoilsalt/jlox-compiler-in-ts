@@ -1026,6 +1026,7 @@ function buildForStatement({
       environment,
     });
   }
+
   const tokenHeadAfterInitializer = initializer
     ? initializer.currentTokenHead
     : currentTokenHead + 3;
@@ -1081,6 +1082,7 @@ function buildForStatement({
     });
   }
 
+  // UPTO WHY DIDNT I do a build body here??
   const {
     node: body,
     currentTokenHead: tokenHeadAfterStatementBuild,

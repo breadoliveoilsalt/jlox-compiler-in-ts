@@ -333,3 +333,38 @@ fun fib(n) {
 }
 
 print fib(20);
+
+Works
+
+var n = 3;
+
+fun analyze() {
+  var result;
+
+  if (n > 4) {
+    print "greater!";
+  }
+
+  if (n == 4) {
+    print "equal!";
+  }
+
+  if (n < 4) {
+    print "less than!";
+    result = "good!";
+  }
+
+  if (n <= 4) {
+    print "less than or equal!";
+  }
+
+  if (n >= 4) {
+    print "greater than or equal!";
+  }
+
+  return result;
+}
+
+var result = analyze();
+
+print result;
