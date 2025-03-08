@@ -1,32 +1,10 @@
-var n = 3;
-
-fun analyze() {
-  var result;
-
-  if (n > 4) {
-    print "greater!";
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
   }
 
-  if (n == 4) {
-    print "equal!";
-  }
-
-  if (n < 4) {
-    print "less than!";
-    result = "good!";
-  }
-
-  if (n <= 4) {
-    print "less than or equal!";
-  }
-
-  if (n >= 4) {
-    print "greater than or equal!";
-  }
-
-  return result;
+  return fib(n - 2) + fib(n - 1);
 }
 
-var result = analyze();
-
-print result;
+fib(20);

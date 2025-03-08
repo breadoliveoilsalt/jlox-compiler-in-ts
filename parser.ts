@@ -4,10 +4,13 @@ import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
 // UPTO:
-// - Clean up parser file
-//   - remove stuff I commented out
-//   - remove console logs
 // - Do tests based on what I've learned in my scrap file!
+//    - especially tests for function calls that work so
+//    far, so I know I'm not breaking anything
+// - Find a way to fix the env problem proven by
+//   The fibinnocci sequence problem -- I need to
+//   create a new env at every function call or something
+//   like that!
 // - Double check test vs his examples
 // - do a test example of returning early
 
@@ -1086,9 +1089,6 @@ function buildForStatement({
     });
   }
 
-  // console.dir({envAfterIncrement, tokens, tokenHeadAfterIncrement }, {depth:null})
-  // UPTO WHY DIDNT I do a build body here?? It's b/c statement includes buildBlock
-  // Part of the problem is before this - the increment is not in the env
   const {
     node: body,
     currentTokenHead: tokenHeadAfterStatementBuild,

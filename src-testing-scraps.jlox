@@ -368,3 +368,33 @@ fun analyze() {
 var result = analyze();
 
 print result;
+
+------
+For loops work
+
+
+But for this
+
+...I'm getting this result. AND the reason is that my value for n is getting polluted. That is, in the last line, the first call to fib is getting run and returned, BUT when it gets to the second call fib, it's the SAME env...that is, the first time fib(n-1) is called, n is 0! when it should be 20
+
+
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
+
+  return fib(n - 2) + fib(n - 1);
+}
+
+fib(20);
+20
+18
+16
+...
+-1
+-2
+...
+-10
+  print n;
+  print n;
