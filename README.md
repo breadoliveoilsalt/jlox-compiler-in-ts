@@ -305,3 +305,11 @@ Note: this is similar to what had to happen other times the
 evaluate call. It happened outside.
 
 
+    // TODO: When you have a recursive function like buildArguments or
+    // buildBlock, be consistent about whether it consumes the last brace
+    // or token. The tradeoff is: all the other functions consume the last
+    // token when evaluating, so there's consistence vs the call has to
+    // then check that currentTokenHead-1 is the correct paren or brace,
+    // rather than EOF. Here, buildArgs does NOT consume the right paren,
+    // so we have the check here for currentTokenHead (above), but have to
+    // plus one below

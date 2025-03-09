@@ -342,8 +342,6 @@ function buildCall({
       calleeNode: primaryNode,
       evaluate() {
         const callee = primaryNode.evaluate();
-        // TODO: Put some kind of typecheck here to verify that callee is a valid
-        // functionObject
         if (!Object.hasOwn(callee, 'call')) {
           throw new RuntimeError({
             name: 'RuntimeError',
@@ -357,7 +355,6 @@ function buildCall({
           argument.evaluate(),
         );
 
-        // Check number of arguments against function's arity
         if (evaluatedArguments.length !== callee.arity()) {
           throw new RuntimeError({
             name: 'RuntimeError',
@@ -371,14 +368,6 @@ function buildCall({
       },
     };
 
-    // TODO: When you have a recursive function like buildArguments or
-    // buildBlock, be consistent about whether it consumes the last brace
-    // or token. The tradeoff is: all the other functions consume the last
-    // token when evaluating, so there's consistence vs the call has to
-    // then check that currentTokenHead-1 is the correct paren or brace,
-    // rather than EOF. Here, buildArgs does NOT consume the right paren,
-    // so we have the check here for currentTokenHead (above), but have to
-    // plus one below
     return {
       node,
       currentTokenHead: tokenHeadAfterArgumentsBuilt + 1,
@@ -1426,7 +1415,6 @@ function buildVar({
       ],
     })
   ) {
-    // const updatedEnv = set(environment, varName, undefined);
 
     const node = {
       token: tokens[currentTokenHead + 1],
@@ -1439,7 +1427,6 @@ function buildVar({
     return {
       node,
       currentTokenHead: currentTokenHead + 3,
-      // environment: updatedEnv,
       environment: environment,
     };
   }
@@ -1477,7 +1464,6 @@ function buildVar({
       return {
         node,
         currentTokenHead: tokenHeadAfterExpressionEval + 1,
-        // environment: updatedEnv,
         environment: envAfterExpressionEval,
       };
     }
@@ -1648,14 +1634,6 @@ function buildFunction({
     },
   };
 
-  // if (envAfterBlockStatementsBuilt !== null) {
-  //   set(
-  //     envAfterBlockStatementsBuilt,
-  //     identifierNode.token.text,
-  //     functionObject,
-  //   );
-  // }
-
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
     evaluate() {
@@ -1666,7 +1644,6 @@ function buildFunction({
           functionObject,
         );
       }
-      // TODO: check this is technically correct
       return null;
     },
   };
