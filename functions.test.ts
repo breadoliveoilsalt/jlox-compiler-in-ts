@@ -209,4 +209,82 @@ describe('function declarations and calls', () => {
       ['nil'],
     ]);
   });
+
+  test('functions even allow for closures', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      `
+        fun makeCounter() {
+          var i = 0;
+          fun count() {
+            i  = i + 1;
+            print i;
+          }
+
+          return count;
+        }
+
+        var counter = makeCounter();
+        counter();
+        counter();
+      `,
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+    expect(printSpy.mock.calls).toEqual([[1], [2]]);
+  });
+
+
+  test('functions work pretty well with outside and inside scope', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      `
+        var n = 3;
+
+        fun analyze() {
+          var result;
+
+          if (n > 4) {
+            print "greater!";
+          }
+
+          if (n == 4) {
+            print "equal!";
+          }
+
+          if (n < 4) {
+            print "less than!";
+            result = "good!";
+          }
+
+          if (n <= 4) {
+            print "less than or equal!";
+          }
+
+          if (n >= 4) {
+            print "greater than or equal!";
+          }
+
+          return result;
+        }
+
+        var result = analyze();
+
+        print result;
+      `,
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+    expect(printSpy.mock.calls).toEqual([["\"less than!\""], ["\"less than or equal!\""], ["\"good!\""]]);
+  });
 });

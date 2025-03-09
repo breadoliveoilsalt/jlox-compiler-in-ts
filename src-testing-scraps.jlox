@@ -1,65 +1,4 @@
-
-
-This works! Recursion!
-
-fun add(a, b) {
-  if (a + b > 100) {
-    print "overload!";
-    return;
-  }
-  print a + b;
-  var newFirst = a + a;
-  var newSecond = b + b;
-  add(newFirst, newSecond);
-}
-
-print add(2, 3);
-
-ADD TEST BASED ON THIS
-fun add(a, b) {
-  if (a + b > 100) {
-    print "overload!";
-    return;
-  }
-  print a + b;
-  var newFirst = a + a;
-  var newSecond = b + b;
-  add(newFirst, newSecond);
-}
-
-print add(2, 3);
-
------
-
-fun returnFive() {
-  return 5;
-}
-
-var result1 = returnFive();
-
-var result2 = result1 + 7;
-
-print result2;
-
-
------
-works!
-
-fun makeCounter() {
-  var i = 0;
-  fun count() {
-    i  = i + 1;
-    print i;
-  }
-
-  return count;
-}
-
-var counter = makeCounter();
-counter();
-counter();
-
-    console.dir({ primaryNode }, { depth: null });
+  //  console.dir({ primaryNode }, { depth: null });
   // tokens.forEach((t,i) => {
   //   console.dir(i)
   //   console.dir(t)
@@ -89,38 +28,6 @@ print fib(20);
 
 Works
 
-var n = 3;
-
-fun analyze() {
-  var result;
-
-  if (n > 4) {
-    print "greater!";
-  }
-
-  if (n == 4) {
-    print "equal!";
-  }
-
-  if (n < 4) {
-    print "less than!";
-    result = "good!";
-  }
-
-  if (n <= 4) {
-    print "less than or equal!";
-  }
-
-  if (n >= 4) {
-    print "greater than or equal!";
-  }
-
-  return result;
-}
-
-var result = analyze();
-
-print result;
 
 ------
 For loops work
