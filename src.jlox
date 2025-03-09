@@ -1,12 +1,10 @@
-fun add(a, b) {
-  if (a + b > 100) {
-    print "overload!";
-    return;
+fun createAdder() {
+  fun add(a, b) {
+    return a + b;
   }
-  print a + b;
-  var newFirst = a + a;
-  var newSecond = b + b;
-  add(newFirst, newSecond);
+  return add;
 }
 
-print add(2, 3);
+var result = createAdder();
+
+print result(3, 5);

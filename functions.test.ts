@@ -276,9 +276,7 @@ describe('function declarations and calls', () => {
           return result;
         }
 
-        var result = analyze();
-
-        print result;
+        print analyze();
       `,
     ];
 

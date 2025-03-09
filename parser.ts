@@ -4,9 +4,6 @@ import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
 // UPTO:
-// - Do tests based on what I've learned in my scrap file!
-//    - especially tests for function calls that work so
-//    far, so I know I'm not breaking anything
 // - Find a way to fix the env problem proven by
 //   The fibinnocci sequence problem -- I need to
 //   create a new env at every function call or something
@@ -308,10 +305,7 @@ function buildCall({
     environment,
   });
 
-  // TODO: check this can handle multiple back to back calls ()()()
   if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
-    // I wonder if here is a place to put the check whether the node above
-    // is a function
     const {
       argumentNodes,
       currentTokenHead: tokenHeadAfterArgumentsBuilt,
