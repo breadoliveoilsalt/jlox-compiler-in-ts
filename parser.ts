@@ -1017,7 +1017,6 @@ function buildForStatement({
   if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.SEMICOLON)) {
     initializer = null;
   } else if (matches(tokens[currentTokenHead + 2], TOKEN_NAMES.VAR)) {
-    console.log("in build var")
     initializer = buildVar({
       tokens,
       currentTokenHead: currentTokenHead + 2,
@@ -1037,9 +1036,6 @@ function buildForStatement({
   const envAfterInitializer = initializer
     ? initializer.environment
     : environment;
-
-  console.dir({initializer, envAfterInitializer}, {depth:null})
-
 
   if (!matches(tokens[tokenHeadAfterInitializer], TOKEN_NAMES.SEMICOLON)) {
     condition = buildExpression({
@@ -1459,7 +1455,6 @@ function buildVar({
       ],
     })
   ) {
-    console.log("in about to assign within buildVar")
     const {
       node: expressionNode,
       currentTokenHead: tokenHeadAfterExpressionEval,
@@ -1471,12 +1466,6 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      // const updatedEnv = set(
-      //   envAfterExpressionEval,
-      //   varName,
-      //   expressionNode.evaluate(),
-      // );
-
       const node = {
         token: identifier,
         evaluate() {

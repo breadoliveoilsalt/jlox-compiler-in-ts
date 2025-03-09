@@ -295,3 +295,13 @@ scope of all the builder functions building the AST and accessible by those
 builders. Every time the environment is updated, it is cloned beforehand, but
 the global environment is assigned this new clone. Thus, all the builders will
 still have the latest values. This would be similar to a reducer pattern.
+
+TODO: update this
+## WIP: To update on lessons learned
+I had to move the setting of the function identifier in the env
+outide the evaluate() call. To add this to lessons learned.
+Note: this is similar to what had to happen other times the
+`set` function was called: the setting never happened inside an
+evaluate call. It happened outside.
+
+
