@@ -152,6 +152,61 @@ describe('function declarations and calls', () => {
     await compile(readLine);
     expect(printSpy.mock.calls).toEqual([[11], ['nil']]);
   });
-  // UPTO: Add return statements; then write tests for return statements; write tests for something that returns a function and then is immediately invoked
-  // Also have to write test that if I just have a`return;` with no expression, I see nil
+
+  test('functions with a plain return statement return nil', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      `
+      fun testPlainReturn() {
+        return;
+      }
+      var result = testPlainReturn();
+      print result;
+    `,
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+    expect(printSpy.mock.calls).toEqual([['nil']]);
+  });
+
+  test('recursion works', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      `
+        fun add(a, b) {
+          if (a + b > 100) {
+            print "overload!";
+            return;
+          }
+          print a + b;
+          var newFirst = a + a;
+          var newSecond = b + b;
+          add(newFirst, newSecond);
+        }
+
+        print add(2, 3);
+      `,
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+    expect(printSpy.mock.calls).toEqual([
+      [5],
+      [10],
+      [20],
+      [40],
+      [80],
+      ['"overload!"'],
+      ['nil'],
+    ]);
+  });
 });

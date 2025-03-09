@@ -1633,8 +1633,7 @@ function buildFunction({
     arity() {
       return parameterNodes.length;
     },
-    // TODO: can I move away from any here??
-    call(args: any[]) {
+    call(args: AstTree[]) {
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i];
@@ -1642,6 +1641,7 @@ function buildFunction({
       });
       try {
         statements.forEach((statement) => statement.evaluate());
+        return "nil";
       } catch (returnValue) {
         return returnValue;
       }

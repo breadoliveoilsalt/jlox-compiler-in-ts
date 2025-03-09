@@ -1,10 +1,12 @@
-fun fib(n) {
-  print n;
-  if (n <= 1) {
-    return n;
+fun add(a, b) {
+  if (a + b > 100) {
+    print "overload!";
+    return;
   }
-
-  return fib(n - 2) + fib(n - 1);
+  print a + b;
+  var newFirst = a + a;
+  var newSecond = b + b;
+  add(newFirst, newSecond);
 }
 
-fib(20);
+print add(2, 3);
