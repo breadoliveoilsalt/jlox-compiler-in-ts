@@ -1,10 +1,13 @@
-fun createAdder() {
-  fun add(a, b) {
-    return a + b;
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
   }
-  return add;
+
+  return fib(n - 2) + fib(n - 1);
 }
 
-var result = createAdder();
+var result = fib(3);
 
-print result(3, 5);
+print "result!";
+print result;

@@ -1614,10 +1614,13 @@ function buildFunction({
       return parameterNodes.length;
     },
     call(args: AstTree[]) {
+      // const newEnv = { outerScope: blockEnv };
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i];
-        set(environment, paramKey, argumentValue);
+        // set(environment, paramKey, argumentValue);
+        set(blockEnv, paramKey, argumentValue);
+        // set(newEnv, paramKey, argumentValue);
       });
       try {
         statements.forEach((statement) => statement.evaluate());
