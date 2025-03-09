@@ -8,7 +8,6 @@ describe('control flow and strings', () => {
     vi.resetAllMocks();
   });
 
-  // TODO/UPTO: Add test where var is outside the block. Make sure block can access var
   describe('if/else blocks', () => {
     test('when the if condition is true, the if statement is evaluated instead of the else statement', async () => {
       const printSpy = vi
@@ -115,6 +114,25 @@ describe('control flow and strings', () => {
 
       await compile(readLine);
       expect(printSpy.mock.calls).toEqual([[15]]);
+    });
+
+    test('the if statement block has its own scope', async () => {
+      const printSpy = vi
+        .spyOn(outputModule, 'systemPrint')
+        .mockReturnValue(undefined);
+
+      const lines = [
+        'var num = 11;',
+        'if (num > 10 ) {',
+        '  var num = 5;',
+        '  print num;',
+        ' }',
+      ];
+
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+      expect(printSpy.mock.calls).toEqual([[5]]);
     });
   });
 });
