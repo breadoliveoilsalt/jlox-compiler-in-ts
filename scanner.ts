@@ -56,6 +56,7 @@ const matchLeftParen = (buffer: string) => buffer.match(/^\(/);
 const matchRightParen = (buffer: string) => buffer.match(/^\)/);
 const matchLeftBrace = (buffer: string) => buffer.match(/^\{/);
 const matchRightBrace = (buffer: string) => buffer.match(/^\}/);
+const matchComma = (buffer: string) => buffer.match(/^,/);
 const matchMinus = (buffer: string) => buffer.match(/^-/);
 const matchPlus = (buffer: string) => buffer.match(/^\+/);
 const matchSemicolon = (buffer: string) => buffer.match(/^;/);
@@ -71,8 +72,10 @@ const matchEqualEqual = (buffer: string) => buffer.match(/^==/);
 const matchEqual = (buffer: string) => buffer.match(/^=/);
 const matchTrue = (buffer: string) => buffer.match(/^true\b/);
 const matchFalse = (buffer: string) => buffer.match(/^false\b/);
+const matchFun = (buffer: string) => buffer.match(/^fun\b/);
 const matchNumber = (buffer: string) => buffer.match(/^[+-]?[0-9]+(\.[0-9]+)?/);
 const matchPrint = (buffer: string) => buffer.match(/^print\b/);
+const matchReturn = (buffer: string) => buffer.match(/^return\b/);
 const matchVar = (buffer: string) => buffer.match(/^var\b/);
 const matchIf = (buffer: string) => buffer.match(/^if\b/);
 const matchElse = (buffer: string) => buffer.match(/^else\b/);
@@ -120,6 +123,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.RIGHT_BRACE,
     test: matchRightBrace,
     consumeFrom: buildConsumer(matchRightBrace),
+  },
+  {
+    name: TOKEN_NAMES.COMMA,
+    test: matchComma,
+    consumeFrom: buildConsumer(matchComma),
   },
   // NOTE: By not requiring a word boundary after the `-` token, the following
   // is valid, unlike in JavaScript:
@@ -201,6 +209,11 @@ const tokenTypes: TokenType[] = [
     test: matchFalse,
     consumeFrom: (buffer: string): string => matchFalse(buffer)![0],
   },
+  {
+    name: TOKEN_NAMES.FUN,
+    test: matchFun,
+    consumeFrom: (buffer: string): string => matchFun(buffer)![0],
+  },
   // NOTE: I'm removing word boundary from numbers and
   // comparisons and operators, so 343>343 is valid.
   {
@@ -212,6 +225,11 @@ const tokenTypes: TokenType[] = [
     name: TOKEN_NAMES.PRINT,
     test: matchPrint,
     consumeFrom: buildConsumer(matchPrint),
+  },
+  {
+    name: TOKEN_NAMES.RETURN,
+    test: matchReturn,
+    consumeFrom: buildConsumer(matchReturn),
   },
   {
     name: TOKEN_NAMES.VAR,

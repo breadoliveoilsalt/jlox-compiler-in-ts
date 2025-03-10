@@ -1,5 +1,11 @@
-var i = 0;
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
 
-for (; ; i = i + 1) {
-  print i;
+  return fib(n - 2) + fib(n - 1);
 }
+
+print fib(4);
+

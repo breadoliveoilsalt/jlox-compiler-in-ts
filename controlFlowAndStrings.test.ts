@@ -115,6 +115,25 @@ describe('control flow and strings', () => {
       await compile(readLine);
       expect(printSpy.mock.calls).toEqual([[15]]);
     });
+
+    test('the if statement block has its own scope', async () => {
+      const printSpy = vi
+        .spyOn(outputModule, 'systemPrint')
+        .mockReturnValue(undefined);
+
+      const lines = [
+        'var num = 11;',
+        'if (num > 10 ) {',
+        '  var num = 5;',
+        '  print num;',
+        ' }',
+      ];
+
+      const readLine = buildReadLine(lines);
+
+      await compile(readLine);
+      expect(printSpy.mock.calls).toEqual([[5]]);
+    });
   });
 });
 
@@ -235,7 +254,7 @@ describe('while loops', () => {
     await compile(readLine);
 
     expect(printSpy.mock.calls).toEqual([
-      [+0],
+      [0],
       [1],
       [2],
       [3],

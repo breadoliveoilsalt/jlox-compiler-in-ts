@@ -1,54 +1,71 @@
+  //  console.dir({ primaryNode }, { depth: null });
+  // tokens.forEach((t,i) => {
+  //   console.dir(i)
+  //   console.dir(t)
+  // })
 
-// This owrks after I stop cloning env
-var num = 1;
-num = 11;
-
-print num;
-
-if (3 == 5) {
-  print "first";
-  num = 5;
-  print "second";
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
 }
 
-if (true) {
-  print "inside true";
+// THIS is not working for some reason
+for (var i = 0; i < 20; i = i + 1) {
+  print i;
 }
 
-if (false) {
-  print "inside false";
+// something seems wrong with my conditions;
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
+
+  return fib(n - 2) + fib(n - 1);
 }
 
-print num;
+print fib(20);
 
-/////
+Works
 
-This works after I stop cloning ENV
 
-var num = 9;
+------
+For loops work
 
-print "start";
 
-while (num < 10) {
-  num = 10;
+But for this
+
+...I'm getting this result. AND the reason is that my value for n is getting polluted. That is, in the last line, the first call to fib is getting run and returned, BUT when it gets to the second call fib, it's the SAME env...that is, the first time fib(n-1) is called, n is 0! when it should be 20
+
+
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
+
+  return fib(n - 2) + fib(n - 1);
 }
 
-print "num at end";
-print num;
-print "end";
+fib(20);
+20
+18
+16
+...
+-1
+-2
+...
+-10
+  print n;
+  print n;
 
-////
 
-// This does NOT work just when switching the env;
-// NOW it works that I put evaluation of assignment into evaluate()
-var num = 0;
+-----
 
-print "start";
-
-while (num < 10) {
-  print num;
-  num = num + 1;
-}
-
-print "end";
-print num;
+Also this should throw an error
+      fun scopeTest(num) {
+        print num;
+        var num = 7;
+        print num;
+      }
+      scopeTest(5);

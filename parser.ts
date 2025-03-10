@@ -1,5 +1,5 @@
 import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
-import { CompilerError } from './errors';
+import { CompilerError, RuntimeError } from './errors';
 import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
@@ -36,7 +36,7 @@ type AstTree = {
   evaluate: () => any;
 };
 
-const { set, update, get, has } = envHelpers();
+const { set, update, get } = envHelpers();
 
 function buildTrue({
   tokens,
@@ -181,13 +181,14 @@ function buildIdentifier({
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
 
-  if (!has(environment, identifierName)) {
-    throw new CompilerError({
-      name: 'JloxSyntaxError',
-      message: `Undefined variable (identifier): "${token.text}"`,
-      lineNumber: token.lineNumber,
-    });
-  }
+  // TODO: re-consider where this should be
+  // if (!has(environment, identifierName)) {
+  //   throw new CompilerError({
+  //     name: 'JloxSyntaxError',
+  //     message: `Undefined variable (identifier): "${token.text}"`,
+  //     lineNumber: token.lineNumber,
+  //   });
+  // }
 
   const node = {
     token,
@@ -245,6 +246,137 @@ function buildPrimary({
   });
 }
 
+type ArgumentsResult = {
+  argumentNodes: Array<AstTree>;
+  currentTokenHead: number;
+  environment: Environment;
+};
+
+function buildArguments({
+  tokens,
+  currentTokenHead,
+  environment,
+  argumentNodes,
+}: NodeBuilderParams & {
+  argumentNodes: ArgumentsResult['argumentNodes'];
+}): ArgumentsResult {
+  if (matches(tokens[currentTokenHead], TOKEN_NAMES.RIGHT_PAREN)) {
+    return {
+      argumentNodes,
+      currentTokenHead,
+      environment,
+    };
+  }
+
+  const argumentHead = matches(tokens[currentTokenHead], TOKEN_NAMES.COMMA)
+    ? currentTokenHead + 1
+    : currentTokenHead;
+
+  // TODO: I like this naming convention here: intent (Argument) + builder (Expression)
+  const {
+    node: argumentExpressionNode,
+    currentTokenHead: tokenHeadAfterArgumentExpressionBuilt,
+    environment: envAfterArgumentExpressionBuilt,
+  } = buildExpression({
+    tokens,
+    currentTokenHead: argumentHead,
+    environment,
+  });
+
+  return buildArguments({
+    tokens,
+    currentTokenHead: tokenHeadAfterArgumentExpressionBuilt,
+    environment: envAfterArgumentExpressionBuilt,
+    argumentNodes: [...argumentNodes, argumentExpressionNode],
+  });
+}
+
+function buildCall({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: primaryNode,
+    currentTokenHead: tokenHeadAfterPrimaryBuilt,
+    environment: envAfterPrimaryBuilt,
+  } = buildPrimary({
+    tokens,
+    currentTokenHead: currentTokenHead,
+    environment,
+  });
+
+  if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
+    const {
+      argumentNodes,
+      currentTokenHead: tokenHeadAfterArgumentsBuilt,
+      environment: envAfterArgumentsBuilt,
+    } = buildArguments({
+      tokens,
+      currentTokenHead: tokenHeadAfterPrimaryBuilt + 1,
+      environment: envAfterPrimaryBuilt,
+      argumentNodes: [],
+    });
+
+    if (
+      !matches(tokens[tokenHeadAfterArgumentsBuilt], TOKEN_NAMES.RIGHT_PAREN)
+    ) {
+      throw new CompilerError({
+        name: 'JloxSyntaxError',
+        message: 'Expect ) after function call',
+        lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+      });
+    }
+
+    // NOTE: If you wanted to limit the number of allowed arguments, here is where
+    // you add check, say, that argumentNodes.length < 255
+
+    const node = {
+      token: tokens[tokenHeadAfterArgumentsBuilt],
+      argumentNodes,
+      calleeNode: primaryNode,
+      evaluate() {
+        const callee = primaryNode.evaluate();
+        if (!Object.hasOwn(callee, 'call')) {
+          throw new RuntimeError({
+            name: 'RuntimeError',
+            message:
+              'There is an attempt to call something that is not a function',
+            lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+          });
+        }
+
+        const evaluatedArguments = this.argumentNodes.map((argument) =>
+          argument.evaluate(),
+        );
+
+        if (evaluatedArguments.length !== callee.arity()) {
+          throw new RuntimeError({
+            name: 'RuntimeError',
+            message:
+              "Arguments passed to function do not match function's arity",
+            lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
+          });
+        }
+
+        return callee.call(evaluatedArguments);
+      },
+    };
+
+    return {
+      node,
+      currentTokenHead: tokenHeadAfterArgumentsBuilt + 1,
+      environment: envAfterArgumentsBuilt,
+    };
+  }
+
+  return {
+    node: primaryNode,
+    currentTokenHead: tokenHeadAfterPrimaryBuilt,
+    environment: envAfterPrimaryBuilt,
+  };
+}
+
 function buildUnary({
   tokens,
   currentTokenHead,
@@ -283,7 +415,7 @@ function buildUnary({
     };
   }
 
-  return buildPrimary({ tokens, currentTokenHead, environment });
+  return buildCall({ tokens, currentTokenHead, environment });
 }
 
 function buildFactor({
@@ -801,6 +933,15 @@ function buildBlock({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
+  // NOTE:
+  // - buildBlock assumes left brace has been consumed
+  // - but buildBlock consumes the right brace before it returns
+  // - buildBlock assumes new "outer" env has been passed to it
+  //    - This way the parent that calls buildBlock can keep
+  //      a reference to that environment. See how `buildFunction`
+  //      uses `blockEnv`, for example.
+  // - buildBlock consumes/resets this outer env before it returns,
+  //   so the returned env is the parent's env, however.
   const currentTokenName = tokens[currentTokenHead].name;
 
   if (
@@ -872,6 +1013,7 @@ function buildForStatement({
       environment,
     });
   }
+
   const tokenHeadAfterInitializer = initializer
     ? initializer.currentTokenHead
     : currentTokenHead + 3;
@@ -946,6 +1088,7 @@ function buildForStatement({
     token: tokens[tokenHeadAfterIncrement],
     evaluate() {
       // Force true if no condition specified
+      initializer && initializer.node.evaluate();
       while (condition ? condition.node.evaluate() : true) {
         statements.forEach((statement) => statement.evaluate());
       }
@@ -956,7 +1099,7 @@ function buildForStatement({
     node,
     currentTokenHead: tokenHeadAfterStatementBuild,
     environment: envAfterStatementBuild,
-  }
+  };
 }
 
 function buildStatement({
@@ -1057,6 +1200,54 @@ function buildStatement({
       currentTokenHead: tokenHeadAfterWhileBodyBuilt,
       environment: envAfterWhileBodyBuilt,
     };
+  }
+
+  if (matches(token, TOKEN_NAMES.RETURN)) {
+    const nextToken = tokens[currentTokenHead + 1];
+    if (matches(nextToken, TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token: tokens[currentTokenHead + 2],
+        evaluate() {
+          throw null;
+        },
+      };
+      return {
+        node,
+        currentTokenHead: currentTokenHead + 2,
+        environment: environment,
+      };
+    }
+
+    const {
+      node: expression,
+      currentTokenHead: tokenHeadAfterExpressionBuilt,
+      environment: envAfterExpressionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+      environment,
+    });
+
+    if (matches(tokens[tokenHeadAfterExpressionBuilt], TOKEN_NAMES.SEMICOLON)) {
+      const node = {
+        token: tokens[tokenHeadAfterExpressionBuilt],
+        evaluate() {
+          throw expression.evaluate();
+        },
+      };
+
+      return {
+        node,
+        currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
+        environment: envAfterExpressionBuilt,
+      };
+    }
+
+    throw new CompilerError({
+      name: 'JloxSynatxError',
+      message: 'Missing semicolon ";" after return statement',
+      lineNumber: token.lineNumber,
+    });
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
@@ -1219,11 +1410,10 @@ function buildVar({
       ],
     })
   ) {
-    const updatedEnv = set(environment, varName, undefined);
-
     const node = {
       token: tokens[currentTokenHead + 1],
       evaluate() {
+        set(environment, varName, undefined);
         return null;
       },
     };
@@ -1231,7 +1421,7 @@ function buildVar({
     return {
       node,
       currentTokenHead: currentTokenHead + 3,
-      environment: updatedEnv,
+      environment: environment,
     };
   }
 
@@ -1257,15 +1447,10 @@ function buildVar({
     });
 
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
-      const updatedEnv = set(
-        envAfterExpressionEval,
-        varName,
-        expressionNode.evaluate(),
-      );
-
       const node = {
         token: identifier,
         evaluate() {
+          set(envAfterExpressionEval, varName, expressionNode.evaluate());
           return null;
         },
       };
@@ -1273,7 +1458,7 @@ function buildVar({
       return {
         node,
         currentTokenHead: tokenHeadAfterExpressionEval + 1,
-        environment: updatedEnv,
+        environment: envAfterExpressionEval,
       };
     }
 
@@ -1292,12 +1477,188 @@ function buildVar({
   });
 }
 
+type ParametersResult = {
+  parameterNodes: Array<AstTree>;
+  currentTokenHead: number;
+  environment: Environment;
+};
+
+function buildParameters({
+  tokens,
+  currentTokenHead,
+  environment,
+  parameterNodes,
+}: NodeBuilderParams & {
+  parameterNodes: ParametersResult['parameterNodes'];
+}): ParametersResult {
+  if (matches(tokens[currentTokenHead], TOKEN_NAMES.RIGHT_PAREN)) {
+    return {
+      parameterNodes,
+      currentTokenHead,
+      environment,
+    };
+  }
+
+  const parametersHead = matches(tokens[currentTokenHead], TOKEN_NAMES.COMMA)
+    ? currentTokenHead + 1
+    : currentTokenHead;
+
+  const {
+    node: parameterIdentifierNode,
+    currentTokenHead: tokenHeadAfterParameterIdentifierBuilt,
+    environment: envAfterParameterIdentifierBuilt,
+  } = buildIdentifier({
+    tokens,
+    currentTokenHead: parametersHead,
+    environment,
+  });
+
+  return buildParameters({
+    tokens,
+    currentTokenHead: tokenHeadAfterParameterIdentifierBuilt,
+    environment: envAfterParameterIdentifierBuilt,
+    parameterNodes: [...parameterNodes, parameterIdentifierNode],
+  });
+}
+
+function buildFunction({
+  tokens,
+  currentTokenHead,
+  environment,
+}: NodeBuilderParams): NodeBuilderResult {
+  const {
+    node: identifierNode,
+    currentTokenHead: tokenHeadAfterIdentifierBuilt,
+    environment: envAfterIdentifierBuilt,
+  } = buildIdentifier({
+    tokens,
+    currentTokenHead: currentTokenHead + 1,
+    environment,
+  });
+
+  if (!matches(tokens[tokenHeadAfterIdentifierBuilt], TOKEN_NAMES.LEFT_PAREN)) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: 'Expect ( after declaring a function name',
+      lineNumber: tokens[tokenHeadAfterIdentifierBuilt].lineNumber,
+    });
+  }
+
+  const {
+    parameterNodes,
+    currentTokenHead: tokenHeadAfterParametersBuilt,
+    environment: envAfterParametersBuilt,
+  } = buildParameters({
+    tokens,
+    currentTokenHead: tokenHeadAfterIdentifierBuilt + 1,
+    environment: envAfterIdentifierBuilt,
+    parameterNodes: [],
+  });
+
+  if (
+    !matches(tokens[tokenHeadAfterParametersBuilt], TOKEN_NAMES.RIGHT_PAREN)
+  ) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: 'Expect ) after declaring parameters in a function',
+      lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+    });
+  }
+
+  // NOTE: Here is another place where you can throw an error if you
+  // wanted to limit the number of allowed parameters. You can check,
+  // say, that parameterNodes.length < 255
+
+  if (
+    !matches(tokens[tokenHeadAfterParametersBuilt + 1], TOKEN_NAMES.LEFT_BRACE)
+  ) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: 'Expect { before a function body',
+      lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+    });
+  }
+
+  const blockEnv = { outerScope: envAfterParametersBuilt };
+
+  const {
+    currentTokenHead: tokenHeadAfterBlockStatementsBuilt,
+    environment: envAfterBlockStatementsBuilt,
+    statements,
+  } = buildBlock({
+    tokens,
+    currentTokenHead: tokenHeadAfterParametersBuilt + 2,
+    environment: blockEnv,
+  });
+
+  if (
+    !matches(
+      tokens[tokenHeadAfterBlockStatementsBuilt - 1],
+      TOKEN_NAMES.RIGHT_BRACE,
+    )
+  ) {
+    throw new CompilerError({
+      name: 'JloxSyntaxError',
+      message: 'Expect } after a function body',
+      lineNumber: tokens[tokenHeadAfterParametersBuilt].lineNumber,
+    });
+  }
+
+  // NOTE: This is the interface expected by `buildCall` when
+  // calling `execute()` on a functionDeclaration node
+  const functionObject = {
+    blockStatements: statements,
+    blockEnv,
+    parameters: parameterNodes,
+    arity() {
+      return parameterNodes.length;
+    },
+    call(args: AstTree[]) {
+      parameterNodes.forEach((param, i: number) => {
+        const paramKey = param.token.text;
+        const argumentValue = args[i];
+        set(blockEnv, paramKey, argumentValue);
+      });
+      try {
+        statements.forEach((statement) => statement.evaluate());
+        return 'nil';
+      } catch (returnValue) {
+        return returnValue;
+      }
+    },
+  };
+
+  const node = {
+    token: tokens[tokenHeadAfterBlockStatementsBuilt],
+    evaluate() {
+      if (envAfterBlockStatementsBuilt !== null) {
+        set(
+          envAfterBlockStatementsBuilt,
+          identifierNode.token.text,
+          functionObject,
+        );
+      }
+      return null;
+    },
+  };
+
+  return {
+    node,
+    currentTokenHead: tokenHeadAfterBlockStatementsBuilt,
+    environment: envAfterBlockStatementsBuilt ?? { outerScope: null },
+  };
+}
+
 function buildDeclaration({
   tokens,
   currentTokenHead = 0,
   environment,
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
+
+  if (matches(token, TOKEN_NAMES.FUN)) {
+    return buildFunction({ tokens, currentTokenHead, environment });
+  }
 
   if (matches(token, TOKEN_NAMES.VAR)) {
     return buildVar({ tokens, currentTokenHead, environment });
