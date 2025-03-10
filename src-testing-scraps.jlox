@@ -58,3 +58,14 @@ fib(20);
 -10
   print n;
   print n;
+
+
+-----
+
+Also this should throw an error
+      fun scopeTest(num) {
+        print num;
+        var num = 7;
+        print num;
+      }
+      scopeTest(5);

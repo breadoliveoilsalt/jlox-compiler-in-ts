@@ -7,11 +7,5 @@ fun fib(n) {
   return fib(n - 2) + fib(n - 1);
 }
 
-var result = fib(3);
+print fib(4);
 
-print "result!";
-print result;
-
-The problem is that every time the function is called
-it's reassigning the value of n. n apparently always points
-to the same env

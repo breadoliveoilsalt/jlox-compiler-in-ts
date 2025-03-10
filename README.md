@@ -35,10 +35,19 @@ relevant sections below.
 
 ## Next steps (TODOs)
 
-- [ ] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/):
-  Control Flow
+- [ ] Refactor environment binding to fix bug where multiple recursion calls
+  bind incorrect values to parameters.
 - [ ] Refactor tests, breaking integration tests into different files for
   expressions, variables, etc.
+- [ ] Refactor AST node builders, breaking the `parse.ts` file into different
+  files.
+- [ ] When there are a recursive function like `buildArguments` or `buildBlock`, be
+  consistent about whether it consumes the last brace or token. The trade off is:
+  all the other functions consume the last token when evaluating, so there's
+  consistence vs the call has to then check that `currentTokenHead - 1` is the
+  correct paren or brace, rather than EOF. For example, `buildArgs` does NOT consume the
+  right paren, so we have the check here for `currentTokenHead` (above), but have
+  to plus one below
 
 ## Done
 - [X] Chapters 1-7 of [Crafting Interpreters](https://craftinginterpreters.com/):
@@ -50,7 +59,7 @@ relevant sections below.
 - [X] Beef up error handling and error reporting to user for expressions
 - [X] Fix linting/prettifying re: adding semi-colons in TS code.
 - [X] Add line number to token object
-- [X] Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/): Statements and State
+- [X] Chapter 8 of [Crafting Interpreters](https://craftinginterpreters.com/statements-and-state.html): Statements and State
   - [X] Add `print` functionality
   - [X] Add global env and ability to read multiple lines
   - [X] Add scoped envs
@@ -61,6 +70,10 @@ relevant sections below.
   - [X] it needs a global env for variables to work
   - [X] print evaluation of expressions to console even if `print`
         not used
+- [X] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/control-flow.html):
+  Control Flow
+- [X] Chapter 10 of [Crafting Interpreters](https://craftinginterpreters.com/functions.html):
+  Function
 
 ## Open issues / Questions
 
@@ -72,7 +85,7 @@ relevant sections below.
 
 ## Wish list
 
-- Add comments
+- Add support for commenting-out jlox code
 - Multi-line string support
 - Multi-line support for repl
 - "Panic Mode" and full syntax error reporting in one go
@@ -296,23 +309,51 @@ builders. Every time the environment is updated, it is cloned beforehand, but
 the global environment is assigned this new clone. Thus, all the builders will
 still have the latest values. This would be similar to a reducer pattern.
 
-TODO: update this
-## WIP: To update on lessons learned
-I had to move the setting of the function identifier in the env
-outide the evaluate() call. To add this to lessons learned.
-Note: this is similar to what had to happen other times the
-`set` function was called: the setting never happened inside an
-evaluate call. It happened outside.
+#### Another lesson on the environment for binding variables
 
+Originally, I bound variables to an environment when the AST nodes were built,
+NOT when each one was being evaluated (via the `evaluate` call). Working on
+the implementation for functions proved that this was a mistake. For example,
+argument values have to be bound to parameters at the time functions are called,
+not before, otherwise wonky results happen.
 
-    // TODO: When you have a recursive function like buildArguments or
-    // buildBlock, be consistent about whether it consumes the last brace
-    // or token. The tradeoff is: all the other functions consume the last
-// - Do tests based on what I've learned in my scrap file!
-//    - especially tests for function calls that work so
-//    far, so I know I'm not breaking anything
-    // token when evaluating, so there's consistence vs the call has to
-    // then check that currentTokenHead-1 is the correct paren or brace,
-    // rather than EOF. Here, buildArgs does NOT consume the right paren,
-    // so we have the check here for currentTokenHead (above), but have to
-    // plus one below
+This was a relatively quick fix at first: functions seemed to be working,
+returning basic values, serving as closures, and performing recursion where the
+recursion involved one call. However, when I tried to do a basic a
+basic Fibonacci function with two recursive calls, a bigger problem was exposed.
+
+```
+fun fib(n) {
+  print n;
+  if (n <= 1) {
+    return n;
+  }
+
+  return fib(n - 2) + fib(n - 1);
+}
+
+print fib(4);
+
+# Output
+4
+2
+0
+-1
+-2
+-3 # final result
+```
+
+The problem is that every time the recursive call happened, the call was
+reassigning the value of `n` for every function execution. In other words, the
+function block has its own scope, but it only has ONE scope, no matter how many
+times the function is recursively called. Instead, each call needs its own new
+scope. Currently, I am passing the environment around to each function that
+builds an AST node for execution, and each `execute` functions has a pointer to
+the environment if needed. But it seems we need to create a new scope at the time
+`execute` is called for a function call node. And for that to happen, the
+environment has to be passed to the `execute` call of each AST node.
+
+This is my current working theory at least. To fix it will require a large-ish
+refactor. My plan is to merge in my function implementation as-is, with a test
+pointing out the problem, and pursue the refactor later.
+

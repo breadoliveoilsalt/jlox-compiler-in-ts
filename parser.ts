@@ -3,14 +3,6 @@ import { CompilerError, RuntimeError } from './errors';
 import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from './systemPrint';
 
-// UPTO:
-// - Find a way to fix the env problem proven by
-//   The fibinnocci sequence problem -- I need to
-//   create a new env at every function call or something
-//   like that!
-// - Double check test vs his examples
-// - do a test example of returning early
-
 export type Environment = {
   outerScope: null | Environment;
   [key: string]: any;
@@ -188,6 +180,15 @@ function buildIdentifier({
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
   const identifierName = token.text;
+
+  // TODO: re-consider where this should be
+  // if (!has(environment, identifierName)) {
+  //   throw new CompilerError({
+  //     name: 'JloxSyntaxError',
+  //     message: `Undefined variable (identifier): "${token.text}"`,
+  //     lineNumber: token.lineNumber,
+  //   });
+  // }
 
   const node = {
     token,
@@ -1409,7 +1410,6 @@ function buildVar({
       ],
     })
   ) {
-
     const node = {
       token: tokens[currentTokenHead + 1],
       evaluate() {
@@ -1614,17 +1614,14 @@ function buildFunction({
       return parameterNodes.length;
     },
     call(args: AstTree[]) {
-      // const newEnv = { outerScope: blockEnv };
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i];
-        // set(environment, paramKey, argumentValue);
         set(blockEnv, paramKey, argumentValue);
-        // set(newEnv, paramKey, argumentValue);
       });
       try {
         statements.forEach((statement) => statement.evaluate());
-        return "nil";
+        return 'nil';
       } catch (returnValue) {
         return returnValue;
       }

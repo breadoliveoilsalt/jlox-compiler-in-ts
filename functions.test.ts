@@ -89,27 +89,6 @@ describe('function declarations and calls', () => {
     expect(printSpy.mock.calls).toEqual([[11]]);
   });
 
-  test('functions can return values', async () => {
-    const printSpy = vi
-      .spyOn(outputModule, 'systemPrint')
-      .mockReturnValue(undefined);
-
-    const lines = [
-      `
-      fun add5(num) {
-        return num + 5;
-      }
-      var result = add5(6);
-      print result;
-    `,
-    ];
-
-    const readLine = buildReadLine(lines);
-
-    await compile(readLine);
-    expect(printSpy.mock.calls).toEqual([[11]]);
-  });
-
   test('functions have their own scope', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
@@ -117,12 +96,13 @@ describe('function declarations and calls', () => {
 
     const lines = [
       `
-      fun scopeTest(num) {
+      var num = 5;
+      fun scopeTest() {
         print num;
         var num = 7;
         print num;
       }
-      scopeTest(5);
+      scopeTest();
     `,
     ];
 
@@ -284,5 +264,30 @@ describe('function declarations and calls', () => {
 
     await compile(readLine);
     expect(printSpy.mock.calls).toEqual([["\"less than!\""], ["\"less than or equal!\""], ["\"good!\""]]);
+  });
+
+  test('KNOWN BUG: more than one recursive call reveals that each call is binding to the same scope/environment', async () => {
+    const printSpy = vi
+      .spyOn(outputModule, 'systemPrint')
+      .mockReturnValue(undefined);
+
+    const lines = [
+      `
+        fun fib(n) {
+          if (n <= 1) {
+            return n;
+          }
+
+          return fib(n - 2) + fib(n - 1);
+        }
+
+        print fib(4);
+    `,
+    ];
+
+    const readLine = buildReadLine(lines);
+
+    await compile(readLine);
+    expect(printSpy.mock.calls).toEqual([[3]]);
   });
 });
