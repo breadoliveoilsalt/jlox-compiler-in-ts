@@ -190,7 +190,7 @@ describe('function declarations and calls', () => {
     ]);
   });
 
-  test('functions even allow for closures', async () => {
+  test.only('functions even allow for closures', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
@@ -218,7 +218,6 @@ describe('function declarations and calls', () => {
     await compile(readLine);
     expect(printSpy.mock.calls).toEqual([[1], [2]]);
   });
-
 
   test('functions work pretty well with outside and inside scope', async () => {
     const printSpy = vi
@@ -263,7 +262,11 @@ describe('function declarations and calls', () => {
     const readLine = buildReadLine(lines);
 
     await compile(readLine);
-    expect(printSpy.mock.calls).toEqual([["\"less than!\""], ["\"less than or equal!\""], ["\"good!\""]]);
+    expect(printSpy.mock.calls).toEqual([
+      ['"less than!"'],
+      ['"less than or equal!"'],
+      ['"good!"'],
+    ]);
   });
 
   // TODO: Did I Fix this??

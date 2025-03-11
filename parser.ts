@@ -273,14 +273,12 @@ function buildCall({
     });
 
   if (matches(tokens[tokenHeadAfterPrimaryBuilt], TOKEN_NAMES.LEFT_PAREN)) {
-    const {
-      argumentNodes,
-      currentTokenHead: tokenHeadAfterArgumentsBuilt,
-    } = buildArguments({
-      tokens,
-      currentTokenHead: tokenHeadAfterPrimaryBuilt + 1,
-      argumentNodes: [],
-    });
+    const { argumentNodes, currentTokenHead: tokenHeadAfterArgumentsBuilt } =
+      buildArguments({
+        tokens,
+        currentTokenHead: tokenHeadAfterPrimaryBuilt + 1,
+        argumentNodes: [],
+      });
 
     if (
       !matches(tokens[tokenHeadAfterArgumentsBuilt], TOKEN_NAMES.RIGHT_PAREN)
@@ -777,10 +775,8 @@ function buildExpressionStatement({
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
 
-  const {
-    node: expression,
-    currentTokenHead: tokenHeadAfterExpressionEval,
-  } = buildExpression({ tokens, currentTokenHead });
+  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
+    buildExpression({ tokens, currentTokenHead });
 
   if (
     matches(
@@ -838,17 +834,12 @@ function buildBlock({
         currentTokenName === TOKEN_NAMES.EOF
           ? currentTokenHead
           : currentTokenHead + 1,
-      // NOTE: It's important to reset env to the outer
-      // scope once block evaluation is complete
       statements,
     };
 
   // TODO: Sometimes the code says `ExprEval`, and sometimes
   // it says `ExpressionEval`. Be consistent.
-  const {
-    node,
-    currentTokenHead: tokenHeadAfterExprEval,
-  } = buildDeclaration({
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
     tokens,
     currentTokenHead,
   });
@@ -934,13 +925,11 @@ function buildForStatement({
     });
   }
 
-  const {
-    node: body,
-    currentTokenHead: tokenHeadAfterStatementBuild,
-  } = buildStatement({
-    tokens,
-    currentTokenHead: tokenHeadAfterIncrement + 1,
-  });
+  const { node: body, currentTokenHead: tokenHeadAfterStatementBuild } =
+    buildStatement({
+      tokens,
+      currentTokenHead: tokenHeadAfterIncrement + 1,
+    });
 
   // NOTE: Taking a "syntactic sugar" approach to
   // building the AST node, rather than replicating
@@ -971,13 +960,11 @@ function buildStatement({
   const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
-    const {
-      currentTokenHead: tokenHeadAfterBlockEval,
-      statements,
-    } = buildBlock({
-      tokens,
-      currentTokenHead: currentTokenHead + 1,
-    });
+    const { currentTokenHead: tokenHeadAfterBlockEval, statements } =
+      buildBlock({
+        tokens,
+        currentTokenHead: currentTokenHead + 1,
+      });
 
     // if (!envAfterBlockEval) {
     //   throw new CompilerError({
@@ -1099,13 +1086,11 @@ function buildStatement({
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
-    const {
-      node: expression,
-      currentTokenHead: tokenHeadAfterExpressionEval,
-    } = buildExpression({
-      tokens,
-      currentTokenHead: currentTokenHead + 1,
-    });
+    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
+      buildExpression({
+        tokens,
+        currentTokenHead: currentTokenHead + 1,
+      });
 
     if (
       matches(
@@ -1367,14 +1352,12 @@ function buildFunction({
     });
   }
 
-  const {
-    parameterNodes,
-    currentTokenHead: tokenHeadAfterParametersBuilt,
-  } = buildParameters({
-    tokens,
-    currentTokenHead: tokenHeadAfterIdentifierBuilt + 1,
-    parameterNodes: [],
-  });
+  const { parameterNodes, currentTokenHead: tokenHeadAfterParametersBuilt } =
+    buildParameters({
+      tokens,
+      currentTokenHead: tokenHeadAfterIdentifierBuilt + 1,
+      parameterNodes: [],
+    });
 
   if (
     !matches(tokens[tokenHeadAfterParametersBuilt], TOKEN_NAMES.RIGHT_PAREN)
@@ -1400,13 +1383,11 @@ function buildFunction({
     });
   }
 
-  const {
-    currentTokenHead: tokenHeadAfterBlockStatementsBuilt,
-    statements,
-  } = buildBlock({
-    tokens,
-    currentTokenHead: tokenHeadAfterParametersBuilt + 2,
-  });
+  const { currentTokenHead: tokenHeadAfterBlockStatementsBuilt, statements } =
+    buildBlock({
+      tokens,
+      currentTokenHead: tokenHeadAfterParametersBuilt + 2,
+    });
 
   if (
     !matches(
@@ -1437,9 +1418,11 @@ function buildFunction({
         set(newEnv, paramKey, argumentValue);
       });
       try {
+        console.dir({ newEnv }, { depth: null });
         statements.forEach((statement) => statement.evaluate(newEnv));
         return 'nil';
       } catch (returnValue) {
+        console.dir({ returnValue });
         return returnValue;
       }
     },
@@ -1498,10 +1481,7 @@ export function parse({
     };
   }
 
-  const {
-    node,
-    currentTokenHead: tokenHeadAfterExprEval,
-  } = buildDeclaration({
+  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
     tokens,
     currentTokenHead,
   });
