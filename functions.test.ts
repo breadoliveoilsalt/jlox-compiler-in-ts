@@ -190,7 +190,7 @@ describe('function declarations and calls', () => {
     ]);
   });
 
-  test.only('functions even allow for closures', async () => {
+  test('functions even serve as closures', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
