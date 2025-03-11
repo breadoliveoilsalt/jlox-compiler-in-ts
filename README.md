@@ -357,12 +357,13 @@ This is my current working theory at least. To fix it will require a large-ish
 refactor. My plan is to merge in my function implementation as-is, with a test
 pointing out the problem, and pursue the refactor later.
 
-UPTO:
-- Remove comments and clean up
-- Add to readme an UPDATE: The refactor work, but passing the closure unit test
-  proved difficult. The key was realizing that the functionObject had to be
-  created with a nested environment at the time `evaluate()` was called to set the
-  function object in the current environment. That is, the current environment
-  would have any necessary variables for the function (such as closures). If
-  instead, I (erroneously) set the environment for the functionObject when
-  `.call()` was called, those necessary environment variables may not exist!
+UPDATE: The refactor is complete! It worked to solve the problem with branching
+recursive calls, such as `fib()` above. Unfortunately, this broke the functions'
+ability to serve as closures. This was fixed by moving where `functionObject`
+was created, to right before `evaluate()` in `buildFunction`, to inside
+`evaluate()`. The key was realizing that the `functionObject` had to be created
+with a nested environment at the time `evaluate()` was called to set the
+function object in the current environment. That is, the current environment
+would have any necessary variables for the function (such as closures). If
+instead, I (erroneously) set the environment for the `functionObject` when
+`.call()` was called, those necessary environment variables may not exist!
