@@ -33,7 +33,7 @@ type AstTree = {
   token: Token;
   left?: AstTree;
   right?: AstTree;
-  evaluate: () => any;
+  evaluate: (environment: Environment) => any;
 };
 
 const { set, update, get } = envHelpers();
@@ -111,8 +111,8 @@ function buildParenthetical({
 
     const node = {
       token,
-      evaluate() {
-        return expressionNode.evaluate();
+      evaluate(environment: Environment) {
+        return expressionNode.evaluate(environment);
       },
     };
 
@@ -192,7 +192,7 @@ function buildIdentifier({
 
   const node = {
     token,
-    evaluate() {
+    evaluate(environment: Environment) {
       return get(environment, identifierName) ?? 'nil';
     },
   };
@@ -335,8 +335,8 @@ function buildCall({
       token: tokens[tokenHeadAfterArgumentsBuilt],
       argumentNodes,
       calleeNode: primaryNode,
-      evaluate() {
-        const callee = primaryNode.evaluate();
+      evaluate(environment: Environment) {
+        const callee = primaryNode.evaluate(environment);
         if (!Object.hasOwn(callee, 'call')) {
           throw new RuntimeError({
             name: 'RuntimeError',
@@ -347,7 +347,7 @@ function buildCall({
         }
 
         const evaluatedArguments = this.argumentNodes.map((argument) =>
-          argument.evaluate(),
+          argument.evaluate(environment),
         );
 
         if (evaluatedArguments.length !== callee.arity()) {
@@ -359,7 +359,9 @@ function buildCall({
           });
         }
 
-        return callee.call(evaluatedArguments);
+        // TODO: make sure to remove unneeded stuff like blockEnv
+        // from buildFunction
+        return callee.call(evaluatedArguments, environment);
       },
     };
 
@@ -398,8 +400,8 @@ function buildUnary({
     const node = {
       token: currentToken,
       right,
-      evaluate() {
-        const right = this.right.evaluate();
+      evaluate(environment: Environment) {
+        const right = this.right.evaluate(environment);
         if (this.token.name === TOKEN_NAMES.BANG) return !right;
         // NOTE: Below checks for number type to prevent
         // javascript oddities like `14 -true`, which evaluates to 13
@@ -456,9 +458,9 @@ function buildFactor({
       token,
       left,
       right,
-      evaluate() {
-        const leftExpr = this.left.evaluate();
-        const rightExpr = this.right.evaluate();
+      evaluate(environment: Environment) {
+        const leftExpr = this.left.evaluate(environment);
+        const rightExpr = this.right.evaluate(environment);
         if (leftExpr === 'nil' || rightExpr === 'nil') {
           throw new CompilerError({
             name: 'JloxSyntaxError',
@@ -533,9 +535,9 @@ function buildTerm({
       token,
       left,
       right,
-      evaluate() {
-        const leftExpr = this.left.evaluate();
-        const rightExpr = this.right.evaluate();
+      evaluate(environment: Environment) {
+        const leftExpr = this.left.evaluate(environment);
+        const rightExpr = this.right.evaluate(environment);
         if (leftExpr === 'nil' || rightExpr === 'nil') {
           throw new CompilerError({
             name: 'JloxSyntaxError',
@@ -612,9 +614,9 @@ function buildComparison({
       token,
       left,
       right,
-      evaluate() {
-        const leftExpr = this.left.evaluate();
-        const rightExpr = this.right.evaluate();
+      evaluate(environment: Environment) {
+        const leftExpr = this.left.evaluate(environment);
+        const rightExpr = this.right.evaluate(environment);
         switch (this.token.name) {
           case TOKEN_NAMES.GREATER_EQUAL:
             return leftExpr >= rightExpr;
@@ -686,14 +688,14 @@ function buildEquality({
       token,
       left,
       right,
-      evaluate() {
+      evaluate(environment: Environment) {
         if (this.token.name === TOKEN_NAMES.EQUAL_EQUAL)
           return (
-            !!this.left && this.left?.evaluate() === this.right?.evaluate()
+            !!this.left && this.left?.evaluate(environment) === this.right?.evaluate(environment)
           );
         if (this.token.name === TOKEN_NAMES.BANG_EQUAL)
           return (
-            this.left!! && this.left?.evaluate() !== this.right?.evaluate()
+            this.left!! && this.left?.evaluate(environment) !== this.right?.evaluate(environment)
           );
       },
     };
@@ -742,10 +744,10 @@ function buildAnd({
 
     const node = {
       token: tokens[tokenHeadAfterEqualityBuiltLeft],
-      evaluate() {
-        const left = leftNode.evaluate();
+      evaluate(environment: Environment) {
+        const left = leftNode.evaluate(environment);
         if (!left) return left;
-        return rightNode.evaluate();
+        return rightNode.evaluate(environment);
       },
     };
 
@@ -793,10 +795,10 @@ function buildOr({
 
     const node = {
       token: tokens[tokenHeadAfterAndBuilt],
-      evaluate() {
-        const left = leftNode.evaluate();
+      evaluate(environment: Environment) {
+        const left = leftNode.evaluate(environment);
         if (!!left) return left;
-        return rightNode.evaluate();
+        return rightNode.evaluate(environment);
       },
     };
 
@@ -845,10 +847,10 @@ function buildAssignment({
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
-        evaluate() {
+        evaluate(environment: Environment) {
           const key = nodeFromOrBuild.token.text;
-          const value = nodeFromRecursiveAssignmentEval.evaluate();
-          update(envAfterAssignmentEval, key, value);
+          const value = nodeFromRecursiveAssignmentEval.evaluate(environment);
+          update(environment, key, value);
           return null;
         },
       };
@@ -903,8 +905,8 @@ function buildExpressionStatement({
   ) {
     const node = {
       token,
-      evaluate() {
-        return expression.evaluate();
+      evaluate(environment: Environment) {
+        return expression.evaluate(environment);
       },
     };
 
@@ -1086,11 +1088,11 @@ function buildForStatement({
 
   const node = {
     token: tokens[tokenHeadAfterIncrement],
-    evaluate() {
+    evaluate(environment: Environment) {
       // Force true if no condition specified
-      initializer && initializer.node.evaluate();
-      while (condition ? condition.node.evaluate() : true) {
-        statements.forEach((statement) => statement.evaluate());
+      initializer && initializer.node.evaluate(environment);
+      while (condition ? condition.node.evaluate(environment) : true) {
+        statements.forEach((statement) => statement.evaluate(environment));
       }
     },
   };
@@ -1132,8 +1134,8 @@ function buildStatement({
 
     const node = {
       token,
-      evaluate() {
-        statements.forEach((statement) => statement.evaluate());
+      evaluate(environment: Environment) {
+        statements.forEach((statement) => statement.evaluate(environment));
       },
     };
 
@@ -1188,9 +1190,9 @@ function buildStatement({
 
     const node = {
       token: tokens[tokenHeadAfterWhileBodyBuilt],
-      evaluate() {
-        while (whileConditionNode.evaluate()) {
-          whileBodyNode.evaluate();
+      evaluate(environment: Environment) {
+        while (whileConditionNode.evaluate(environment)) {
+          whileBodyNode.evaluate(environment);
         }
       },
     };
@@ -1231,8 +1233,8 @@ function buildStatement({
     if (matches(tokens[tokenHeadAfterExpressionBuilt], TOKEN_NAMES.SEMICOLON)) {
       const node = {
         token: tokens[tokenHeadAfterExpressionBuilt],
-        evaluate() {
-          throw expression.evaluate();
+        evaluate(environment: Environment) {
+          throw expression.evaluate(environment);
         },
       };
 
@@ -1269,8 +1271,8 @@ function buildStatement({
     ) {
       const node = {
         token,
-        evaluate() {
-          systemPrint(expression.evaluate());
+        evaluate(environment: Environment) {
+          systemPrint(expression.evaluate(environment));
         },
       };
 
@@ -1342,11 +1344,11 @@ function buildStatement({
 
       const node = {
         token: tokens[tokenHeadAfterElseBranchBuilt],
-        evaluate() {
-          if (ifConditionNode.evaluate()) {
-            return ifBranchNode.evaluate();
+        evaluate(environment: Environment) {
+          if (ifConditionNode.evaluate(environment)) {
+            return ifBranchNode.evaluate(environment);
           } else {
-            return elseBranchNode.evaluate();
+            return elseBranchNode.evaluate(environment);
           }
         },
       };
@@ -1360,9 +1362,9 @@ function buildStatement({
 
     const node = {
       token: tokens[tokenHeadAfterIfBranchBuilt],
-      evaluate() {
-        if (ifConditionNode.evaluate()) {
-          return ifBranchNode.evaluate();
+      evaluate(environment: Environment) {
+        if (ifConditionNode.evaluate(environment)) {
+          return ifBranchNode.evaluate(environment);
         }
       },
     };
@@ -1412,7 +1414,7 @@ function buildVar({
   ) {
     const node = {
       token: tokens[currentTokenHead + 1],
-      evaluate() {
+      evaluate(environment: Environment) {
         set(environment, varName, undefined);
         return null;
       },
@@ -1449,8 +1451,8 @@ function buildVar({
     if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
       const node = {
         token: identifier,
-        evaluate() {
-          set(envAfterExpressionEval, varName, expressionNode.evaluate());
+        evaluate(environment: Environment) {
+          set(environment, varName, expressionNode.evaluate(environment));
           return null;
         },
       };
@@ -1613,14 +1615,15 @@ function buildFunction({
     arity() {
       return parameterNodes.length;
     },
-    call(args: AstTree[]) {
+    call(args: AstTree[], environment: Environment) {
+      const newEnv = { outerScope: environment }
       parameterNodes.forEach((param, i: number) => {
         const paramKey = param.token.text;
         const argumentValue = args[i];
-        set(blockEnv, paramKey, argumentValue);
+        set(newEnv, paramKey, argumentValue);
       });
       try {
-        statements.forEach((statement) => statement.evaluate());
+        statements.forEach((statement) => statement.evaluate(newEnv));
         return 'nil';
       } catch (returnValue) {
         return returnValue;
@@ -1630,14 +1633,19 @@ function buildFunction({
 
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
-    evaluate() {
-      if (envAfterBlockStatementsBuilt !== null) {
+    evaluate(environment: Environment) {
         set(
-          envAfterBlockStatementsBuilt,
+          environment,
           identifierNode.token.text,
           functionObject,
         );
-      }
+      // if (envAfterBlockStatementsBuilt !== null) {
+      //   set(
+      //     envAfterBlockStatementsBuilt,
+      //     identifierNode.token.text,
+      //     functionObject,
+      //   );
+      // }
       return null;
     },
   };

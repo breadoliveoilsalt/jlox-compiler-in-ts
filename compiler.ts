@@ -11,7 +11,7 @@ export async function compile(readLine: ReadLine, environment?: Environment) : P
   });
 
   const result = statements.reduce((_, statement) => {
-    return statement.evaluate();
+    return statement.evaluate(globalScope);
   }, undefined);
 
   return {
