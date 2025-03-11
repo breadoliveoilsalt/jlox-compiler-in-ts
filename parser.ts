@@ -935,6 +935,7 @@ function buildBlock({
   statements?: Array<AstTree>;
   environment: Environment;
 }) {
+  // TODO: remove after refactor?
   // NOTE:
   // - buildBlock assumes left brace has been consumed
   // - but buildBlock consumes the right brace before it returns
@@ -1135,7 +1136,8 @@ function buildStatement({
     const node = {
       token,
       evaluate(environment: Environment) {
-        statements.forEach((statement) => statement.evaluate(environment));
+        const newEnv = {outerScope: environment}
+        statements.forEach((statement) => statement.evaluate(newEnv));
       },
     };
 
