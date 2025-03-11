@@ -1405,7 +1405,6 @@ function buildFunction({
   // NOTE: This is the interface expected by `buildCall` when
   // calling `execute()` on a functionDeclaration node
   const functionObject = {
-    blockStatements: statements,
     parameters: parameterNodes,
     arity() {
       return parameterNodes.length;
@@ -1418,11 +1417,12 @@ function buildFunction({
         set(newEnv, paramKey, argumentValue);
       });
       try {
-        console.dir({ newEnv }, { depth: null });
+        // console.dir({ newEnv }, { depth: null });
+        console.dir({statements}, {depth: null})
         statements.forEach((statement) => statement.evaluate(newEnv));
         return 'nil';
       } catch (returnValue) {
-        console.dir({ returnValue });
+        // console.dir({ returnValue });
         return returnValue;
       }
     },

@@ -200,7 +200,7 @@ describe('function declarations and calls', () => {
         fun makeCounter() {
           var i = 0;
           fun count() {
-            i  = i + 1;
+            i = i + 1;
             print i;
           }
 

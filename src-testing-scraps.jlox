@@ -83,3 +83,45 @@ fun fib(n) {
 
 print fib(4);
 
+
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i  = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+counter();
+counter();
+----
+Works:
+
+
+fun test() {
+  var thing = "yo";
+  fun inside() {
+    print thing;
+  }
+  inside();
+}
+
+test();
+
+-----
+Also works
+
+fun test() {
+  var thing = "yo";
+  fun inside() {
+    print thing;
+  }
+  inside();
+}
+
+var result = test;
+result();
