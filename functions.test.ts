@@ -190,7 +190,7 @@ describe('function declarations and calls', () => {
     ]);
   });
 
-  test('functions even allow for closures', async () => {
+  test('functions even serve as closures', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
@@ -200,7 +200,7 @@ describe('function declarations and calls', () => {
         fun makeCounter() {
           var i = 0;
           fun count() {
-            i  = i + 1;
+            i = i + 1;
             print i;
           }
 
@@ -218,7 +218,6 @@ describe('function declarations and calls', () => {
     await compile(readLine);
     expect(printSpy.mock.calls).toEqual([[1], [2]]);
   });
-
 
   test('functions work pretty well with outside and inside scope', async () => {
     const printSpy = vi
@@ -263,10 +262,14 @@ describe('function declarations and calls', () => {
     const readLine = buildReadLine(lines);
 
     await compile(readLine);
-    expect(printSpy.mock.calls).toEqual([["\"less than!\""], ["\"less than or equal!\""], ["\"good!\""]]);
+    expect(printSpy.mock.calls).toEqual([
+      ['"less than!"'],
+      ['"less than or equal!"'],
+      ['"good!"'],
+    ]);
   });
 
-  test('KNOWN BUG: more than one recursive call reveals that each call is binding to the same scope/environment', async () => {
+  test('more than one recursive branch works', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);

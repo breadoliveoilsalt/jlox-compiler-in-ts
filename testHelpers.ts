@@ -5,9 +5,9 @@ import { type ReadLine } from './index';
 export async function compile(readLine: ReadLine) {
   const { tokens } = await scan(readLine);
   const globalScope = { outerScope: null };
-  const { statements } = parse({ tokens, environment: globalScope });
+  const { statements } = parse({ tokens });
   return statements.reduce((_, statement) => {
-    return statement.evaluate();
+    return statement.evaluate(globalScope);
   }, undefined);
 }
 
