@@ -269,8 +269,7 @@ describe('function declarations and calls', () => {
     ]);
   });
 
-  // TODO: Did I Fix this??
-  test('KNOWN BUG: more than one recursive call reveals that each call is binding to the same scope/environment', async () => {
+  test('more than one recursive branch works', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);

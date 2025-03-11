@@ -178,8 +178,6 @@ function buildIdentifier({
   const node = {
     token,
     evaluate(environment: Environment) {
-      console.log(`in identifier, trying to get ${identifierName}`)
-      console.dir({ environment }, { depth: null })
       return get(environment, identifierName) ?? 'nil';
     },
   };
@@ -323,13 +321,6 @@ function buildCall({
           });
         }
 
-        // console.log("in buildCall evaluation")
-        // console.dir({environment})
-
-
-        // TODO: make sure to remove unneeded stuff like blockEnv
-        // from buildFunction
-        // return callee.call(evaluatedArguments, environment);
         return callee.call(evaluatedArguments);
       },
     };
@@ -820,16 +811,6 @@ function buildBlock({
   currentTokenHead: number;
   statements?: Array<AstTree>;
 }) {
-  // TODO: remove after refactor?
-  // NOTE:
-  // - buildBlock assumes left brace has been consumed
-  // - but buildBlock consumes the right brace before it returns
-  // - buildBlock assumes new "outer" env has been passed to it
-  //    - This way the parent that calls buildBlock can keep
-  //      a reference to that environment. See how `buildFunction`
-  //      uses `blockEnv`, for example.
-  // - buildBlock consumes/resets this outer env before it returns,
-  //   so the returned env is the parent's env, however.
   const currentTokenName = tokens[currentTokenHead].name;
 
   if (
@@ -972,14 +953,6 @@ function buildStatement({
         tokens,
         currentTokenHead: currentTokenHead + 1,
       });
-
-    // if (!envAfterBlockEval) {
-    //   throw new CompilerError({
-    //     name: 'DeveloperError',
-    //     message: 'Missing env in return from buildBlock',
-    //     lineNumber: token.lineNumber,
-    //   });
-    // }
 
     const node = {
       token,
@@ -1210,12 +1183,6 @@ function buildStatement({
   return buildExpressionStatement({ tokens, currentTokenHead });
 }
 
-// TODO: refactor these variables I use over and over
-// to keep them simpler
-// currentTokenHead => head
-// perhaps object params to => context
-// sequencer => tokenSequencer
-// expectedTokens => expected
 function buildVar({
   tokens,
   currentTokenHead,
@@ -1277,8 +1244,6 @@ function buildVar({
         evaluate(environment: Environment) {
           const value = expressionNode.evaluate(environment);
           set(environment, varName, value);
-          console.log(`In buildVar setting ${varName}`)
-          console.dir({ varName, environment, value })
           return null;
         },
       };
@@ -1412,9 +1377,6 @@ function buildFunction({
     });
   }
 
-  // NOTE: This is the interface expected by `buildCall` when
-  // calling `execute()` on a functionDeclaration node
-
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
     evaluate(environment: Environment) {
@@ -1423,7 +1385,6 @@ function buildFunction({
         arity() {
           return parameterNodes.length;
         },
-        // call(args: AstTree[], environment: Environment) {
         call(args: AstTree[]) {
           const newEnv = { outerScope: environment };
           parameterNodes.forEach((param, i: number) => {
@@ -1432,25 +1393,14 @@ function buildFunction({
             set(newEnv, paramKey, argumentValue);
           });
           try {
-            // console.dir({environment, newEnv}, {depth: null})
-            // console.dir({ newEnv }, { depth: null });
-            // console.dir({statements}, {depth: null})
             statements.forEach((statement) => statement.evaluate(newEnv));
             return 'nil';
           } catch (returnValue) {
-            // console.dir({ returnValue });
             return returnValue;
           }
         },
       };
       set(environment, identifierNode.token.text, functionObject);
-      // if (envAfterBlockStatementsBuilt !== null) {
-      //   set(
-      //     envAfterBlockStatementsBuilt,
-      //     identifierNode.token.text,
-      //     functionObject,
-      //   );
-      // }
       return null;
     },
   };
