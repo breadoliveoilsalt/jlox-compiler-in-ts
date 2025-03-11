@@ -125,3 +125,108 @@ fun test() {
 
 var result = test;
 result();
+
+
+-----
+
+Also works
+
+
+var fish = 1;
+
+fun test() {
+  fun inside() {
+    print fish + 3;
+  }
+  inside();
+}
+
+var result = test;
+result();
+
+-----
+
+Also works
+
+fun test() {
+  var fish = 1;
+  fun inside() {
+    print fish + 3;
+  }
+  inside();
+}
+
+var result = test;
+result();
+
+
+------
+
+Also works
+
+fun test() {
+  var fish = 1;
+  fun inside() {
+    var wonk = fish + 4;
+    print wonk;
+  }
+  inside();
+}
+
+var result = test;
+result();
+
+-----
+
+Does NOT work. 
+
+
+fun test() {
+  var fish = 1;
+  fun inside() {
+    var wonk = fish + 4;
+    print wonk;
+  }
+  return inside;
+}
+
+var result = test();
+result();
+
+
+-----
+
+works
+
+
+fun test() {
+  fun inside() {
+    var fish = 1;
+    print fish;
+  }
+  return inside;
+}
+
+var result = test();
+result();
+
+Does not work
+
+
+fun test() {
+  var fish = 1;
+  fun inside() {
+    print fish;
+  }
+  return inside;
+}
+
+var result = test();
+result();
+
+THESE TWO LAST ONES ARE THE KEY. 
+There's something wrong with the env when declaring
+a new function in a function
+
+Part of the problem is that fish won't be in the env until 
+evaluate is called on inside, which only happens when `call` happens

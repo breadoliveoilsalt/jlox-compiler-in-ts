@@ -1,12 +1,12 @@
-var fish = 1;
-
 fun test() {
+  var fish = 1;
   fun inside() {
-    print fish + 3;
+    print fish;
   }
-  inside();
+  return inside;
 }
 
-var result = test;
+var result = test();
 result();
+
 

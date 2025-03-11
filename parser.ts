@@ -178,6 +178,8 @@ function buildIdentifier({
   const node = {
     token,
     evaluate(environment: Environment) {
+      console.log(`in identifier, trying to get ${identifierName}`)
+      console.dir({environment}, {depth: null})
       return get(environment, identifierName) ?? 'nil';
     },
   };
@@ -320,6 +322,10 @@ function buildCall({
             lineNumber: tokens[tokenHeadAfterArgumentsBuilt].lineNumber,
           });
         }
+
+        // console.log("in buildCall evaluation")
+        // console.dir({environment})
+
 
         // TODO: make sure to remove unneeded stuff like blockEnv
         // from buildFunction
@@ -1268,7 +1274,10 @@ function buildVar({
       const node = {
         token: identifier,
         evaluate(environment: Environment) {
-          set(environment, varName, expressionNode.evaluate(environment));
+          const value = expressionNode.evaluate(environment);
+          set(environment, varName, value);
+          console.log(`In buildVar setting ${varName}`)
+          console.dir({varName, environment, value})
           return null;
         },
       };
@@ -1417,8 +1426,9 @@ function buildFunction({
         set(newEnv, paramKey, argumentValue);
       });
       try {
+        // console.dir({environment, newEnv}, {depth: null})
         // console.dir({ newEnv }, { depth: null });
-        console.dir({statements}, {depth: null})
+        // console.dir({statements}, {depth: null})
         statements.forEach((statement) => statement.evaluate(newEnv));
         return 'nil';
       } catch (returnValue) {
