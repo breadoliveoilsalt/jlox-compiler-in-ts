@@ -266,6 +266,7 @@ describe('function declarations and calls', () => {
     expect(printSpy.mock.calls).toEqual([["\"less than!\""], ["\"less than or equal!\""], ["\"good!\""]]);
   });
 
+  // TODO: Did I Fix this??
   test('KNOWN BUG: more than one recursive call reveals that each call is binding to the same scope/environment', async () => {
     const printSpy = vi
       .spyOn(outputModule, 'systemPrint')
