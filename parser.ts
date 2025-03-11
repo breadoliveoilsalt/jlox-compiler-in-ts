@@ -179,7 +179,7 @@ function buildIdentifier({
     token,
     evaluate(environment: Environment) {
       console.log(`in identifier, trying to get ${identifierName}`)
-      console.dir({environment}, {depth: null})
+      console.dir({ environment }, { depth: null })
       return get(environment, identifierName) ?? 'nil';
     },
   };
@@ -329,7 +329,8 @@ function buildCall({
 
         // TODO: make sure to remove unneeded stuff like blockEnv
         // from buildFunction
-        return callee.call(evaluatedArguments, environment);
+        // return callee.call(evaluatedArguments, environment);
+        return callee.call(evaluatedArguments);
       },
     };
 
@@ -609,13 +610,13 @@ function buildEquality({
           return (
             !!this.left &&
             this.left?.evaluate(environment) ===
-              this.right?.evaluate(environment)
+            this.right?.evaluate(environment)
           );
         if (this.token.name === TOKEN_NAMES.BANG_EQUAL)
           return (
             this.left!! &&
             this.left?.evaluate(environment) !==
-              this.right?.evaluate(environment)
+            this.right?.evaluate(environment)
           );
       },
     };
@@ -1277,7 +1278,7 @@ function buildVar({
           const value = expressionNode.evaluate(environment);
           set(environment, varName, value);
           console.log(`In buildVar setting ${varName}`)
-          console.dir({varName, environment, value})
+          console.dir({ varName, environment, value })
           return null;
         },
       };
@@ -1413,34 +1414,35 @@ function buildFunction({
 
   // NOTE: This is the interface expected by `buildCall` when
   // calling `execute()` on a functionDeclaration node
-  const functionObject = {
-    parameters: parameterNodes,
-    arity() {
-      return parameterNodes.length;
-    },
-    call(args: AstTree[], environment: Environment) {
-      const newEnv = { outerScope: environment };
-      parameterNodes.forEach((param, i: number) => {
-        const paramKey = param.token.text;
-        const argumentValue = args[i];
-        set(newEnv, paramKey, argumentValue);
-      });
-      try {
-        // console.dir({environment, newEnv}, {depth: null})
-        // console.dir({ newEnv }, { depth: null });
-        // console.dir({statements}, {depth: null})
-        statements.forEach((statement) => statement.evaluate(newEnv));
-        return 'nil';
-      } catch (returnValue) {
-        // console.dir({ returnValue });
-        return returnValue;
-      }
-    },
-  };
 
   const node = {
     token: tokens[tokenHeadAfterBlockStatementsBuilt],
     evaluate(environment: Environment) {
+      const functionObject = {
+        parameters: parameterNodes,
+        arity() {
+          return parameterNodes.length;
+        },
+        // call(args: AstTree[], environment: Environment) {
+        call(args: AstTree[]) {
+          const newEnv = { outerScope: environment };
+          parameterNodes.forEach((param, i: number) => {
+            const paramKey = param.token.text;
+            const argumentValue = args[i];
+            set(newEnv, paramKey, argumentValue);
+          });
+          try {
+            // console.dir({environment, newEnv}, {depth: null})
+            // console.dir({ newEnv }, { depth: null });
+            // console.dir({statements}, {depth: null})
+            statements.forEach((statement) => statement.evaluate(newEnv));
+            return 'nil';
+          } catch (returnValue) {
+            // console.dir({ returnValue });
+            return returnValue;
+          }
+        },
+      };
       set(environment, identifierNode.token.text, functionObject);
       // if (envAfterBlockStatementsBuilt !== null) {
       //   set(
