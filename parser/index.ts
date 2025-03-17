@@ -827,16 +827,17 @@ function buildBlock({
       statements,
     };
 
-  const { node, currentTokenHead: tokenHeadAfterExprBuilt } = buildDeclaration({
-    tokens,
-    currentTokenHead,
-  });
+  const { node, currentTokenHead: tokenHeadAfterExpressionBuilt } =
+    buildDeclaration({
+      tokens,
+      currentTokenHead,
+    });
 
   const updatedStatements = [...statements, node];
 
   return buildBlock({
     tokens,
-    currentTokenHead: tokenHeadAfterExprBuilt,
+    currentTokenHead: tokenHeadAfterExpressionBuilt,
     statements: updatedStatements,
   });
 }
@@ -1443,16 +1444,17 @@ export function parse({
     };
   }
 
-  const { node, currentTokenHead: tokenHeadAfterExprBuilt } = buildDeclaration({
-    tokens,
-    currentTokenHead,
-  });
+  const { node, currentTokenHead: tokenHeadAfterExpressionBuilt } =
+    buildDeclaration({
+      tokens,
+      currentTokenHead,
+    });
 
   const updatedStatements = [...statements, node];
 
   return parse({
     tokens,
-    currentTokenHead: tokenHeadAfterExprBuilt,
+    currentTokenHead: tokenHeadAfterExpressionBuilt,
     statements: updatedStatements,
   });
 }
