@@ -79,7 +79,7 @@ function buildParenthetical({
 }: NodeBuilderParams): NodeBuilderResult {
   const {
     node: expressionNode,
-    currentTokenHead: tokenHeadAfterExpressionEval,
+    currentTokenHead: tokenHeadAfterExpressionBuilt,
   } = buildExpression({
     tokens,
     currentTokenHead: currentTokenHead + 1,
@@ -89,7 +89,7 @@ function buildParenthetical({
     matches(
       // TODO: Maybe I don't need peek at all...just do tokens[head]
       // ...much cleaner
-      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionBuilt }),
       TOKEN_NAMES.RIGHT_PAREN,
     )
   ) {
@@ -98,7 +98,7 @@ function buildParenthetical({
     // the right paren, when there is both a left and right
     // paren at play. Does Node really need to return token?
     // Consider changing token to tokens array for a node
-    const token = tokens[tokenHeadAfterExpressionEval];
+    const token = tokens[tokenHeadAfterExpressionBuilt];
 
     const node = {
       token,
@@ -109,7 +109,7 @@ function buildParenthetical({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterExpressionEval + 1,
+      currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
     };
   }
 
@@ -117,7 +117,7 @@ function buildParenthetical({
     name: 'JloxSyntaxError',
     message:
       'Something went wrong evaluating a parenthetical. Is there a missing closing parentheses ")"?',
-    lineNumber: tokens[tokenHeadAfterExpressionEval].lineNumber,
+    lineNumber: tokens[tokenHeadAfterExpressionBuilt].lineNumber,
   });
 }
 
@@ -205,14 +205,14 @@ function buildPrimary({
 
   if (primaryBuilders[currentToken.name]) {
     const build = primaryBuilders[currentToken.name];
-    const { node, currentTokenHead: tokenHeadAfterPrimaryEval } = build({
+    const { node, currentTokenHead: tokenHeadAfterPrimaryBuilt } = build({
       tokens,
       currentTokenHead,
     });
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterPrimaryEval,
+      currentTokenHead: tokenHeadAfterPrimaryBuilt,
     };
   }
 
@@ -344,7 +344,7 @@ function buildUnary({
   const currentToken = tokens[currentTokenHead];
 
   if (matches(currentToken, TOKEN_NAMES.BANG, TOKEN_NAMES.MINUS)) {
-    const { node: right, currentTokenHead: tokenHeadAfterUnaryEval } =
+    const { node: right, currentTokenHead: tokenHeadAfterUnaryBuilt } =
       buildUnary({
         tokens,
         currentTokenHead: currentTokenHead + 1,
@@ -365,7 +365,7 @@ function buildUnary({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterUnaryEval,
+      currentTokenHead: tokenHeadAfterUnaryBuilt,
     };
   }
 
@@ -376,24 +376,26 @@ function buildFactor({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterUnaryEval } = buildUnary({
-    tokens,
-    currentTokenHead,
-  });
+  const { node: left, currentTokenHead: tokenHeadAfterUnaryBuilt } = buildUnary(
+    {
+      tokens,
+      currentTokenHead,
+    },
+  );
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterUnaryEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterUnaryBuilt }),
       TOKEN_NAMES.SLASH,
       TOKEN_NAMES.STAR,
     )
   ) {
-    const token = tokens[tokenHeadAfterUnaryEval];
+    const token = tokens[tokenHeadAfterUnaryBuilt];
 
-    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+    const { node: right, currentTokenHead: tokenHeadAfterRightBuilt } =
       buildUnary({
         tokens,
-        currentTokenHead: tokenHeadAfterUnaryEval + 1,
+        currentTokenHead: tokenHeadAfterUnaryBuilt + 1,
       });
 
     const node = {
@@ -427,13 +429,13 @@ function buildFactor({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterRightEval,
+      currentTokenHead: tokenHeadAfterRightBuilt,
     };
   }
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterUnaryEval,
+    currentTokenHead: tokenHeadAfterUnaryBuilt,
   };
 }
 
@@ -441,7 +443,7 @@ function buildTerm({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterFactorEval } =
+  const { node: left, currentTokenHead: tokenHeadAfterFactorBuilt } =
     buildFactor({
       tokens,
       currentTokenHead,
@@ -449,17 +451,17 @@ function buildTerm({
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterFactorEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterFactorBuilt }),
       TOKEN_NAMES.MINUS,
       TOKEN_NAMES.PLUS,
     )
   ) {
-    const token = tokens[tokenHeadAfterFactorEval];
+    const token = tokens[tokenHeadAfterFactorBuilt];
 
-    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+    const { node: right, currentTokenHead: tokenHeadAfterRightBuilt } =
       buildFactor({
         tokens,
-        currentTokenHead: tokenHeadAfterFactorEval + 1,
+        currentTokenHead: tokenHeadAfterFactorBuilt + 1,
       });
 
     const node = {
@@ -493,13 +495,13 @@ function buildTerm({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterRightEval,
+      currentTokenHead: tokenHeadAfterRightBuilt,
     };
   }
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterFactorEval,
+    currentTokenHead: tokenHeadAfterFactorBuilt,
   };
 }
 
@@ -507,26 +509,26 @@ function buildComparison({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterTermEval } = buildTerm({
+  const { node: left, currentTokenHead: tokenHeadAfterTermBuilt } = buildTerm({
     tokens,
     currentTokenHead,
   });
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterTermEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterTermBuilt }),
       TOKEN_NAMES.GREATER_EQUAL,
       TOKEN_NAMES.GREATER,
       TOKEN_NAMES.LESS_EQUAL,
       TOKEN_NAMES.LESS,
     )
   ) {
-    const token = tokens[tokenHeadAfterTermEval];
+    const token = tokens[tokenHeadAfterTermBuilt];
 
-    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+    const { node: right, currentTokenHead: tokenHeadAfterRightBuilt } =
       buildTerm({
         tokens,
-        currentTokenHead: tokenHeadAfterTermEval + 1,
+        currentTokenHead: tokenHeadAfterTermBuilt + 1,
       });
 
     const node = {
@@ -557,13 +559,13 @@ function buildComparison({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterRightEval,
+      currentTokenHead: tokenHeadAfterRightBuilt,
     };
   }
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterTermEval,
+    currentTokenHead: tokenHeadAfterTermBuilt,
   };
 }
 
@@ -571,7 +573,7 @@ function buildEquality({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
-  const { node: left, currentTokenHead: tokenHeadAfterComparisonEval } =
+  const { node: left, currentTokenHead: tokenHeadAfterComparisonBuilt } =
     buildComparison({
       tokens,
       currentTokenHead,
@@ -579,17 +581,17 @@ function buildEquality({
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterComparisonEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterComparisonBuilt }),
       TOKEN_NAMES.EQUAL_EQUAL,
       TOKEN_NAMES.BANG_EQUAL,
     )
   ) {
-    const token = tokens[tokenHeadAfterComparisonEval];
+    const token = tokens[tokenHeadAfterComparisonBuilt];
 
-    const { node: right, currentTokenHead: tokenHeadAfterRightEval } =
+    const { node: right, currentTokenHead: tokenHeadAfterRightBuilt } =
       buildComparison({
         tokens,
-        currentTokenHead: tokenHeadAfterComparisonEval + 1,
+        currentTokenHead: tokenHeadAfterComparisonBuilt + 1,
       });
 
     const node = {
@@ -614,13 +616,13 @@ function buildEquality({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterRightEval,
+      currentTokenHead: tokenHeadAfterRightBuilt,
     };
   }
 
   return {
     node: left,
-    currentTokenHead: tokenHeadAfterComparisonEval,
+    currentTokenHead: tokenHeadAfterComparisonBuilt,
   };
 }
 
@@ -639,7 +641,7 @@ function buildAnd({
   if (matches(currentToken, TOKEN_NAMES.AND)) {
     const {
       node: rightNode,
-      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      currentTokenHead: tokenHeadAfterEqualityBuiltRight,
     } = buildAnd({
       tokens,
       currentTokenHead: tokenHeadAfterEqualityBuiltLeft + 1,
@@ -656,7 +658,7 @@ function buildAnd({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      currentTokenHead: tokenHeadAfterEqualityBuiltRight,
     };
   }
 
@@ -682,7 +684,7 @@ function buildOr({
   if (matches(currentToken, TOKEN_NAMES.OR)) {
     const {
       node: rightNode,
-      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      currentTokenHead: tokenHeadAfterEqualityBuiltRight,
     } = buildOr({
       tokens,
       currentTokenHead: tokenHeadAfterAndBuilt + 1,
@@ -699,7 +701,7 @@ function buildOr({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterEqualityEvalRight,
+      currentTokenHead: tokenHeadAfterEqualityBuiltRight,
     };
   }
 
@@ -721,21 +723,21 @@ function buildAssignment({
 
   if (matches(tokens[tokenHeadAfterOrBuild], TOKEN_NAMES.EQUAL)) {
     const {
-      node: nodeFromRecursiveAssignmentEval,
-      currentTokenHead: tokenHeadAfterAssignmentEval,
+      node: nodeFromRecursiveAssignmentBuilt,
+      currentTokenHead: tokenHeadAfterAssignmentBuilt,
     } = buildAssignment({
       tokens,
       currentTokenHead: tokenHeadAfterOrBuild + 1,
     });
 
-    const assignmentToken = tokens[tokenHeadAfterAssignmentEval];
+    const assignmentToken = tokens[tokenHeadAfterAssignmentBuilt];
 
     if (nodeFromOrBuild.token.name === TOKEN_NAMES.IDENTIFIER) {
       const node = {
         token: assignmentToken,
         evaluate(environment: Environment) {
           const key = nodeFromOrBuild.token.text;
-          const value = nodeFromRecursiveAssignmentEval.evaluate(environment);
+          const value = nodeFromRecursiveAssignmentBuilt.evaluate(environment);
           update(environment, key, value);
           return null;
         },
@@ -743,7 +745,7 @@ function buildAssignment({
 
       return {
         node,
-        currentTokenHead: tokenHeadAfterAssignmentEval,
+        currentTokenHead: tokenHeadAfterAssignmentBuilt,
       };
     }
 
@@ -773,12 +775,12 @@ function buildExpressionStatement({
 }: NodeBuilderParams): NodeBuilderResult {
   const token = tokens[currentTokenHead];
 
-  const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
+  const { node: expression, currentTokenHead: tokenHeadAfterExpressionBuilt } =
     buildExpression({ tokens, currentTokenHead });
 
   if (
     matches(
-      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+      peek({ tokens, currentTokenHead: tokenHeadAfterExpressionBuilt }),
       TOKEN_NAMES.SEMICOLON,
     )
   ) {
@@ -791,7 +793,7 @@ function buildExpressionStatement({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterExpressionEval + 1,
+      currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
     };
   }
 
@@ -825,9 +827,7 @@ function buildBlock({
       statements,
     };
 
-  // TODO: Sometimes the code says `ExprEval`, and sometimes
-  // it says `ExpressionEval`. Be consistent.
-  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
+  const { node, currentTokenHead: tokenHeadAfterExprBuilt } = buildDeclaration({
     tokens,
     currentTokenHead,
   });
@@ -836,7 +836,7 @@ function buildBlock({
 
   return buildBlock({
     tokens,
-    currentTokenHead: tokenHeadAfterExprEval,
+    currentTokenHead: tokenHeadAfterExprBuilt,
     statements: updatedStatements,
   });
 }
@@ -948,7 +948,7 @@ function buildStatement({
   const token = tokens[currentTokenHead];
 
   if (matches(token, TOKEN_NAMES.LEFT_BRACE)) {
-    const { currentTokenHead: tokenHeadAfterBlockEval, statements } =
+    const { currentTokenHead: tokenHeadAfterBlockBuilt, statements } =
       buildBlock({
         tokens,
         currentTokenHead: currentTokenHead + 1,
@@ -964,7 +964,7 @@ function buildStatement({
 
     return {
       node,
-      currentTokenHead: tokenHeadAfterBlockEval,
+      currentTokenHead: tokenHeadAfterBlockBuilt,
     };
   }
 
@@ -1066,15 +1066,17 @@ function buildStatement({
   }
 
   if (matches(token, TOKEN_NAMES.PRINT)) {
-    const { node: expression, currentTokenHead: tokenHeadAfterExpressionEval } =
-      buildExpression({
-        tokens,
-        currentTokenHead: currentTokenHead + 1,
-      });
+    const {
+      node: expression,
+      currentTokenHead: tokenHeadAfterExpressionBuilt,
+    } = buildExpression({
+      tokens,
+      currentTokenHead: currentTokenHead + 1,
+    });
 
     if (
       matches(
-        peek({ tokens, currentTokenHead: tokenHeadAfterExpressionEval }),
+        peek({ tokens, currentTokenHead: tokenHeadAfterExpressionBuilt }),
         TOKEN_NAMES.SEMICOLON,
       )
     ) {
@@ -1087,7 +1089,7 @@ function buildStatement({
 
       return {
         node,
-        currentTokenHead: tokenHeadAfterExpressionEval + 1,
+        currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
       };
     }
 
@@ -1125,8 +1127,6 @@ function buildStatement({
       });
     }
 
-    // TODO: All stuff like tokenHeadAfterIfBranchEval should be
-    // tokenHeadAfterIfBranchBuilt
     const {
       node: ifBranchNode,
       currentTokenHead: tokenHeadAfterIfBranchBuilt,
@@ -1232,13 +1232,13 @@ function buildVar({
   ) {
     const {
       node: expressionNode,
-      currentTokenHead: tokenHeadAfterExpressionEval,
+      currentTokenHead: tokenHeadAfterExpressionBuilt,
     } = buildExpression({
       tokens,
       currentTokenHead: currentTokenHead + 3,
     });
 
-    if (matches(tokens[tokenHeadAfterExpressionEval], TOKEN_NAMES.SEMICOLON)) {
+    if (matches(tokens[tokenHeadAfterExpressionBuilt], TOKEN_NAMES.SEMICOLON)) {
       const node = {
         token: identifier,
         evaluate(environment: Environment) {
@@ -1250,7 +1250,7 @@ function buildVar({
 
       return {
         node,
-        currentTokenHead: tokenHeadAfterExpressionEval + 1,
+        currentTokenHead: tokenHeadAfterExpressionBuilt + 1,
       };
     }
 
@@ -1443,7 +1443,7 @@ export function parse({
     };
   }
 
-  const { node, currentTokenHead: tokenHeadAfterExprEval } = buildDeclaration({
+  const { node, currentTokenHead: tokenHeadAfterExprBuilt } = buildDeclaration({
     tokens,
     currentTokenHead,
   });
@@ -1452,7 +1452,7 @@ export function parse({
 
   return parse({
     tokens,
-    currentTokenHead: tokenHeadAfterExprEval,
+    currentTokenHead: tokenHeadAfterExprBuilt,
     statements: updatedStatements,
   });
 }
