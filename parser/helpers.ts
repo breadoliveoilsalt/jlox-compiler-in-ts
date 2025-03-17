@@ -3,9 +3,9 @@ import {
   type Tokens,
   type TokenName,
   TOKEN_NAMES,
-} from './scanner';
-import type { NodeBuilderParams, Environment } from './parser';
-import { CompilerError } from './errors';
+} from '../scanner';
+import type { NodeBuilderParams, Environment } from '.';
+import { CompilerError } from '../errors';
 
 export function matches(token: Token | undefined, ...tokenNames: string[]) {
   if (!token) return undefined;

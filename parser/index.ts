@@ -1,6 +1,6 @@
 import { TOKEN_NAMES, type Token, type Tokens } from '../scanner';
 import { CompilerError, RuntimeError } from '../errors';
-import { matches, peek, sequencer, envHelpers } from '../helpers';
+import { matches, peek, sequencer, envHelpers } from './helpers';
 import { systemPrint } from '../systemPrint';
 
 export type Environment = {
