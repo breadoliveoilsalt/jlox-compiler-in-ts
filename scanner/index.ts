@@ -1,5 +1,5 @@
-import { type ReadLine } from './index';
-import { CompilerError, GrammarError } from './errors';
+import { type ReadLine } from '../index';
+import { CompilerError, GrammarError } from '../errors';
 
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',

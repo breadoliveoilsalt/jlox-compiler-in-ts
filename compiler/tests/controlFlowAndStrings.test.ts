@@ -1,7 +1,7 @@
 import { afterEach, describe, test, expect, vi } from 'vitest';
 import { buildReadLine } from './testHelpers';
-import { compile } from './compiler';
-import * as outputModule from './systemPrint';
+import { compile } from '..';
+import * as outputModule from '../../systemPrint';
 
 describe('control flow and strings', () => {
   afterEach(() => {
@@ -270,24 +270,13 @@ describe('for loops', () => {
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
 
-    const lines = [
-      'for (var i = 0; i < 6; i = i + 1) {',
-      '  print i;',
-      '}'
-    ];
+    const lines = ['for (var i = 0; i < 6; i = i + 1) {', '  print i;', '}'];
 
     const readLine = buildReadLine(lines);
 
     await compile(readLine);
 
-    expect(printSpy.mock.calls).toEqual([
-      [0],
-      [1],
-      [2],
-      [3],
-      [4],
-      [5],
-    ]);
+    expect(printSpy.mock.calls).toEqual([[0], [1], [2], [3], [4], [5]]);
   });
 
   test('an initializer is not required in the "for loops" parenthesis', async () => {
@@ -299,19 +288,14 @@ describe('for loops', () => {
       'var i = 0;',
       'for (; i < 4; i = i + 1) {',
       '  print i;',
-      '}'
+      '}',
     ];
 
     const readLine = buildReadLine(lines);
 
     await compile(readLine);
 
-    expect(printSpy.mock.calls).toEqual([
-      [0],
-      [1],
-      [2],
-      [3],
-    ]);
+    expect(printSpy.mock.calls).toEqual([[0], [1], [2], [3]]);
   });
 });
 

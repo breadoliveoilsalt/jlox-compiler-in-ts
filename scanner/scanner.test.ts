@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
-import { scan } from './scanner';
-import { type ReadLine } from '.';
+import { scan } from '.';
+import { type ReadLine } from '..';
 
 describe('scan', () => {
   test('given a string of lexemes, it returns tokens with line numbers and an EOF token', async () => {

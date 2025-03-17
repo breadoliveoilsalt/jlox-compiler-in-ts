@@ -1,6 +1,6 @@
-import { scan } from './scanner';
-import { parse, type Environment } from './parser';
-import { type ReadLine } from './index';
+import { scan } from '../scanner';
+import { parse, type Environment } from '../parser';
+import { type ReadLine } from '../index';
 
 export async function compile(
   readLine: ReadLine,
