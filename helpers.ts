@@ -81,7 +81,6 @@ export function sequencer() {
 }
 
 export function envHelpers() {
-
   function set(env: Environment, key: string, value: any) {
     env[key] = value;
     return env;

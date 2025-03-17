@@ -1,7 +1,7 @@
-import { TOKEN_NAMES, type Token, type Tokens } from './scanner';
-import { CompilerError, RuntimeError } from './errors';
-import { matches, peek, sequencer, envHelpers } from './helpers';
-import { systemPrint } from './systemPrint';
+import { TOKEN_NAMES, type Token, type Tokens } from '../scanner';
+import { CompilerError, RuntimeError } from '../errors';
+import { matches, peek, sequencer, envHelpers } from '../helpers';
+import { systemPrint } from '../systemPrint';
 
 export type Environment = {
   outerScope: null | Environment;
@@ -601,13 +601,13 @@ function buildEquality({
           return (
             !!this.left &&
             this.left?.evaluate(environment) ===
-            this.right?.evaluate(environment)
+              this.right?.evaluate(environment)
           );
         if (this.token.name === TOKEN_NAMES.BANG_EQUAL)
           return (
             this.left!! &&
             this.left?.evaluate(environment) !==
-            this.right?.evaluate(environment)
+              this.right?.evaluate(environment)
           );
       },
     };

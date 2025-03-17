@@ -5,7 +5,7 @@ import { type ReadLine } from './index';
 export async function compile(
   readLine: ReadLine,
   environment?: Environment,
-): Promise<{ result: any, environment: Environment }> {
+): Promise<{ result: any; environment: Environment }> {
   const { tokens } = await scan(readLine);
   const globalScope: Environment = environment ?? { outerScope: null };
   const { statements } = parse({
@@ -18,6 +18,6 @@ export async function compile(
 
   return {
     result,
-    environment: globalScope
+    environment: globalScope,
   };
 }
