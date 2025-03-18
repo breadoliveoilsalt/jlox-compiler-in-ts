@@ -1,8 +1,12 @@
-import { NodeBuilderParams, NodeBuilderResult, Environment } from '..';
-import { buildExpression } from '../buildExpression';
-import { buildExpressionStatement } from '../buildExpressionStatement';
-import { buildBlock } from '../buildBlock';
-import { buildForStatement } from '../buildForStatement';
+import type {
+  NodeBuilderParams,
+  NodeBuilderResult,
+  Environment,
+} from '../types';
+import { buildExpression } from './buildExpression';
+import { buildExpressionStatement } from './buildExpressionStatement';
+import { buildBlock } from './buildBlock';
+import { buildForStatement } from './buildForStatement';
 import { CompilerError } from '../../errors';
 import { TOKEN_NAMES } from '../../scanner';
 import { systemPrint } from '../../systemPrint';

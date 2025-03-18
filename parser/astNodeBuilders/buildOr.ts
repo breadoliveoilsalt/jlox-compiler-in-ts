@@ -1,6 +1,11 @@
-import { NodeBuilderParams, NodeBuilderResult, buildAnd, Environment } from '.';
-import { TOKEN_NAMES } from '../scanner';
-import { matches } from './helpers';
+import { buildAnd } from './buildAnd';
+import type {
+  NodeBuilderParams,
+  NodeBuilderResult,
+  Environment,
+} from '../types';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches } from '../helpers';
 
 export function buildOr({
   tokens,

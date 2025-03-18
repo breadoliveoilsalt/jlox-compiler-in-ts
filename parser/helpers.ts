@@ -1,10 +1,6 @@
-import {
-  type Token,
-  type Tokens,
-  type TokenName,
-  TOKEN_NAMES,
-} from '../scanner';
-import type { NodeBuilderParams, Environment } from '.';
+import { TOKEN_NAMES } from '../scanner';
+import type { Token, Tokens, TokenName } from '../scanner/types';
+import type { NodeBuilderParams, Environment } from './types';
 import { CompilerError } from '../errors';
 
 export function matches(token: Token | undefined, ...tokenNames: string[]) {

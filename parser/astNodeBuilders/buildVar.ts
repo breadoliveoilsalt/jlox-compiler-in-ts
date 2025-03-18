@@ -1,18 +1,19 @@
-import {
+import { buildExpression } from './buildExpression';
+import type {
   NodeBuilderParams,
   NodeBuilderResult,
   Environment,
-  buildExpression,
-} from '.';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { sequencer, matches } from './helpers';
+} from '../types';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { sequencer, matches, envHelpers } from '../helpers';
 
 export function buildVar({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
   const { assertTokenSequence } = sequencer();
+  const { set } = envHelpers();
 
   const token = tokens[currentTokenHead];
 

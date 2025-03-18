@@ -1,5 +1,6 @@
 import { type ReadLine } from '../index';
 import { CompilerError, GrammarError } from '../errors';
+import { type Tokens } from './types';
 
 export const TOKEN_NAMES = {
   LEFT_PAREN: 'leftParen',
@@ -43,8 +44,6 @@ export const TOKEN_NAMES = {
   WHILE: 'while',
   EOF: 'eof',
 };
-
-export type TokenName = (typeof TOKEN_NAMES)[keyof typeof TOKEN_NAMES];
 
 type TokenType = {
   name: string;
@@ -280,14 +279,6 @@ const tokenTypes: TokenType[] = [
     consumeFrom: buildConsumer(matchIdentifier),
   },
 ];
-
-export type Token = {
-  name: string;
-  text: string;
-  lineNumber: number;
-};
-
-export type Tokens = Token[];
 
 function assertTokenType(
   tokenType: unknown,
