@@ -14,6 +14,7 @@ export function buildIdentifier({
   const identifierName = token.text;
 
   // TODO: re-consider where this should be
+  // I think in `evaluate`, I need to `get`, but if there is nothing, then throw
   // if (!has(environment, identifierName)) {
   //   throw new CompilerError({
   //     name: 'JloxSyntaxError',
