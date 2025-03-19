@@ -1,11 +1,12 @@
-import { scan } from './scanner';
-import { parse, type Environment } from './parser';
-import { type ReadLine } from './index';
+import { scan } from '../scanner';
+import { parse } from '../parser';
+import { type Environment } from '../parser/types';
+import { type ReadLine } from '../index';
 
 export async function compile(
   readLine: ReadLine,
   environment?: Environment,
-): Promise<{ result: any, environment: Environment }> {
+): Promise<{ result: any; environment: Environment }> {
   const { tokens } = await scan(readLine);
   const globalScope: Environment = environment ?? { outerScope: null };
   const { statements } = parse({
@@ -18,6 +19,6 @@ export async function compile(
 
   return {
     result,
-    environment: globalScope
+    environment: globalScope,
   };
 }

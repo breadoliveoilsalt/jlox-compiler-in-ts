@@ -1,11 +1,7 @@
-import {
-  type Token,
-  type Tokens,
-  type TokenName,
-  TOKEN_NAMES,
-} from './scanner';
-import type { NodeBuilderParams, Environment } from './parser';
-import { CompilerError } from './errors';
+import { TOKEN_NAMES } from '../../scanner';
+import type { Token, Tokens, TokenName } from '../../scanner/types';
+import type { NodeBuilderParams, Environment } from '../types';
+import { CompilerError } from '../../errors';
 
 export function matches(token: Token | undefined, ...tokenNames: string[]) {
   if (!token) return undefined;
@@ -81,7 +77,6 @@ export function sequencer() {
 }
 
 export function envHelpers() {
-
   function set(env: Environment, key: string, value: any) {
     env[key] = value;
     return env;
