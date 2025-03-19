@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { compile } from './compiler';
-import { type Environment } from './parser';
+import { type Environment } from './parser/types';
 import { CompilerError } from './errors';
 import { systemPrint } from './systemPrint';
 
