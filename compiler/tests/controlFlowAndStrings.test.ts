@@ -270,7 +270,13 @@ describe('for loops', () => {
       .spyOn(outputModule, 'systemPrint')
       .mockReturnValue(undefined);
 
-    const lines = ['for (var i = 0; i < 6; i = i + 1) {', '  print i;', '}'];
+    const lines = [
+      `
+      for (var i = 0; i < 6; i = i + 1) {
+        print i;
+      }
+        `,
+    ];
 
     const readLine = buildReadLine(lines);
 
