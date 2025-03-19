@@ -1,15 +1,14 @@
+import { buildIdentifier } from './buildIdentifier';
+import { buildBlock } from './buildBlock';
 import {
   NodeBuilderParams,
   NodeBuilderResult,
-  buildIdentifier,
-  buildParameters,
-  buildBlock,
   Environment,
   AstTree,
-} from '.';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { matches } from './helpers';
+} from '../types';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches, envHelpers } from '../helpers';
 
 type ParametersResult = {
   parameterNodes: Array<AstTree>;
@@ -53,6 +52,8 @@ export function buildFunction({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
+  const { set } = envHelpers();
+
   const {
     node: identifierNode,
     currentTokenHead: tokenHeadAfterIdentifierBuilt,

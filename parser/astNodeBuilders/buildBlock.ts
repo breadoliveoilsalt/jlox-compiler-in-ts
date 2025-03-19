@@ -1,5 +1,6 @@
-import { AstTree } from '.';
-import { type Tokens, TOKEN_NAMES } from '../scanner';
+import { type AstTree } from '../types';
+import { type Tokens } from '../../scanner/types';
+import { TOKEN_NAMES } from '../../scanner';
 import { buildDeclaration } from './buildDeclaration';
 
 export function buildBlock({

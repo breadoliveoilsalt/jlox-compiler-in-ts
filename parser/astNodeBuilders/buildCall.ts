@@ -1,14 +1,14 @@
+import { buildExpression } from './buildExpression';
+import { buildPrimary } from './buildPrimary';
 import {
   NodeBuilderParams,
-  ArgumentsResult,
   NodeBuilderResult,
   Environment,
-} from '.';
-import { buildPrimary } from './buildPrimary';
-import { CompilerError, RuntimeError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { buildExpression } from './buildExpression';
-import { matches } from './helpers';
+  AstTree,
+} from '../types';
+import { CompilerError, RuntimeError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches } from '../helpers';
 
 export type ArgumentsResult = {
   argumentNodes: Array<AstTree>;

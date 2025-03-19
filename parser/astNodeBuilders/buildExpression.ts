@@ -1,4 +1,5 @@
-import { NodeBuilderParams, NodeBuilderResult, buildAssignment } from '.';
+import { buildAssignment } from './buildAssignment';
+import type { NodeBuilderParams, NodeBuilderResult } from '../types';
 
 export function buildExpression({
   tokens,

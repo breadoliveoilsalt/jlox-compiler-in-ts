@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { sequencer, envHelpers } from './helpers';
-import { type Tokens, TOKEN_NAMES } from '../scanner';
+import { TOKEN_NAMES } from '../scanner';
+import { type Tokens } from '../scanner/types';
 
 describe('sequencer', () => {
   test('it confirms that a token sequence exists', () => {

@@ -1,12 +1,19 @@
-import { NodeBuilderParams, NodeBuilderResult, buildOr, Environment } from '.';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { matches } from './helpers';
+import { buildOr } from './buildOr';
+import type {
+  NodeBuilderParams,
+  NodeBuilderResult,
+  Environment,
+} from '../types';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches, envHelpers } from '../helpers';
 
 export function buildAssignment({
   tokens,
   currentTokenHead,
 }: NodeBuilderParams): NodeBuilderResult {
+  const { update } = envHelpers();
+
   const { node: nodeFromOrBuild, currentTokenHead: tokenHeadAfterOrBuild } =
     buildOr({
       tokens,

@@ -1,10 +1,7 @@
-import {
-  NodeBuilderParams,
-  NodeBuilderResult,
-  buildFunction,
-  buildVar,
-  buildStatement,
-} from '.';
+import { buildFunction } from './buildFunction';
+import { buildVar } from './buildVar';
+import { buildStatement } from './buildStatement';
+import { NodeBuilderParams, NodeBuilderResult } from '../types';
 import { TOKEN_NAMES } from '../../scanner';
 import { matches } from '../helpers';
 

@@ -1,12 +1,12 @@
-import {
+import { buildTerm } from './buildTerm';
+import type {
   NodeBuilderParams,
   NodeBuilderResult,
-  buildTerm,
   Environment,
-} from '.';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { matches, peek } from './helpers';
+} from '../types';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches, peek } from '../helpers';
 
 export function buildComparison({
   tokens,

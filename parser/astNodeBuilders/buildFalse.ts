@@ -1,4 +1,4 @@
-import { NodeBuilderParams, NodeBuilderResult } from '.';
+import type { NodeBuilderParams, NodeBuilderResult } from '../types';
 
 export function buildFalse({
   tokens,

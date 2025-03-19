@@ -1,11 +1,11 @@
-import {
+import { buildEquality } from './buildEquality';
+import type {
   NodeBuilderParams,
   NodeBuilderResult,
-  buildEquality,
   Environment,
-} from '.';
-import { TOKEN_NAMES } from '../scanner';
-import { matches } from './helpers';
+} from '../types';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches } from '../helpers';
 
 export function buildAnd({
   tokens,

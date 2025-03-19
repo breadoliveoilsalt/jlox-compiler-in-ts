@@ -1,8 +1,12 @@
-import { NodeBuilderParams, NodeBuilderResult, Environment } from '.';
+import type {
+  NodeBuilderParams,
+  NodeBuilderResult,
+  Environment,
+} from '../types';
 import { buildUnary } from './buildUnary';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { matches, peek } from './helpers';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { matches, peek } from '../helpers';
 
 export function buildFactor({
   tokens,

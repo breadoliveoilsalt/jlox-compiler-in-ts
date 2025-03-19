@@ -1,15 +1,15 @@
-import {
+import { buildExpressionStatement } from './buildExpressionStatement';
+import { buildExpression } from './buildExpression';
+import type {
   NodeBuilderParams,
   NodeBuilderResult,
-  buildExpressionStatement,
-  buildExpression,
   Environment,
-} from '.';
-import { CompilerError } from '../errors';
-import { TOKEN_NAMES } from '../scanner';
-import { buildStatement } from './astNodeBuilders/buildStatement';
+} from '../types';
+import { CompilerError } from '../../errors';
+import { TOKEN_NAMES } from '../../scanner';
+import { buildStatement } from './buildStatement';
 import { buildVar } from './buildVar';
-import { matches } from './helpers';
+import { matches } from '../helpers';
 
 export function buildForStatement({
   tokens,
