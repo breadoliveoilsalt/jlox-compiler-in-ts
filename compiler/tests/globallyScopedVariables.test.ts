@@ -2,8 +2,8 @@ import { describe, test, expect } from 'vitest';
 import { buildReadLine, testCompiler } from './testHelpers';
 import { compile } from '..';
 
-describe('global variables', () => {
-  test('it permits the declaration of global variables', () => {
+describe('globally scoped variables', () => {
+  test('it permits the declaration of globally scoped variables', () => {
     testCompiler({ line: 'var thing = true;', expected: null });
   });
 
