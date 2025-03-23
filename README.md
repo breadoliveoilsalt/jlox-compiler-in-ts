@@ -33,7 +33,7 @@ relevant sections below.
 
 - `npm run test`
 
-## Next steps (TODOs)
+## Next steps
 
 My goal was to reach, and implement up to, [Chapter 10 of Crafting
 Interpreters: Functions](https://craftinginterpreters.com/functions.html).
@@ -177,7 +177,8 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   -  I'm considering moving away from such a pattern and instead having each
      builder function accept a `context` object that is not destructured and
      then return an update `context` argument.
-- LATER UPDATE: I did a big refactor at some point that lessened the number of
+
+- UPDATE: I did a big refactor at some point that lessened the number of
   arguments needed by most of my functions, so by an large, I kept the style of
   using object parameters. I do realize, though, that TypeScript help mitigate
   the benefit of object parameters. This is all an ongoing thought process and
