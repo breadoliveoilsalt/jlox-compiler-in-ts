@@ -7,10 +7,10 @@
   "module": "es2022",
   "target": "es2022",
   "scripts": {
-    "compile": "(tsc || true) && npm run execute",
-    "compile:src": "npm run compile -- ./src.jlox",
-    "execute": "tsx index.ts",
     "repl": "npm run execute",
+    "compile": "npm run execute",
+    "compile:src": "npm run execute -- ./src.jlox",
+    "execute": "tsx index.ts",
     "test": "vitest",
     "typecheck": "tsc"
   },

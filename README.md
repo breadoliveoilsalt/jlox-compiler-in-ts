@@ -10,7 +10,7 @@ Java.
 Here I'm striving to implement `jlox`, but with a few key differences:
 
 - 1) Write the compiler in TypeScript instead of Java
-- 2) Take a more functional-programming approach, rather than an object-oriented
+- 2) Take a functional-programming approach, rather than an object-oriented
   approach.
 
 I'm also attempting to document next steps and learnings along the way, in the
@@ -18,36 +18,41 @@ relevant sections below.
 
 ## Running the compiler
 
-- Node v22.5.0
-- `npm ci`
+- Ensure dependencies are met:
+  - Node v22.5.0
+  - Run `npm ci`
 - To start a repl:
-  - `npm run compile`
+  - `npm run repl`
 - To evaluate a file:
   - `npm run compile -- <file path>`
   - Example: `npm run compile -- ./src.jlox`
     - This will read the `jlox` written in `src.jlox` and print the result to the terminal.
-  - `npm run compile:src` evaluates `src.jlox`.
-  - Currently TypeScript errors are non-blocking.
+  - `npm run compile:src` evaluates `./src.jlox` by default.
 
 ## Running tests
 
 - `npm run test`
 
-## Next steps (TODOs)
+## Next steps
 
-- [ ] Refactor environment binding to fix bug where multiple recursion calls
-  bind incorrect values to parameters.
-- [ ] Refactor tests, breaking integration tests into different files for
-  expressions, variables, etc.
-- [ ] Refactor AST node builders, breaking the `parse.ts` file into different
-  files.
-- [ ] When there are a recursive function like `buildArguments` or `buildBlock`, be
-  consistent about whether it consumes the last brace or token. The trade off is:
-  all the other functions consume the last token when evaluating, so there's
-  consistence vs the call has to then check that `currentTokenHead - 1` is the
-  correct paren or brace, rather than EOF. For example, `buildArgs` does NOT consume the
-  right paren, so we have the check here for `currentTokenHead` (above), but have
-  to plus one below
+My goal was to reach, and implement up to, [Chapter 10 of Crafting
+Interpreters: Functions](https://craftinginterpreters.com/functions.html).
+Examples of what the compiler supports can be be see in the test files, with
+`./compilare/tests/functions.test.ts` being the latest and greatest.
+
+Thankfully I reached my goal, and now I'm turning my attention to other projects
+and learning endeavors. However, at some point I would like to come back to this
+project and make the repl more robust. For example, right now, the repl can only
+handle one line at a time, which is not very convenient if you want to write a
+function. I'd also like to implement a  "[panic
+mode](https://craftinginterpreters.com/parsing-expressions.html#panic-mode-error-recovery)"
+within the compiler for better error recovery overall.
+
+Other things on my wish-list to implement, but have low-priority, are:
+- Add support for commenting-out jlox code
+- Support for tokenizing multi-line strings
+- Add the cursor position of each lexeme during the tokenizing step, for better error
+  reporting.
 
 ## Done
 - [X] Chapters 1-7 of [Crafting Interpreters](https://craftinginterpreters.com/):
@@ -73,28 +78,22 @@ relevant sections below.
 - [X] Chapter 9 of [Crafting Interpreters](https://craftinginterpreters.com/control-flow.html):
   Control Flow
 - [X] Chapter 10 of [Crafting Interpreters](https://craftinginterpreters.com/functions.html):
-  Function
-
-## Open issues / Questions
-
-- To consider:
-  - Can I hide knowledge of data structure from parser, etc., with an intermediate
-    layer of helper methods?
-  - Consider adding cursor position of each lexeme in scanner, for better error
-    reporting.
-
-## Wish list
-
-- Add support for commenting-out jlox code
-- Multi-line string support
-- Multi-line support for repl
-- "Panic Mode" and full syntax error reporting in one go
+  Functions
+- [X] Refactor environment binding to fix bug where multiple recursion calls
+  bind incorrect values to parameters.
+- [X] Refactor tests, breaking integration tests into different files for
+  expressions, variables, etc.
+- [X] Refactor AST node builders, breaking the `parse.ts` file into different
+  files.
 
 ## Learnings (and how certain issues were resolved)
 
-#### Reading lines of a file with node
+These are notes I left myself (and anyone interested) on the most important
+problems and lessons I came across while building this.
 
-- It seems extremely difficult (impossible?) to extract from node a `readLine` function, that
+#### Reading lines of a file with Node
+
+- It seems extremely difficult (impossible?) to extract from Node a `readLine` function, that
   streams lines from a file, that can then be passed around to other functions
   and called whenever a new line is needed (e.g., tokenizing multi-line
   strings).
@@ -105,11 +104,11 @@ relevant sections below.
   supplying one line at a time every time `readLine` is called. Refactor later.
   See `initLineReader`.
 
-#### Reading lines repeatedly for a repl with node
+#### Reading lines repeatedly for a repl with Node
 
 - Learning: On adding a repl:
-  - A `while` loop does not work for reading line over and over in node. With
-    such an approach, node exhibited an odd behavior, repeating each character
+  - A `while` loop does not work for reading line over and over in Node. With
+    such an approach, Node exhibited an odd behavior, repeating each character
     typed, increasing once per loop.
   - Instead, we need this recursive style function seen in the `runRepl` function.
     - See also:
@@ -167,8 +166,8 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   object parameters and instead try to enforce consistent variable assignment
   by having functions return objects to be destructured by function callers.
 
-- At some point, but my code had a pattern of destructuring all object
-  parameters and returning an object with those same keys. That is, the node
+- At some point, my code had a pattern of destructuring all object
+  parameters and returning an object with those same keys. That is, the Node
   builders would both receive and return an object with the same keys. The
   larger that object grew, the more of a pain it was to maintain this style.
   Every time a new key was added to this object, I had to update each builder
@@ -179,6 +178,12 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
      builder function accept a `context` object that is not destructured and
      then return an update `context` argument.
 
+- UPDATE: I did a big refactor at some point that lessened the number of
+  arguments needed by most of my functions, so by an large, I kept the style of
+  using object parameters. I do realize, though, that TypeScript help mitigate
+  the benefit of object parameters. This is all an ongoing thought process and
+  debate I'm having with myself.
+
 #### Bugs I've Caused
 
 - As of Chapter 7 (evaluating expressions), my biggest source of bugs has been
@@ -188,14 +193,14 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
   left and right expression. But chasing down and fixing these bugs has been
   very instructive.
 
-- In chapter 8 (adding the environment for binding variables to values and
+- In Chapter 8 (adding the environment for binding variables to values and
   adding scope), solving bugs reminded me that updating the environment has to
   be done outside of a node's `evaluate` function. That is, the node build has
   to update the env, not the node itself.
 
 #### Compiling with TypeScript in Node
 
-- The strategy of transpiling TypeScript using `tsc` and then running node on the
+- The strategy of transpiling TypeScript using `tsc` and then running Node on the
   emitted JavaScript makes it hard to debug: errors are reported on lines in
   the compressed output files, which do not correspond to the lines in the
   source TypeScript files. See
@@ -244,7 +249,7 @@ if (matches(peek(remainingTokens), TOKEN_NAMES.EQUAL_EQUAL)) {
 
 #### Extra appreciation of recursion
 - I'm proud of realizing that `parse` can be a recursive function and
-  implementing it that way.
+  of the way I implemented it recursively.
 
 #### Problems with classic deep clone with JSON.stringify & JSON.parse
 
@@ -272,7 +277,11 @@ undefined
   but by far the biggest cause was casting too big a net in the `try` of a
   `try/catch` block. The `try` originally had the logic for parsing the tokens,
   printing the result to the repl, re-running the repl loop, etc.
-  - Generally speaking, the solution was to wrap just the parsing call in a `try/catch` block that would return an object either the result of parsing or a meaningful error in string form. See `compileForRepl`. Then, the function receiving the result of the user's input could decide what to do with the result or the stringified error. This is a great pattern.
+  - Generally speaking, the solution was to wrap just the parsing call in a
+    `try/catch` block that would return an object either the result of parsing
+    or a meaningful error in string form. See `compileForRepl`. Then, the
+    function receiving the result of the user's input could decide what to do
+    with the result or the stringified error. This is a great pattern.
 
 #### For tracking variables, I tried having a non-global environment. That all fell apart when implementing while loops
 
